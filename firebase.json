@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "site": "american-sport-leagues",
+    "site": "american-sports-leagues",
     "public": "public",
     "ignore": [
       "firebase.json",
@@ -13,5 +13,8 @@
         "destination": "/index.html"
       }
     ]
+  },
+  "functions": {
+    "source": "functions"
   }
 }
