@@ -1,6 +1,7 @@
 {
   "hosting": {
-    "public": "dist",
+    "site": "american-sport-leagues",
+    "public": "public",
     "ignore": [
       "firebase.json",
       "**/.*",
