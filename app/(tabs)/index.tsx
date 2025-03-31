@@ -28,7 +28,8 @@ interface GameFormatted {
   startTimeUTC?: string;
 }
 
-const EXPO_PUBLIC_API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL ?? '';
+const EXPO_PUBLIC_API_BASE_URL =
+  process.env.EXPO_PUBLIC_API_BASE_URL ?? 'https://sportschedule2025backend.onrender.com';
 let gamesDay = {};
 let lastGamesUpdate: Date;
 
@@ -89,7 +90,7 @@ export default function GameofTheDay() {
         </View>
       );
     }
-    const leaguesAvailable = ['ALL',...new Set(games.map((game) => game.league))];
+    const leaguesAvailable = ['ALL', ...new Set(games.map((game) => game.league))];
     return leaguesAvailable.map((league, i) => {
       let gamesFiltred = [...games];
       if (league !== League.ALL) {
