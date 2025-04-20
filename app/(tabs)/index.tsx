@@ -102,12 +102,44 @@ export default function GameofTheDay() {
     if (!games || games.length === 0) {
       return displayNoContent();
     }
-    const leaguesAvailable = ['ALL', ...new Set(games.map((game) => game.league))];
+    const leaguesAvailable = [League.ALL, ...new Set(games.map((game) => game.league).sort())];
+
     return leaguesAvailable.map((league, i) => {
       let gamesFiltred = [...games];
       if (league !== League.ALL) {
         gamesFiltred = gamesFiltred.filter((game) => game.league === league);
+      } else {
+        const language = navigator.language.split('-')[0];
+        switch (language) {
+          case 'fr':
+            league = 'TOUS';
+            break;
+          case 'en':
+            league = 'ALL';
+            break;
+          case 'de':
+            league = 'ALLE';
+            break;
+          case 'es':
+            league = 'TODOS';
+            break;
+          case 'it':
+            league = 'TUTTI';
+            break;
+          case 'zh':
+            league = '所有';
+            break;
+          case 'ja':
+            league = 'すべて';
+            break;
+          case 'ko':
+            league = '전체';
+            break;
+          default:
+            break;
+        }
       }
+
       return (
         <div key={i} style={{ margin: 'auto', width: '90%' }}>
           {displayAccordion({ league, i, gamesFiltred })}
@@ -117,11 +149,7 @@ export default function GameofTheDay() {
   };
 
   const displayAccoridon = (leaguesAvailable) => {
-    return leaguesAvailable.map((league, i) => {
-      let gamesFiltred = [...games];
-      if (league !== League.ALL) {
-        gamesFiltred = gamesFiltred.filter((game) => game.league === league);
-      }
+    return leaguesAvailable.map((league, i, gamesFiltred) => {
       return (
         <td key={i} style={{ verticalAlign: 'baseline' }}>
           <Accordion league={league} i={i} gamesFiltred={gamesFiltred} open={true} />
