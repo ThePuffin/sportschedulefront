@@ -34,8 +34,8 @@ export const generateICSFile = ({ homeTeam, awayTeam, startTimeUTC, arenaName, p
   DTEND:${
     new Date(new Date(startTimeUTC).getTime() + 3 * 60 * 60 * 1000).toISOString().replace(/[-:]/g, '').split('.')[0] +
     'Z'
-    }
-LOCATION:${arenaName}, ${placeName}
+  }
+LOCATION:
 DESCRIPTION:
 TRANSP:OPAQUE
 END:VEVENT
