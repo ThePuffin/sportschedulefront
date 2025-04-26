@@ -26,18 +26,18 @@ interface ICSFileParams {
 }
 
 // LOCATION:${arenaName}, ${placeName}
+// DESCRIPTION:Game between ${homeTeam} and ${awayTeam} at ${arenaName}.
 export const generateICSFile = ({ homeTeam, awayTeam, startTimeUTC, arenaName, placeName }: ICSFileParams) => {
   const icsContent = `BEGIN:VCALENDAR
 VERSION:2.0
 BEGIN:VEVENT
 UID: ${Date.now()}
-SUMMARY:${homeTeam} vs ${awayTeam}
+SUMMARY:${homeTeam} vs ${awayTeam} @ ${arenaName}
 DTSTART:${new Date(startTimeUTC).toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z'}
 DTEND:${
     new Date(new Date(startTimeUTC).getTime() + 3 * 60 * 60 * 1000).toISOString().replace(/[-:]/g, '').split('.')[0] +
     'Z'
   }
-DESCRIPTION:Game between ${homeTeam} and ${awayTeam} at ${arenaName}.
 TRANSP:OPAQUE
 END:VEVENT
 END:VCALENDAR`;
