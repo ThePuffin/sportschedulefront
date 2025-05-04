@@ -44,7 +44,6 @@ export default function Cards({
   const [teamNameAway, setTeamNameAway] = useState(awayTeam);
   const [isSmallDevice, setIsSmallDevice] = useState(false);
   const [fontSize, setFontSize] = useState('1rem');
-  const addHeight = numberSelected > 4 ? numberSelected * 6 : numberSelected * 3;
 
   useEffect(() => {
     const updateDeviceType = () => {
@@ -114,7 +113,6 @@ export default function Cards({
 
   const displayTitle = () => {
     if (arenaName && arenaName !== '') {
-      const stadiumSearch = arenaName.replace(/\s+/g, '+') + ',' + placeName.replace(/\s+/g, '+');
       return (
         <Card.Title style={{ ...cardClass }}>
           <button
@@ -144,49 +142,6 @@ export default function Cards({
             )}
             {gameDate}
           </button>
-          {'\u00A0'}{' '}
-          {showButtons || !showDate ? (
-            <a
-              href={`https://maps.google.com/?q=${stadiumSearch}`}
-              style={{ textDecoration: 'none', color: 'inherit' }}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Icon
-                name="map-marker"
-                type="font-awesome"
-                size={isSmallDevice ? 10 : 12}
-                color={cardClass.color ?? defaultColors.color}
-                style={{ marginRight: 0, paddingRight: 0 }}
-              />
-              <p
-                style={{
-                  textOverflow: 'ellipsis',
-                  overflow: 'hidden',
-                  whiteSpace: 'nowrap',
-                  width: '100%',
-                  margin: 3,
-                  padding: 0,
-                }}
-              >
-                {arenaName}
-              </p>
-            </a>
-          ) : (
-            <p
-              style={{
-                textOverflow: 'ellipsis',
-                overflow: 'hidden',
-                whiteSpace: 'nowrap',
-                width: '100%',
-                margin: 3,
-                padding: 0,
-                color: 'inherit',
-              }}
-            >
-              {arenaName}
-            </p>
-          )}
         </Card.Title>
       );
     }
@@ -195,6 +150,7 @@ export default function Cards({
 
   const displayContent = () => {
     if (homeTeam && awayTeam) {
+      const stadiumSearch = arenaName.replace(/\s+/g, '+') + ',' + placeName.replace(/\s+/g, '+');
       return (
         <View
           onClick={() => {
@@ -212,7 +168,7 @@ export default function Cards({
             justifyContent: 'center',
             alignItems: 'center',
             flexDirection: 'column',
-            height: isSmallDevice ? 193 : 180,
+            height: 180,
           }}
         >
           <Image
@@ -242,6 +198,72 @@ export default function Cards({
               uri: homeTeamLogo,
             }}
           />
+          <br />
+          <Text>
+            {showButtons || !showDate ? (
+              <a
+                href={`https://maps.google.com/?q=${stadiumSearch}`}
+                style={{
+                  textDecoration: 'none',
+                  color: cardClass.color ?? defaultColors.color,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 5,
+                }}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Icon
+                  name="map-marker"
+                  type="font-awesome"
+                  size={isSmallDevice ? 10 : 12}
+                  style={{ marginRight: 0 }}
+                  color={cardClass.color ?? defaultColors.color}
+                />
+                <span
+                  style={{
+                    textOverflow: 'ellipsis',
+                    overflow: 'hidden',
+                    whiteSpace: 'nowrap',
+                    width: '100%',
+                    margin: 0,
+                    padding: 0,
+                  }}
+                >
+                  {arenaName}
+                </span>
+              </a>
+            ) : (
+              <div
+                style={{
+                  display: 'flex', // Makes the content inline
+                  alignItems: 'center', // Vertically aligns items
+                  gap: 5, // Adds spacing between the icon and text
+                }}
+              >
+                <Icon
+                  name="map-marker"
+                  type="font-awesome"
+                  size={isSmallDevice ? 10 : 12}
+                  style={{ marginRight: 0 }}
+                  color={cardClass.color ?? defaultColors.color}
+                />
+                <p
+                  style={{
+                    textOverflow: 'ellipsis',
+                    overflow: 'hidden',
+                    whiteSpace: 'nowrap',
+                    width: '80%',
+                    margin: 3,
+                    padding: 0,
+                    color: cardClass.color ?? defaultColors.color,
+                  }}
+                >
+                  {arenaName}
+                </p>
+              </div>
+            )}
+          </Text>
         </View>
       );
     }
@@ -268,7 +290,7 @@ export default function Cards({
           marginRight: 0,
           ...selectedCard,
           ...cardClass,
-          height: isSmallDevice ? 300 + addHeight : 290,
+          height: 270,
         }}
         wrapperStyle={cardClass}
       >
@@ -276,12 +298,10 @@ export default function Cards({
           style={{
             overflow: 'hidden',
             textOverflow: 'ellipsis',
-            display: showDate ? '' : 'flex',
+            // display: showDate ? '' : 'flex',
             whiteSpace: showDate ? '' : 'nowrap',
             alignItems: showDate ? '' : 'center',
             justifyContent: showDate ? '' : 'center',
-            marginBottom: showDate ? '' : 0,
-            height: isSmallDevice ? 55 + addHeight : 55,
           }}
         >
           {displayTitle()}
