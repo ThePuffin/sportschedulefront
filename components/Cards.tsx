@@ -13,6 +13,7 @@ interface CardsProps {
   onSelection: (game: GameFormatted) => void;
   selected: boolean;
   showButtons?: boolean;
+  numberSelected?: number;
 }
 
 export default function Cards({
@@ -151,6 +152,10 @@ export default function Cards({
   const displayContent = () => {
     if (homeTeam && awayTeam) {
       const stadiumSearch = arenaName.replace(/\s+/g, '+') + ',' + placeName.replace(/\s+/g, '+');
+      let shortArenaName =
+        arenaName && numberSelected > 3 && arenaName.length > 5 ? arenaName.split(' ')[0] + ' ...' : arenaName || '';
+      shortArenaName =
+        isSmallDevice && shortArenaName.length > 7 ? shortArenaName.slice(0, 6) + ' ...' : shortArenaName;
       return (
         <View
           onClick={() => {
@@ -176,22 +181,22 @@ export default function Cards({
               width: '50%',
               height: 50,
               filter:
-                'drop-shadow(0.01px 0 0 #101518) drop-shadow(0 0.01px 0 #101518) drop-shadow(0.01px 0 0 #101518) drop-shadow(0 0.01px 0 #101518)',
+                'drop-shadow(1px 0 0 #101518) drop-shadow(0 1px 0 #101518) drop-shadow(0.1px 0 0 #101518) drop-shadow(0 0.1px 0 #101518)',
             }}
             resizeMode="contain"
             source={{
               uri: awayTeamLogo,
             }}
           />
-          <Text style={cardClass}>{teamNameAway}</Text>
-          <Text style={cardClass}>@</Text>
-          <Text style={cardClass}>{teamNameHome}</Text>
+          <Text style={{ ...cardClass, backgroundColor: 'transparent' }}>{teamNameAway}</Text>
+          <Text style={{ ...cardClass, backgroundColor: 'transparent' }}>@</Text>
+          <Text style={{ ...cardClass, backgroundColor: 'transparent' }}>{teamNameHome}</Text>
           <Image
             style={{
               width: '50%',
               height: 50,
               filter:
-                'drop-shadow(0.01px 0 0 #101518) drop-shadow(0 0.01px 0 #101518) drop-shadow(0.01px 0 0 #101518) drop-shadow(0 0.01px 0 #101518)',
+                'drop-shadow(1px 0 0 #101518) drop-shadow(0 1px 0 #101518) drop-shadow(0.1px 0 0 #101518) drop-shadow(0 0.1px 0 #101518)',
             }}
             resizeMode="contain"
             source={{
@@ -230,7 +235,7 @@ export default function Cards({
                     padding: 0,
                   }}
                 >
-                  {arenaName}
+                  {arenaName ? shortArenaName : 'Stadium not found'}
                 </span>
               </a>
             ) : (
@@ -259,7 +264,7 @@ export default function Cards({
                     color: cardClass.color ?? defaultColors.color,
                   }}
                 >
-                  {arenaName}
+                  {arenaName ? shortArenaName : 'Stadium not found'}
                 </p>
               </div>
             )}
