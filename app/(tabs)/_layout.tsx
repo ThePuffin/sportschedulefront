@@ -20,7 +20,6 @@ export default function TabLayout() {
         tabBarBackground: TabBarBackground,
         tabBarStyle: Platform.select({
           ios: {
-            // Use a transparent background on iOS to show the blur effect
             position: 'absolute',
           },
           default: {},
@@ -39,6 +38,13 @@ export default function TabLayout() {
         options={{
           title: translateWord('calendars'),
           tabBarIcon: ({ color }) => <Icon size={28} name="calendar" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="schedule"
+        options={{
+          title: translateWord('remainingGames'),
+          tabBarIcon: ({ color }) => <Icon size={28} name="table" color={color} />,
         }}
       />
     </Tabs>
