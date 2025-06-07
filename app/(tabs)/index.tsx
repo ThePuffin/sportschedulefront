@@ -1,3 +1,4 @@
+// import Selector from '@/components/Selector';
 import { ThemedView } from '@/components/ThemedView';
 import React, { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
@@ -95,8 +96,28 @@ export default function GameofTheDay() {
     getGamesFromApi(startDate);
   };
 
-  const displaySelect = ({ league, i, gamesFiltred }) => {
-    return <Accordion key={i} open={i === 0} filter={league} i={i} gamesFiltred={gamesFiltred} isCounted={isCounted} />;
+  // const handleLeagueSelectionChange = (leagueSelectedId: string, i: number) => {
+  //   console.log(`League selected: ${leagueSelectedId} at index ${i}`);
+  // };
+
+  const displaySelect = ({ league, leaguesAvailable, i, gamesFiltred }) => {
+        // const data = {
+    //   i: i,
+    //   activeTeams: leaguesAvailable,
+    //   itemsSelectedIds: [leaguesAvailable],
+    //   itemSelectedId: leaguesAvailable[i],
+    // };
+    // return (
+    //   <ThemedView>
+    //     <Selector data={data} onItemSelectionChange={handleLeagueSelectionChange} />
+    //     <p>the card</p>
+    //   </ThemedView>
+    // );
+    return (
+      <ThemedView>
+        <Accordion key={i} open={i === 0} filter={league} i={i} gamesFiltred={gamesFiltred} isCounted={isCounted} />
+      </ThemedView>
+    );
   };
 
   const displayNoContent = () => {
@@ -118,11 +139,7 @@ export default function GameofTheDay() {
       if (league !== League.ALL) {
         gamesFiltred = gamesFiltred.filter((game) => game.league === league);
       }
-      return (
-        <div key={league} style={{ margin: 'auto', width: '90%' }}>
-          {displaySelect({ league, i, gamesFiltred })}
-        </div>
-      );
+      return <div key={league}>{displaySelect({ league, leaguesAvailable, i, gamesFiltred })}</div>;
     });
   };
 
