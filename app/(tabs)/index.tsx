@@ -33,12 +33,13 @@ interface GameFormatted {
 let width: number;
 const EXPO_PUBLIC_API_BASE_URL =
   process.env.EXPO_PUBLIC_API_BASE_URL ?? 'https://sportschedule2025backend.onrender.com';
-let gamesDay = {};
+let gamesDay: { [key: string]: GameFormatted[] } = {};
 let lastGamesUpdate: Date;
 const isCounted = true;
 
 const fetchGames = async (date: string): Promise<GameFormatted[]> => {
   try {
+    date = date || new Date().toISOString().split('T')[0];
     const response = await fetch(`${EXPO_PUBLIC_API_BASE_URL}/games/date/${date}`);
     const dayGames = await response.json();
     gamesDay[date] = dayGames;
@@ -49,8 +50,8 @@ const fetchGames = async (date: string): Promise<GameFormatted[]> => {
   }
 };
 
-const getNextGamesFromApi = async (date: string): Promise<null> => {
-  const newFetch = {};
+const getNextGamesFromApi = async (date: Date): Promise<null> => {
+  const newFetch: { [key: string]: GameFormatted[] } = {};
   for (let i = 0; i < 10; i++) {
     const nextDate = new Date(date);
     nextDate.setDate(nextDate.getDate() + i);
@@ -65,10 +66,11 @@ const getNextGamesFromApi = async (date: string): Promise<null> => {
 export default function GameofTheDay() {
   const { width: windowWidth } = useWindowDimensions();
   width = windowWidth;
-  const getGamesFromApi = async (date): Promise<GameFormatted[]> => {
+  const getGamesFromApi = async (date: Date): Promise<GameFormatted[] | undefined> => {
     const YYYYMMDD = new Date(date).toISOString().split('T')[0];
     if (Object.keys(gamesDay).length === 0) {
-      const localStorageGamesDay = JSON.parse(localStorage.getItem('gamesDay'));
+      const gamesDayString = localStorage.getItem('gamesDay');
+      const localStorageGamesDay = gamesDayString ? JSON.parse(gamesDayString) : {};
       gamesDay = localStorageGamesDay || {};
     }
     if (gamesDay?.[YYYYMMDD]?.length) {
@@ -88,13 +90,12 @@ export default function GameofTheDay() {
   const [games, setGames] = useState<GameFormatted[]>([]);
   const [dateRange, setDateRange] = useState({ startDate: currentDate, endDate: currentDate });
 
-  const handleDateChange = (startDate, endDate) => {
+  const handleDateChange = (startDate: Date, endDate: Date) => {
     setDateRange({ startDate, endDate });
     getGamesFromApi(startDate);
   };
 
-  const displayAccordion = ({ league, i, gamesFiltred }) => {
-    
+  const displaySelect = ({ league, i, gamesFiltred }) => {
     return <Accordion key={i} open={i === 0} filter={league} i={i} gamesFiltred={gamesFiltred} isCounted={isCounted} />;
   };
 
@@ -112,21 +113,21 @@ export default function GameofTheDay() {
     }
     const leaguesAvailable = [League.ALL, ...new Set(games.map((game) => game.league).sort())];
 
-    return leaguesAvailable.map((league, i) => {
+    return leaguesAvailable.map((league, i: number) => {
       let gamesFiltred = [...games];
       if (league !== League.ALL) {
         gamesFiltred = gamesFiltred.filter((game) => game.league === league);
       }
       return (
         <div key={league} style={{ margin: 'auto', width: '90%' }}>
-          {displayAccordion({ league, i, gamesFiltred })}
+          {displaySelect({ league, i, gamesFiltred })}
         </div>
       );
     });
   };
 
-  const displayAccoridon = (leaguesAvailable) => {
-    return leaguesAvailable.map((league, i) => {
+  const displayAccordion = (leaguesAvailable) => {
+    return leaguesAvailable.map((league, i: number) => {
       let gamesFiltred = [...games];
       if (league !== League.ALL) {
         gamesFiltred = gamesFiltred.filter((game) => game.league === league);
@@ -154,7 +155,7 @@ export default function GameofTheDay() {
     return (
       <table style={{ tableLayout: 'fixed', width: leaguesAvailable.length > 1 ? '100%' : '50%', margin: 'auto' }}>
         <tbody>
-          <tr>{displayAccoridon(leaguesAvailable)}</tr>
+          <tr>{displayAccordion(leaguesAvailable)}</tr>
         </tbody>
       </table>
     );

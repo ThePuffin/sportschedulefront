@@ -7,8 +7,10 @@ export default function Selector({ data, onTeamSelectionChange }: Readonly<Selec
 
   const [teams, setTeams] = useState<{ value: string; label: string }[]>([]);
 
-  const changeTeam = (event: { value: string; label: string }) => {
-    onTeamSelectionChange(event.value, i);
+  const changeTeam = (newValue: { value: string; label: string } | null) => {
+    if (newValue) {
+      onTeamSelectionChange(newValue.value, i);
+    }
   };
 
   useEffect(() => {
@@ -31,20 +33,20 @@ export default function Selector({ data, onTeamSelectionChange }: Readonly<Selec
 
   const targetHeight = 65;
   const customStyles = {
-    control: (base) => ({
+    control: (base: React.CSSProperties) => ({
       ...base,
       minHeight: 'initial',
     }),
-    valueContainer: (base) => ({
+    valueContainer: (base: React.CSSProperties) => ({
       ...base,
       height: `${targetHeight - 1 - 1}px`,
       padding: '0 8px',
     }),
-    clearIndicator: (base) => ({
+    clearIndicator: (base: React.CSSProperties) => ({
       ...base,
       padding: `${(targetHeight - 20 - 1 - 1) / 2}px`,
     }),
-    dropdownIndicator: (base) => ({
+    dropdownIndicator: (base: React.CSSProperties) => ({
       ...base,
       padding: `${(targetHeight - 20 - 1 - 1) / 3}px`,
     }),
