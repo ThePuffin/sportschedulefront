@@ -73,6 +73,17 @@ const getNextGamesFromApi = async (date: Date): Promise<null> => {
 export default function GameofTheDay() {
   const { width: windowWidth } = useWindowDimensions();
   width = windowWidth;
+
+  const handleGames = (gamesDayExists: GameFormatted[]) => {
+    let gamesToDisplay: GameFormatted[] = gamesDayExists;
+    setGames(gamesDayExists);
+    if (league !== League.ALL) {
+      gamesToDisplay = gamesDayExists.filter((game) => game.league === league);
+    }
+    setGamesFiltred(gamesToDisplay);
+    displayGamesCards(gamesToDisplay);
+  };
+
   const getGamesFromApi = async (date: Date): Promise<GameFormatted[] | undefined> => {
     const YYYYMMDD = new Date(date).toISOString().split('T')[0];
     if (Object.keys(gamesDay).length === 0) {
@@ -81,12 +92,12 @@ export default function GameofTheDay() {
       gamesDay = localStorageGamesDay || {};
     }
     if (gamesDay?.[YYYYMMDD]?.length) {
-      setGames(gamesDay[YYYYMMDD]);
+      handleGames(gamesDay[YYYYMMDD]);
     }
 
     try {
       const gamesOfTheDay = await fetchGames(YYYYMMDD);
-      setGames(gamesOfTheDay);
+      handleGames(gamesOfTheDay);
     } catch (error) {
       console.error(error);
       return;
@@ -105,6 +116,7 @@ export default function GameofTheDay() {
   };
 
   const handleLeagueSelectionChange = (leagueSelectedId: string, i: number) => {
+    localStorage.setItem('league', leagueSelectedId);
     setLeague(leagueSelectedId as League);
     if (leagueSelectedId === League.ALL) {
       setGamesFiltred([...games]);
@@ -140,10 +152,11 @@ export default function GameofTheDay() {
       itemsSelectedIds: [],
       itemSelectedId: league,
     };
+    const displayGames = league !== League.ALL ? gamesFiltred : games;
     return (
       <ThemedView>
         <Selector data={data} onItemSelectionChange={handleLeagueSelectionChange} />
-        {displayGamesCards(gamesFiltred)}
+        {displayGamesCards(displayGames)}
       </ThemedView>
     );
   };
@@ -201,6 +214,10 @@ export default function GameofTheDay() {
 
   useEffect(() => {
     async function fetchGames() {
+      const storedLeague = localStorage.getItem('league');
+      if (storedLeague) {
+        setLeague(storedLeague as League);
+      }
       await getGamesFromApi(dateRange.startDate);
       if (!lastGamesUpdate || lastGamesUpdate.toDateString() !== new Date().toDateString()) {
         await getNextGamesFromApi(dateRange.startDate);
