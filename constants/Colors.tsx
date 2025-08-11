@@ -539,6 +539,10 @@ export const Colors = {
     color: '#f05023',
     backgroundColor: '#0a2240',
   },
+  'WNBA-CONN': {
+    color: '#f05023',
+    backgroundColor: '#0a2240',
+  },
   'WNBA-DAL': {
     color: '#002b5c',
     backgroundColor: '#c4d600',
