@@ -153,7 +153,14 @@ export default function GameofTheDay() {
         if (game) {
           const gameId = game?._id ?? randomNumber(999999);
           return (
-            <Cards key={gameId} data={game} numberSelected={1} showDate={true} onSelection={() => {}} selected={true} />
+            <Cards
+              key={gameId}
+              data={game}
+              numberSelected={1}
+              showDate={false}
+              onSelection={() => {}}
+              selected={true}
+            />
           );
         }
       });
@@ -211,13 +218,11 @@ export default function GameofTheDay() {
         translatedLeague = translateWord('translatedLeague');
       }
 
-      if (gamesFiltred.length > 0) {
-        return (
-          <td key={league} style={{ verticalAlign: 'baseline' }}>
-            <Accordion filter={translatedLeague} i={i} gamesFiltred={gamesFiltred} open={true} isCounted={isCounted} />
-          </td>
-        );
-      }
+      return (
+        <td key={league} style={{ verticalAlign: 'baseline' }}>
+          <Accordion filter={translatedLeague} i={i} gamesFiltred={gamesFiltred} open={true} isCounted={isCounted} />
+        </td>
+      );
     });
   };
 
