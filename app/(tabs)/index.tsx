@@ -103,6 +103,11 @@ export default function GameofTheDay() {
     if (leagueFromStorage !== League.ALL) {
       gamesToDisplay = gamesDayExists.filter((game) => game.league === league);
     }
+    if (gamesToDisplay.length === 0) {
+      setLeague(League.ALL);
+      localStorage.setItem('league', League.ALL);
+      gamesToDisplay = gamesDayExists;
+    }
     setGamesFiltred(gamesToDisplay);
     displayGamesCards(gamesToDisplay, leagueFromStorage);
   };
@@ -217,12 +222,13 @@ export default function GameofTheDay() {
       if (league === League.ALL) {
         translatedLeague = translateWord('translatedLeague');
       }
-
-      return (
-        <td key={league} style={{ verticalAlign: 'baseline' }}>
-          <Accordion filter={translatedLeague} i={i} gamesFiltred={gamesFiltred} open={true} isCounted={isCounted} />
-        </td>
-      );
+      if (gamesFiltred.length > 0) {
+        return (
+          <td key={league} style={{ verticalAlign: 'baseline' }}>
+            <Accordion filter={translatedLeague} i={i} gamesFiltred={gamesFiltred} open={true} isCounted={isCounted} />
+          </td>
+        );
+      }
     });
   };
 
