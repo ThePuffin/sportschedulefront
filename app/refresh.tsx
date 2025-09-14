@@ -1,13 +1,22 @@
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import React, { useEffect, useState } from 'react';
-import { View, useWindowDimensions } from 'react-native';
+import { Image, View, useWindowDimensions } from 'react-native';
 import Loader from '../components/Loader';
 import { translateWord } from '../utils/utils';
 
 let width: number;
 const EXPO_PUBLIC_API_BASE_URL =
   process.env.EXPO_PUBLIC_API_BASE_URL ?? 'https://sportschedule2025backend.onrender.com';
+
+const leagueLogos = {
+  MLB: require('../assets/images/MLB.png'),
+  NBA: require('../assets/images/NBA.png'),
+  NFL: require('../assets/images/NFL.png'),
+  NHL: require('../assets/images/NHL.png'),
+  WNBA: require('../assets/images/WNBA.png'),
+  DEFAULT: require('../assets/images/DEFAULT.png'),
+};
 
 export default function GameofTheDay() {
   const fetchLeagues = async (): Promise<void> => {
@@ -111,7 +120,16 @@ export default function GameofTheDay() {
                 display: 'block',
               }}
             >
-              {league}
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                <ThemedText style={{ color: '#fff', fontSize: '16px', marginRight: 10 }}>
+                  {league.toUpperCase()}
+                </ThemedText>
+                <Image
+                  source={leagueLogos[league.toUpperCase()] || leagueLogos.DEFAULT}
+                  style={{ height: 20, width: 40, resizeMode: 'contain' }}
+                  accessibilityLabel={`${league} logo`}
+                />
+              </View>
             </button>
           </View>
         ))}
