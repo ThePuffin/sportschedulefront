@@ -124,7 +124,7 @@ export default function Cards({
                 type="font-awesome"
                 style={{ paddingRight: isSmallDevice ? 5 : 10 }}
                 size={isSmallDevice ? 10 : 15}
-                color={teamColors.backgroundColor}
+                color={teamColors.color}
               />
             )}
             {gameDate}
