@@ -98,20 +98,37 @@ export default function GameofTheDay() {
   };
 
   const handleGames = (gamesDayExists: GameFormatted[]) => {
-    const storedLeague = localStorage.getItem('league');
-    const leagueFromStorage = storedLeague ? (storedLeague as League) : League.ALL;
-    let gamesToDisplay: GameFormatted[] = gamesDayExists;
-    setGames(gamesDayExists);
-    if (leagueFromStorage !== League.ALL) {
-      gamesToDisplay = gamesDayExists.filter((game) => game.league === league);
+    const nowMinusOneHour = new Date(new Date().getTime() - 3 * 60 * 60 * 1000);
+    const storedLeaguesSelected = localStorage.getItem('leaguesSelected');
+    let gamesToDisplay: GameFormatted[] = gamesDayExists.filter(
+      ({ startTimeUTC = '' }) => new Date(startTimeUTC) >= nowMinusOneHour
+    );
+    if (storedLeaguesSelected) {
+      const leaguesFromStorage = storedLeaguesSelected ? JSON.parse(storedLeaguesSelected) : LeaguesWithoutAll;
+
+      setSelectLeagues(leaguesFromStorage);
+      setGames(gamesDayExists);
+      if (leaguesFromStorage !== LeaguesWithoutAll) {
+        gamesToDisplay = gamesToDisplay.filter((game) => leaguesFromStorage.includes(game.league as League));
+      }
+      setGamesFiltred(gamesToDisplay);
+      displayGamesCards(gamesToDisplay);
+    } else {
+      const storedLeague = localStorage.getItem('league');
+      const leagueFromStorage = storedLeague ? (storedLeague as League) : League.ALL;
+
+      setGames(gamesDayExists);
+      if (leagueFromStorage !== League.ALL) {
+        gamesToDisplay = gamesDayExists.filter((game) => game.league === league);
+      }
+      if (gamesToDisplay.length === 0) {
+        setLeague(League.ALL);
+        localStorage.setItem('league', League.ALL);
+        gamesToDisplay = gamesDayExists;
+      }
+      setGamesFiltred(gamesToDisplay);
+      displayGamesCards(gamesToDisplay);
     }
-    if (gamesToDisplay.length === 0) {
-      setLeague(League.ALL);
-      localStorage.setItem('league', League.ALL);
-      gamesToDisplay = gamesDayExists;
-    }
-    setGamesFiltred(gamesToDisplay);
-    displayGamesCards(gamesToDisplay, leagueFromStorage);
   };
 
   const getGamesFromApi = async (date: Date, storedLeague?: string): Promise<GameFormatted[] | undefined> => {
@@ -142,10 +159,14 @@ export default function GameofTheDay() {
   };
 
   const handleLeagueSelectionChange = (leagueSelectedId: League | League[], i: number) => {
+    const nowMinusOneHour = new Date(new Date().getTime() - 3 * 60 * 60 * 1000);
     if (Array.isArray(leagueSelectedId)) {
       localStorage.setItem('leaguesSelected', JSON.stringify(leagueSelectedId));
       setSelectLeagues(leagueSelectedId);
-      const filteredGames = games.filter((game) => leagueSelectedId.includes(game.league as League));
+      const filteredGames = games.filter(
+        (game) =>
+          leagueSelectedId.includes(game.league as League) && new Date(game.startTimeUTC || '') >= nowMinusOneHour
+      );
       setGamesFiltred([...filteredGames]);
     } else {
       localStorage.setItem('league', leagueSelectedId);
@@ -159,7 +180,7 @@ export default function GameofTheDay() {
     }
   };
 
-  const displayGamesCards = (gamesToShow: GameFormatted[], league = League.ALL) => {
+  const displayGamesCards = (gamesToShow: GameFormatted[]) => {
     if (gamesToShow?.length === 0) {
       return <ThemedText>{translateWord('noResults')}</ThemedText>;
     } else {
@@ -194,7 +215,7 @@ export default function GameofTheDay() {
     return (
       <ThemedView>
         <Selector data={data} onItemSelectionChange={handleLeagueSelectionChange} allowMultipleSelection={true} />
-        {displayGamesCards(gamesFiltred, league)}
+        {displayGamesCards(gamesFiltred)}
       </ThemedView>
     );
   };
@@ -259,11 +280,10 @@ export default function GameofTheDay() {
       fetchLeagues();
       const storedLeague = localStorage.getItem('league');
       const storedLeagues = localStorage.getItem('leagues');
-      // TODO: deal with multiple selection on reload
-      // const storedLeaguesSelected = localStorage.getItem('leaguesSelected');
-      // if (storedLeaguesSelected) {
-      //   await setSelectLeagues(JSON.parse(storedLeaguesSelected));
-      // }
+      const storedLeaguesSelected = localStorage.getItem('leaguesSelected');
+      if (storedLeaguesSelected) {
+        await setSelectLeagues(JSON.parse(storedLeaguesSelected));
+      }
 
       if (storedLeagues) {
         await setLeaguesAvailable(JSON.parse(storedLeagues));
