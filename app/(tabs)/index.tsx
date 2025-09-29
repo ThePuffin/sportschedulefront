@@ -74,7 +74,7 @@ export default function GameofTheDay() {
   const LeaguesWithoutAll = Object.values(League).filter((league) => league !== League.ALL);
   const currentDate = new Date();
   const [games, setGames] = useState<GameFormatted[]>([]);
-  const [dateRange, setDateRange] = useState({ startDate: currentDate, endDate: currentDate });
+  const [selectDate, setSelectDate] = useState<Date>(currentDate);
   const [gamesFiltred, setGamesFiltred] = useState<GameFormatted[]>([]);
   const [league, setLeague] = useState<League>(League.ALL);
   const [selectLeagues, setSelectLeagues] = useState<League[]>(LeaguesWithoutAll);
@@ -83,6 +83,7 @@ export default function GameofTheDay() {
 
   const { width: windowWidth } = useWindowDimensions();
   width = windowWidth;
+  let readonly = false;
 
   const fetchLeagues = async (): Promise<string[]> => {
     try {
@@ -131,8 +132,8 @@ export default function GameofTheDay() {
     }
   };
 
-  const getGamesFromApi = async (date: Date, storedLeague?: string): Promise<GameFormatted[] | undefined> => {
-    const YYYYMMDD = new Date(date).toISOString().split('T')[0];
+  const getGamesFromApi = async (): Promise<GameFormatted[] | undefined> => {
+    const YYYYMMDD = new Date(selectDate).toISOString().split('T')[0];
     if (Object.keys(gamesDay).length === 0) {
       const gamesDayString = localStorage.getItem('gamesDay');
       const localStorageGamesDay = gamesDayString ? JSON.parse(gamesDayString) : {};
@@ -153,9 +154,13 @@ export default function GameofTheDay() {
     }
   };
 
-  const handleDateChange = (startDate: Date, endDate: Date) => {
-    setDateRange({ startDate, endDate });
-    getGamesFromApi(startDate);
+  const handleDateChange = async (startDate: Date, endDate: Date) => {
+    readonly = true;
+    setTimeout(async () => {
+      await setSelectDate(startDate);
+      await getGamesFromApi();
+      readonly = false;
+    }, 10);
   };
 
   const handleLeagueSelectionChange = (leagueSelectedId: League | League[], i: number) => {
@@ -192,6 +197,7 @@ export default function GameofTheDay() {
               key={gameId}
               data={game}
               numberSelected={1}
+              showButtons={true}
               showDate={false}
               onSelection={() => {}}
               selected={true}
@@ -292,18 +298,18 @@ export default function GameofTheDay() {
         await setLeague(storedLeague as League);
       }
 
-      await getGamesFromApi(dateRange.startDate);
+      await getGamesFromApi();
       if (!lastGamesUpdate || lastGamesUpdate.toDateString() !== new Date().toDateString()) {
-        await getNextGamesFromApi(dateRange.startDate);
+        await getNextGamesFromApi(selectDate);
         lastGamesUpdate = new Date();
       }
     }
     fetchGames();
-  }, [dateRange.startDate]);
+  }, [selectDate]);
 
   return (
     <>
-      <DateRangePicker dateRange={dateRange} onDateChange={handleDateChange} noEnd={true} />
+      <DateRangePicker readonly={readonly} onDateChange={handleDateChange} selectDate={selectDate} />
       <ScrollView>
         <ThemedView>{width > 768 ? displayLargeDeviceContent() : displaySmallDeviceContent()}</ThemedView>
       </ScrollView>

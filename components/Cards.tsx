@@ -163,9 +163,7 @@ export default function Cards({
         <View>
           <button
             onClick={() => {
-              if (!showDate) {
-                generateICSFile(data);
-              } else {
+              if (showDate) {
                 onSelection(data);
               }
             }}
