@@ -119,9 +119,9 @@ export default function Cards({
             }}
             style={{
               cursor: 'pointer',
-              textDecoration: showButtons && !isSmallDevice ? 'underline' : 'none',
-              color: showButtons && isSmallDevice ? teamColors.color : 'inherit',
-              backgroundColor: showButtons && isSmallDevice ? teamColors.backgroundColor : 'inherit',
+              textDecoration: showButtons ? 'underline' : 'none',
+              color: 'inherit',
+              backgroundColor: 'inherit',
               border: 'none',
               font: 'inherit',
               padding: 0,
