@@ -99,10 +99,10 @@ export default function GameofTheDay() {
   };
 
   const handleGames = (gamesDayExists: GameFormatted[]) => {
-    const nowMinusOneHour = new Date(new Date().getTime() - 3 * 60 * 60 * 1000);
+    const nowMinusThreeHour = new Date(Date.now() - 3 * 60 * 60 * 1000);
     const storedLeaguesSelected = localStorage.getItem('leaguesSelected');
     let gamesToDisplay: GameFormatted[] = gamesDayExists.filter(
-      ({ startTimeUTC = '' }) => new Date(startTimeUTC) >= nowMinusOneHour
+      ({ startTimeUTC = '' }) => new Date(startTimeUTC) >= nowMinusThreeHour
     );
     if (storedLeaguesSelected) {
       const leaguesFromStorage = storedLeaguesSelected ? JSON.parse(storedLeaguesSelected) : LeaguesWithoutAll;

@@ -50,7 +50,6 @@ export default function Schedule() {
     const selection = localStorage.getItem('teamSelected') ?? '';
     if (selection) {
       storeTeamSelected(selection);
-
       const scheduleData = localStorage.getItem('scheduleData');
       if (scheduleData) {
         const storedGames = JSON.parse(scheduleData);
