@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react';
 import { Dimensions, Image, Text, View } from 'react-native';
 import { Colors } from '../constants/Colors';
 import { CardsProps } from '../utils/types';
-import { generateICSFile } from '../utils/utils';
+import { generateICSFile, translateWord } from '../utils/utils';
 
 const leagueLogos = {
   MLB: require('../assets/images/MLB.png'),
@@ -110,6 +110,14 @@ export default function Cards({
     : {};
 
   const displayTitle = () => {
+    const now = new Date();
+    const todayPlusTwoHours = new Date();
+    todayPlusTwoHours.setHours(todayPlusTwoHours.getHours() + 2);
+    const displayDate =
+      data.startTimeUTC && new Date(data.startTimeUTC) >= now && new Date(data.startTimeUTC) <= todayPlusTwoHours
+        ? translateWord('inProgress')
+        : gameDate;
+
     if (arenaName && arenaName !== '') {
       return (
         <Card.Title style={{ ...cardClass }}>
@@ -138,7 +146,7 @@ export default function Cards({
                 color={teamColors.color}
               />
             )}
-            {gameDate}
+            {displayDate}
           </button>
         </Card.Title>
       );
