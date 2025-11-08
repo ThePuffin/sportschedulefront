@@ -111,10 +111,10 @@ export default function Cards({
 
   const displayTitle = () => {
     const now = new Date();
-    const todayPlusTwoHours = new Date();
-    todayPlusTwoHours.setHours(todayPlusTwoHours.getHours() + 2);
+    const todayEnd = new Date();
+    todayEnd.setHours(todayEnd.getHours() + 3);
     const displayDate =
-      data.startTimeUTC && new Date(data.startTimeUTC) >= now && new Date(data.startTimeUTC) <= todayPlusTwoHours
+      data.startTimeUTC && now >= new Date(data.startTimeUTC) && new Date(data.startTimeUTC) <= todayEnd
         ? translateWord('inProgress')
         : gameDate;
 
