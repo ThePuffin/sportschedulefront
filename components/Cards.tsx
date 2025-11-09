@@ -6,6 +6,7 @@ import { Dimensions, Image, Text, View } from 'react-native';
 import { Colors } from '../constants/Colors';
 import { CardsProps } from '../utils/types';
 import { generateICSFile, translateWord } from '../utils/utils';
+const defaultLogo = require('../assets/images/default_logo.png');
 
 const leagueLogos = {
   MLB: require('../assets/images/MLB.png'),
@@ -38,6 +39,7 @@ export default function Cards({
     awayTeamShort,
     homeTeamShort,
   } = data;
+
   const league = teamSelectedId.split('-')[0] || 'DEFAULT';
   const show = typeof data.show === 'boolean' ? data.show : data.show === 'true';
 
@@ -111,10 +113,11 @@ export default function Cards({
 
   const displayTitle = () => {
     const now = new Date();
-    const todayEnd = new Date();
+    const todayEnd = new Date(data.startTimeUTC);
     todayEnd.setHours(todayEnd.getHours() + 3);
+
     const displayDate =
-      data.startTimeUTC && now >= new Date(data.startTimeUTC) && new Date(data.startTimeUTC) <= todayEnd
+      data.startTimeUTC && now >= new Date(data.startTimeUTC) && now < todayEnd
         ? translateWord('inProgress')
         : gameDate;
 
@@ -196,9 +199,7 @@ export default function Cards({
                   'drop-shadow(-1px 0 0 #101518) drop-shadow(0 -1px 0 #101518) drop-shadow(-0.1px 0 0 #101518) drop-shadow(0 0.1px 0 #101518)',
               }}
               resizeMode="contain"
-              source={{
-                uri: awayTeamLogo,
-              }}
+              source={awayTeamLogo ? { uri: awayTeamLogo } : defaultLogo}
             />
             <Text style={{ ...cardClass, backgroundColor: 'transparent' }}>{teamNameAway}</Text>
             <Text style={{ ...cardClass, backgroundColor: 'transparent' }}>@</Text>
@@ -211,9 +212,7 @@ export default function Cards({
                   'drop-shadow(-1.5px 0 0 #101518) drop-shadow(0 -1px 0 #101518) drop-shadow(-0.1px 0 0 #101518) drop-shadow(0 0.1px 0 #101518)',
               }}
               resizeMode="contain"
-              source={{
-                uri: homeTeamLogo,
-              }}
+              source={homeTeamLogo ? { uri: homeTeamLogo } : defaultLogo}
             />
             <br />
           </button>
