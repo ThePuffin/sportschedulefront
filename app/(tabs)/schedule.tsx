@@ -286,7 +286,18 @@ export default function Schedule() {
       try {
         // abort if backend is too slow (avoid long hang on cold start)
         let scheduleData: FilterGames;
-        setGames({});
+        const scheduleDataStored = JSON.parse(localStorage.getItem('scheduleData') || '{}');
+        const scheduleKeys = Object.keys(scheduleDataStored);
+        if (scheduleKeys) {
+          const scheduleTeam = scheduleDataStored[scheduleKeys[0]]?.[0]?.teamSelectedId;
+          const scheduleLeague = scheduleDataStored[scheduleKeys[0]]?.[0]?.league;
+          const teamSelected = localStorage.getItem('teamSelected') || '';
+          if (scheduleTeam === teamSelected || (teamSelected === 'all' && scheduleLeague === leagueOfSelectedTeam)) {
+            setGames(scheduleDataStored);
+          } else {
+            setGames({});
+          }
+        }
         if (teamSelected === 'all') {
           const storedLeague = localStorage.getItem('leagueSelected');
           const selectionLeague = storedLeague || leaguesAvailable[0];
