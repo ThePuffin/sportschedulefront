@@ -113,7 +113,7 @@ export default function Selector({
       styles={customStyles}
       noOptionsMessage={() => ' '}
       isMulti={allowMultipleSelection}
-      isDisabled={items.length === 0}
+      isDisabled={items.length === 0 || items.length === 1}
     />
   );
 }
