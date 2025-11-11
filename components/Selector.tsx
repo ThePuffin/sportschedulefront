@@ -84,6 +84,7 @@ export default function Selector({
       styles={customStyles}
       noOptionsMessage={() => ' '}
       isMulti={allowMultipleSelection}
+      isDisabled={items.length === 0}
     />
   );
 }
