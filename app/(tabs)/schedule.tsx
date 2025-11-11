@@ -6,10 +6,13 @@ import React, { useEffect, useState } from 'react';
 import { Dimensions, ScrollView, View } from 'react-native';
 import Accordion from '../../components/Accordion'; // Added import
 import Loader from '../../components/Loader';
-import { fetchLeagues } from '../../utils/fetchData';
+import {
+  fetchLeagues,
+  fetchRemainingGamesByLeague,
+  fetchRemainingGamesByTeam,
+  fetchTeams,
+} from '../../utils/fetchData';
 import { FilterGames, GameFormatted, Team } from '../../utils/types';
-const EXPO_PUBLIC_API_BASE_URL =
-  process.env.EXPO_PUBLIC_API_BASE_URL ?? 'https://sportschedule2025backend.onrender.com';
 
 export default function Schedule() {
   const [games, setGames] = useState<FilterGames>({});
@@ -20,15 +23,35 @@ export default function Schedule() {
   const [leaguesAvailable, setLeaguesAvailable] = useState<string[]>([]);
   const [leagueOfSelectedTeam, setleagueOfSelectedTeam] = useState<string>('');
 
+  const allOption = {
+    uniqueId: 'all',
+    label: 'All',
+    id: 'all',
+    value: 'all',
+    teamLogo: '',
+    teamCommonName: 'All',
+    conferenceName: '',
+    divisionName: '',
+    league: leagueOfSelectedTeam,
+    abbrev: 'ALL',
+    updateDate: '',
+  } as Team;
+
   useEffect(() => {
     async function fetchTeamsAndRestore() {
       // try cached teams first
       const cachedTeamsRaw = localStorage.getItem('teams');
       const cachedTeams = safeParse<Team[]>(cachedTeamsRaw);
+      const teamSelected = localStorage.getItem('teamSelected') || '';
+      const selectedTeam = cachedTeams?.find((t) => t.uniqueId === teamSelected) || ({} as Team);
 
       try {
-        const response = await fetch(`${EXPO_PUBLIC_API_BASE_URL}/teams`);
-        const teamsData: Team[] = await response.json();
+        if (cachedTeams) {
+          setTeams([selectedTeam]);
+          setLeaguesAvailable([selectedTeam.league]);
+          getSelectedTeams(cachedTeams);
+        }
+        const teamsData: Team[] = await fetchTeams();
         setTeams(teamsData);
         // cache teams for offline/cold-start
         localStorage.setItem('teams', JSON.stringify(teamsData));
@@ -121,35 +144,46 @@ export default function Schedule() {
     }
   };
 
-  const getTeamsFromApi = async (): Promise<Team[]> => {
-    try {
-      const response = await fetch(`${EXPO_PUBLIC_API_BASE_URL}/teams`);
-      const allTeams = await response.json();
-      getSelectedTeams(allTeams);
-
-      return allTeams;
-    } catch (error) {
-      console.error(error);
-      return [];
-    }
+  const persistTeamForLeague = (league: string, teamSelectedId: string) => {
+    const storedTeamsLeagues = localStorage.getItem('teamsSelectedLeagues') || '{}';
+    const leaguesTeams: { [key: string]: string } = JSON.parse(storedTeamsLeagues);
+    leaguesTeams[league] = teamSelectedId;
+    localStorage.setItem('teamsSelectedLeagues', JSON.stringify(leaguesTeams));
   };
 
   const handleTeamSelectionChange = (teamSelectedId: string, i: number) => {
-    console.log('handleTeamSelectionChange:', teamSelectedId);
-    storeTeamSelected(teamSelectedId);
+    if (teamSelectedId === 'all') {
+      localStorage.setItem('teamSelected', 'all');
+      setTeamSelected('all');
+    } else {
+      storeTeamSelected(teamSelectedId);
+    }
+    persistTeamForLeague(leagueOfSelectedTeam, teamSelectedId);
   };
 
   const handleLeagueSelectionChange = (leagueSelectedId: string, i: number) => {
     localStorage.setItem('leagueSelected', leagueSelectedId);
     const teamsAvailableInLeague = teams.filter(({ league }) => league === leagueSelectedId);
-    const newTeam = teamsAvailableInLeague[randomNumber(teamsAvailableInLeague.length - 1)]?.uniqueId || '';
-    storeTeamSelected(newTeam);
+    allOption.league = leagueSelectedId;
+    setLeagueTeams([allOption, ...teamsAvailableInLeague]);
+    setleagueOfSelectedTeam(leagueSelectedId);
+    const storedTeamsLeagues = JSON.parse(localStorage.getItem('teamsSelectedLeagues') || '{}');
+    let team = '';
+    if (storedTeamsLeagues[leagueSelectedId]) {
+      team = storedTeamsLeagues[leagueSelectedId];
+    }
+
+    if (team.length === 0) {
+      team = teamsAvailableInLeague.length
+        ? teamsAvailableInLeague[randomNumber(teamsAvailableInLeague.length - 1)].uniqueId
+        : 'all';
+    }
+    localStorage.setItem('teamSelected', team);
+    setTeamSelected(team);
   };
 
   const display = () => {
-    const leagues = leaguesAvailable.map((league: string) => {
-      return { label: league, uniqueId: league, value: league };
-    });
+    const leagues = leaguesAvailable || [];
 
     const dataLeagues = {
       i: randomNumber(999999),
@@ -157,9 +191,11 @@ export default function Schedule() {
       itemsSelectedIds: [],
       itemSelectedId: leagueOfSelectedTeam,
     };
+
+    const teamsForSelector = leagueTeams;
     const dataTeams = {
       i: randomNumber(999999),
-      items: leagueTeams,
+      items: teamsForSelector,
       itemsSelectedIds: [],
       itemSelectedId: teamSelected,
     };
@@ -202,9 +238,15 @@ export default function Schedule() {
       if (Object.keys(months).length) {
         return Object.entries(months).map(([month, daysInMonth], monthIndex) => {
           const gamesForThisMonth: GameFormatted[] = daysInMonth.reduce((acc: GameFormatted[], day: string) => {
-            const gameOnDay = games[day]?.find((game: GameFormatted) => game.teamSelectedId === teamSelectedId);
-            if (gameOnDay) {
-              acc.push(gameOnDay);
+            if (teamSelectedId === 'all') {
+              if (games[day]) {
+                acc.push(...games[day]);
+              }
+            } else {
+              const gameOnDay = games[day]?.find((game: GameFormatted) => game.teamSelectedId === teamSelectedId);
+              if (gameOnDay) {
+                acc.push(gameOnDay);
+              }
             }
             return acc;
           }, []);
@@ -243,14 +285,26 @@ export default function Schedule() {
     if (teamSelected && teamSelected.length !== 0) {
       try {
         // abort if backend is too slow (avoid long hang on cold start)
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 8000);
-        const response = await fetch(`${EXPO_PUBLIC_API_BASE_URL}/games/team/${teamSelected}`, {
-          signal: controller.signal,
-        });
-        clearTimeout(timeout);
-        const scheduleData = await response.json();
+        let scheduleData: FilterGames;
+        setGames({});
+        if (teamSelected === 'all') {
+          const storedLeague = localStorage.getItem('leagueSelected');
+          const selectionLeague = storedLeague || leaguesAvailable[0];
+          const smallScheduleData = await fetchRemainingGamesByLeague(selectionLeague);
+          localStorage.setItem('scheduleData', JSON.stringify(smallScheduleData));
+          setGames(smallScheduleData);
+          setleagueOfSelectedTeam(selectionLeague);
+          scheduleData = await fetchRemainingGamesByLeague(selectionLeague);
+        } else {
+          scheduleData = await fetchRemainingGamesByTeam(teamSelected);
+        }
+        if (Object.keys(scheduleData).length === 0) {
+          const now = new Date().toISOString().split('T')[0];
+          scheduleData[now] = [];
+        }
+
         localStorage.setItem('scheduleData', JSON.stringify(scheduleData));
+
         setGames(scheduleData);
       } catch (error) {
         console.error('fetch games failed, using cached schedule if available', error);
@@ -282,16 +336,25 @@ export default function Schedule() {
     }
 
     const list = teamsList ?? teams;
-    const newLeague = list.find((t) => t.uniqueId === teamSelection)?.league ?? '';
+    let newLeague = '';
+    if (teamSelection === 'all') {
+      newLeague = localStorage.getItem('leagueSelected') || '';
+    } else {
+      newLeague = list.find((t) => t.uniqueId === teamSelection)?.league ?? '';
+    }
 
     // persist immediately
     localStorage.setItem('teamSelected', teamSelection);
-    localStorage.setItem('leagueSelected', newLeague);
+    if (newLeague) {
+      localStorage.setItem('leagueSelected', newLeague);
+    }
 
     // update state once with derived values
     setTeamSelected(teamSelection);
     setleagueOfSelectedTeam(newLeague);
-    setLeagueTeams(list.filter(({ league }) => league === newLeague));
+    const leagueFilter = list.filter(({ league }) => league === newLeague);
+    allOption.league = newLeague;
+    setLeagueTeams([allOption, ...leagueFilter]);
   };
 
   function safeParse<T>(raw: string | null): T | null {
