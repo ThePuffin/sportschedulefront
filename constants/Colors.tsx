@@ -160,8 +160,8 @@ export const Colors = {
     backgroundColor: '#001628',
   },
   'NFL-ARI': {
-    color: '#a4113e',
-    backgroundColor: '#ffffff',
+    backgroundColor: '#a4113e',
+    color: '#ffffff',
   },
   'NFL-ATL': {
     color: '#a71930',
