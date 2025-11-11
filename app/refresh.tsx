@@ -84,7 +84,7 @@ export default function GameofTheDay() {
         </View>
       );
     } else {
-      return <ThemedText>{translateWord('noResults')}</ThemedText>;
+      return <ThemedText>{translateWord('noResults')}</ThemedText>
     }
   };
 

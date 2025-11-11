@@ -218,7 +218,7 @@ export default function Schedule() {
       return (
         <div>
           <br />
-          <ThemedText>{translateWord('noResults')}</ThemedText>;
+          <ThemedText>{translateWord('noResults')}</ThemedText>
         </div>
       );
     } else if (games) {
@@ -373,7 +373,7 @@ export default function Schedule() {
         <View style={{ height: '100vh', display: 'grid', placeItems: 'center' }}>
           <Loader />
         </View>
-      )}{' '}
+      )}
       {display()}
     </ScrollView>
   );

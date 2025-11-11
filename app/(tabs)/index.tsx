@@ -175,7 +175,7 @@ export default function GameofTheDay() {
 
   const displayGamesCards = (gamesToShow: GameFormatted[]) => {
     if (gamesToShow?.length === 0) {
-      return <ThemedText>{translateWord('noResults')}</ThemedText>;
+      return <ThemedText>{translateWord('noResults')}</ThemedText>
     } else {
       return gamesToShow.map((game) => {
         if (game) {
@@ -222,7 +222,7 @@ export default function GameofTheDay() {
         </View>
       );
     } else {
-      return <ThemedText>{translateWord('noResults')}</ThemedText>;
+      return <ThemedText>{translateWord('noResults')}</ThemedText>
     }
   };
 
