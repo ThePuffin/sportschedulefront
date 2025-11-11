@@ -296,8 +296,8 @@ export const Colors = {
     backgroundColor: '#ffffff',
   },
   'NBA-BKN': {
-    color: '#000000',
-    backgroundColor: '#ffffff',
+    backgroundColor: '#000000',
+    color: '#ffffff',
   },
   'NBA-CHA': {
     color: '#008ca8',
