@@ -6,7 +6,8 @@ import React, { useEffect, useState } from 'react';
 import { Dimensions, ScrollView, View } from 'react-native';
 import Accordion from '../../components/Accordion'; // Added import
 import Loader from '../../components/Loader';
-import { FilterGames, GameFormatted, Team } from '../../utils/types'; // Added GameFormatted
+import { fetchLeagues } from '../../utils/fetchData';
+import { FilterGames, GameFormatted, Team } from '../../utils/types';
 const EXPO_PUBLIC_API_BASE_URL =
   process.env.EXPO_PUBLIC_API_BASE_URL ?? 'https://sportschedule2025backend.onrender.com';
 
@@ -14,7 +15,57 @@ export default function Schedule() {
   const [games, setGames] = useState<FilterGames>({});
   const [teams, setTeams] = useState<Team[]>([]);
   const [teamSelected, setTeamSelected] = useState<string>('');
+  const [leagueTeams, setLeagueTeams] = useState<Team[]>([]);
   const [isSmallDevice, setIsSmallDevice] = useState(false);
+  const [leaguesAvailable, setLeaguesAvailable] = useState<string[]>([]);
+  const [leagueOfSelectedTeam, setleagueOfSelectedTeam] = useState<string>('');
+
+  useEffect(() => {
+    async function fetchTeamsAndRestore() {
+      // try cached teams first
+      const cachedTeamsRaw = localStorage.getItem('teams');
+      const cachedTeams = safeParse<Team[]>(cachedTeamsRaw);
+
+      try {
+        const response = await fetch(`${EXPO_PUBLIC_API_BASE_URL}/teams`);
+        const teamsData: Team[] = await response.json();
+        setTeams(teamsData);
+        // cache teams for offline/cold-start
+        localStorage.setItem('teams', JSON.stringify(teamsData));
+        // restore selection using freshly fetched teams
+        getSelectedTeams(teamsData);
+      } catch (err) {
+        console.error('fetch teams failed, using cached teams if available', err);
+        if (cachedTeams) {
+          setTeams(cachedTeams);
+          getSelectedTeams(cachedTeams);
+        } else {
+          // fallback: try to restore selection from persisted keys (teams unknown)
+          getStoredData();
+        }
+      }
+      // optionally fetch leagues
+      if (leaguesAvailable.length === 0) {
+        fetchLeagues(setLeaguesAvailable);
+      }
+    }
+    fetchTeamsAndRestore();
+  }, []);
+
+  useEffect(() => {
+    if (teamSelected.length > 0) {
+      async function fetchGames() {
+        await getGamesFromApi();
+      }
+      fetchGames();
+    }
+  }, [teamSelected]);
+
+  useEffect(() => {
+    if (leaguesAvailable.length === 0) {
+      fetchLeagues(setLeaguesAvailable);
+    }
+  }, []);
 
   useEffect(() => {
     const updateDeviceType = () => {
@@ -35,7 +86,7 @@ export default function Schedule() {
       const selectedTeams = localStorage.getItem('teamsSelected') || '';
 
       let teamsSelectedIds = selectedTeams.length > 0 ? JSON.parse(selectedTeams) : [];
-      let randomTeam = getRandomTeamId(allTeams);
+      let randomTeam = getRandomTeamId(allTeams) || '';
 
       if (teamsSelectedIds.length > 0) {
         selection = teamsSelectedIds[0]?.uniqueId || randomTeam;
@@ -43,13 +94,17 @@ export default function Schedule() {
         selection = randomTeam;
       }
     }
-    storeTeamSelected(selection);
+    // pass the freshly fetched teams so we can derive league immediately
+    storeTeamSelected(selection, allTeams);
   };
 
   const getStoredData = () => {
-    const selection = localStorage.getItem('teamSelected') ?? '';
-    if (selection) {
-      storeTeamSelected(selection);
+    const leagueSelection = localStorage.getItem('leagueSelected') ?? '';
+    setleagueOfSelectedTeam(leagueSelection);
+    const teamSelection = localStorage.getItem('teamSelected') ?? '';
+    if (teamSelection) {
+      // if called when teams are already loaded, pass them to derive league
+      storeTeamSelected(teamSelection, teams);
       const scheduleData = localStorage.getItem('scheduleData');
       if (scheduleData) {
         const storedGames = JSON.parse(scheduleData);
@@ -62,7 +117,7 @@ export default function Schedule() {
         setGames(filteredGames);
       }
     } else {
-      setTeamSelected(selection);
+      setTeamSelected(teamSelection);
     }
   };
 
@@ -80,21 +135,40 @@ export default function Schedule() {
   };
 
   const handleTeamSelectionChange = (teamSelectedId: string, i: number) => {
+    console.log('handleTeamSelectionChange:', teamSelectedId);
     storeTeamSelected(teamSelectedId);
   };
 
-  const displayTeamSelector = () => {
-    const data = {
+  const handleLeagueSelectionChange = (leagueSelectedId: string, i: number) => {
+    localStorage.setItem('leagueSelected', leagueSelectedId);
+    const teamsAvailableInLeague = teams.filter(({ league }) => league === leagueSelectedId);
+    const newTeam = teamsAvailableInLeague[randomNumber(teamsAvailableInLeague.length - 1)]?.uniqueId || '';
+    storeTeamSelected(newTeam);
+  };
+
+  const display = () => {
+    const leagues = leaguesAvailable.map((league: string) => {
+      return { label: league, uniqueId: league, value: league };
+    });
+
+    const dataLeagues = {
       i: randomNumber(999999),
-      items: teams,
-      itemsSelectedIds: [teamSelected],
+      items: leagues,
+      itemsSelectedIds: [],
+      itemSelectedId: leagueOfSelectedTeam,
+    };
+    const dataTeams = {
+      i: randomNumber(999999),
+      items: leagueTeams,
+      itemsSelectedIds: [],
       itemSelectedId: teamSelected,
     };
     return (
       <td key={`${teamSelected}-${teamSelected.length}`}>
         <ThemedView>
           <div style={{ width: isSmallDevice ? '100%' : '50%', margin: '0 auto', alignContent: 'center' }}>
-            <Selector data={data} onItemSelectionChange={handleTeamSelectionChange} />
+            <Selector data={dataLeagues} onItemSelectionChange={handleLeagueSelectionChange} />
+            <Selector data={dataTeams} onItemSelectionChange={handleTeamSelectionChange} />
           </div>
           {displayGamesCards(teamSelected)}
         </ThemedView>
@@ -168,47 +242,67 @@ export default function Schedule() {
   const getGamesFromApi = async (): Promise<FilterGames> => {
     if (teamSelected && teamSelected.length !== 0) {
       try {
-        const response = await fetch(`${EXPO_PUBLIC_API_BASE_URL}/games/team/${teamSelected}`);
-
+        // abort if backend is too slow (avoid long hang on cold start)
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 8000);
+        const response = await fetch(`${EXPO_PUBLIC_API_BASE_URL}/games/team/${teamSelected}`, {
+          signal: controller.signal,
+        });
+        clearTimeout(timeout);
         const scheduleData = await response.json();
         localStorage.setItem('scheduleData', JSON.stringify(scheduleData));
         setGames(scheduleData);
       } catch (error) {
-        console.error(error);
-        return {};
+        console.error('fetch games failed, using cached schedule if available', error);
+        const scheduleDataRaw = localStorage.getItem('scheduleData');
+        const scheduleData = safeParse<FilterGames>(scheduleDataRaw);
+        if (scheduleData) setGames(scheduleData);
+      }
+    } else {
+      // if no team selected yet, try to restore cached schedule so UI can show something
+      const scheduleDataRaw = localStorage.getItem('scheduleData');
+      if (scheduleDataRaw) {
+        try {
+          setGames(JSON.parse(scheduleDataRaw));
+        } catch (e) {
+          console.error('cached schedule parse failed', e);
+        }
       }
     }
     return {};
   };
 
-  const storeTeamSelected = (teamSelected: string) => {
-    setTeamSelected(teamSelected);
-
-    if (teamSelected.length !== 0) {
-      localStorage.setItem('teamSelected', teamSelected);
+  const storeTeamSelected = (teamSelection: string, teamsList?: Team[]) => {
+    if (!teamSelection) {
+      setTeamSelected('');
+      localStorage.removeItem('teamSelected');
+      setLeagueTeams([]);
+      setleagueOfSelectedTeam('');
+      return;
     }
+
+    const list = teamsList ?? teams;
+    const newLeague = list.find((t) => t.uniqueId === teamSelection)?.league ?? '';
+
+    // persist immediately
+    localStorage.setItem('teamSelected', teamSelection);
+    localStorage.setItem('leagueSelected', newLeague);
+
+    // update state once with derived values
+    setTeamSelected(teamSelection);
+    setleagueOfSelectedTeam(newLeague);
+    setLeagueTeams(list.filter(({ league }) => league === newLeague));
   };
 
-  useEffect(() => {
-    getStoredData();
-  }, []);
-
-  useEffect(() => {
-    async function fetchTeams() {
-      const teamsData = await getTeamsFromApi();
-      setTeams(teamsData);
+  function safeParse<T>(raw: string | null): T | null {
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw) as T;
+    } catch (e) {
+      console.error('safeParse failed', e);
+      return null;
     }
-    fetchTeams();
-  }, []);
-
-  useEffect(() => {
-    if (teamSelected.length > 0) {
-      async function fetchGames() {
-        await getGamesFromApi();
-      }
-      fetchGames();
-    }
-  }, [teamSelected]);
+  }
 
   return (
     <ScrollView>
@@ -216,8 +310,8 @@ export default function Schedule() {
         <View style={{ height: '100vh', display: 'grid', placeItems: 'center' }}>
           <Loader />
         </View>
-      )}
-      {displayTeamSelector()}
+      )}{' '}
+      {display()}
     </ScrollView>
   );
 }
