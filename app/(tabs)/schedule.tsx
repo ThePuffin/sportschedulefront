@@ -11,6 +11,7 @@ import {
   fetchRemainingGamesByLeague,
   fetchRemainingGamesByTeam,
   fetchTeams,
+  smallFetchRemainingGamesByLeague,
 } from '../../utils/fetchData';
 import { FilterGames, GameFormatted, Team } from '../../utils/types';
 
@@ -284,10 +285,10 @@ export default function Schedule() {
   const getGamesFromApi = async (): Promise<FilterGames> => {
     if (teamSelected && teamSelected.length !== 0) {
       try {
-        // abort if backend is too slow (avoid long hang on cold start)
         let scheduleData: FilterGames;
         const scheduleDataStored = JSON.parse(localStorage.getItem('scheduleData') || '{}');
         const scheduleKeys = Object.keys(scheduleDataStored);
+        let thisLeagueTeams = JSON.parse(JSON.stringify(leagueTeams));
         if (scheduleKeys) {
           const scheduleTeam = scheduleDataStored[scheduleKeys[0]]?.[0]?.teamSelectedId;
           const scheduleLeague = scheduleDataStored[scheduleKeys[0]]?.[0]?.league;
@@ -297,11 +298,12 @@ export default function Schedule() {
           } else {
             setGames({});
           }
+          setLeagueTeams([]);
         }
         if (teamSelected === 'all') {
           const storedLeague = localStorage.getItem('leagueSelected');
           const selectionLeague = storedLeague || leaguesAvailable[0];
-          const smallScheduleData = await fetchRemainingGamesByLeague(selectionLeague);
+          const smallScheduleData = await smallFetchRemainingGamesByLeague(selectionLeague);
           localStorage.setItem('scheduleData', JSON.stringify(smallScheduleData));
           setGames(smallScheduleData);
           setleagueOfSelectedTeam(selectionLeague);
@@ -309,6 +311,8 @@ export default function Schedule() {
         } else {
           scheduleData = await fetchRemainingGamesByTeam(teamSelected);
         }
+        setLeagueTeams(thisLeagueTeams);
+        fetchLeagues(setLeaguesAvailable) || leaguesAvailable;
         if (Object.keys(scheduleData).length === 0) {
           const now = new Date().toISOString().split('T')[0];
           scheduleData[now] = [];
