@@ -128,7 +128,7 @@ export default function Cards({
         <Card.Title style={{ ...cardClass }}>
           <button
             onClick={() => {
-              if (showButtons) generateICSFile(data);
+              if ((showButtons, generateICSFile(data)));
             }}
             style={{
               cursor: 'pointer',
@@ -193,29 +193,80 @@ export default function Cards({
               margin: 0,
             }}
           >
-            <Image
+            {/* Away Team Logo Container */}
+            <div
               style={{
+                position: 'relative',
                 width: '50%',
                 height: 50,
-                filter:
-                  'drop-shadow(-1px 0 0 #101518) drop-shadow(0 -1px 0 #101518) drop-shadow(-0.1px 0 0 #101518) drop-shadow(0 0.1px 0 #101518)',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
               }}
-              resizeMode="contain"
-              source={awayTeamLogo ? { uri: awayTeamLogo } : defaultLogo}
-            />
+            >
+              <Image
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  filter:
+                    'drop-shadow(-1px 0 0 #101518) drop-shadow(0 -1px 0 #101518) drop-shadow(-0.1px 0 0 #101518) drop-shadow(0 0.1px 0 #101518)',
+                }}
+                resizeMode="contain"
+                source={awayTeamLogo ? { uri: awayTeamLogo } : defaultLogo}
+              />
+              {!awayTeamLogo && (
+                <Text
+                  style={{
+                    position: 'absolute',
+                    fontWeight: 'bold',
+                    fontSize: isSmallDevice ? 10 : 12,
+                    color: '#ffffff',
+                    textAlign: 'center',
+                  }}
+                >
+                  {awayTeamShort}
+                </Text>
+              )}
+            </div>
             <Text style={{ ...cardClass, backgroundColor: 'transparent', fontWeight: 'bold' }}>{teamNameAway}</Text>
             <Text style={{ ...cardClass, backgroundColor: 'transparent', fontWeight: 'bold' }}>@</Text>
             <Text style={{ ...cardClass, backgroundColor: 'transparent', fontWeight: 'bold' }}>{teamNameHome}</Text>
-            <Image
+
+            {/* Home Team Logo Container */}
+            <div
               style={{
+                position: 'relative',
                 width: '50%',
                 height: 50,
-                filter:
-                  'drop-shadow(-1.5px 0 0 #101518) drop-shadow(0 -1px 0 #101518) drop-shadow(-0.1px 0 0 #101518) drop-shadow(0 0.1px 0 #101518)',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
               }}
-              resizeMode="contain"
-              source={homeTeamLogo ? { uri: homeTeamLogo } : defaultLogo}
-            />
+            >
+              <Image
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  filter:
+                    'drop-shadow(-1.5px 0 0 #101518) drop-shadow(0 -1px 0 #101518) drop-shadow(-0.1px 0 0 #101518) drop-shadow(0 0.1px 0 #101518)',
+                }}
+                resizeMode="contain"
+                source={homeTeamLogo ? { uri: homeTeamLogo } : defaultLogo}
+              />
+              {!homeTeamLogo && (
+                <Text
+                  style={{
+                    position: 'absolute',
+                    fontWeight: 'bold',
+                    fontSize: isSmallDevice ? 10 : 12,
+                    color: '#ffffff',
+                    textAlign: 'center',
+                  }}
+                >
+                  {homeTeamShort}
+                </Text>
+              )}
+            </div>
             <br />
           </button>
           <Text
