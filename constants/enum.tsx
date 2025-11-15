@@ -17,3 +17,16 @@ export enum ButtonsKind {
   REMOVETEAM = 'remove team',
   REMOVEGAMES = 'remove games',
 }
+
+export enum emoticonEnum {
+  NHL = '🏒',
+  NFL = '🏈',
+  NBA = ' 🏀',
+  MLB = '⚾',
+  MLS = '⚽',
+  NCAAF = ' 🏈',
+  NCAAB = ' 🏀',
+  NCCABB = ' ⚾',
+  WNCAAB = ' ⛹️‍♀️',
+  WNBA = ' ⛹️‍♀️',
+}
