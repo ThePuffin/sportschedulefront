@@ -27,6 +27,10 @@ export const Colors = {
     color: '#ffffff',
     backgroundColor: '#000000',
   },
+  'NHL-NJ': {
+    color: '#000000',
+    backgroundColor: '#ce1126',
+  },
   'NHL-NJD': {
     color: '#000000',
     backgroundColor: '#ce1126',
@@ -74,6 +78,10 @@ export const Colors = {
   'NHL-FLA': {
     color: '#041e42',
     backgroundColor: '#c8102e',
+  },
+  'NHL-TB': {
+    backgroundColor: '#002868',
+    color: '#ffffff',
   },
   'NHL-TBL': {
     backgroundColor: '#002868',
@@ -123,9 +131,17 @@ export const Colors = {
     backgroundColor: '#8f8f8c',
     color: '#006847',
   },
+  'NHL-LA': {
+    color: '#a2aaad',
+    backgroundColor: '#111111',
+  },
   'NHL-LAK': {
     color: '#a2aaad',
     backgroundColor: '#111111',
+  },
+  'NHL-SJ': {
+    color: '#ea7200',
+    backgroundColor: '#006d75',
   },
   'NHL-SJS': {
     color: '#ea7200',
@@ -150,6 +166,10 @@ export const Colors = {
   'NHL-ARI': {
     color: '#e2d6b5',
     backgroundColor: '#8c2633',
+  },
+  'NHL-VG': {
+    color: '#b4975a',
+    backgroundColor: '#333f42',
   },
   'NHL-VGK': {
     color: '#b4975a',

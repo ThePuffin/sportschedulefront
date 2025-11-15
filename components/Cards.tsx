@@ -87,27 +87,29 @@ export default function Cards({
         })
       : new Date(startTimeUTC).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
   }
-  const defaultColors = Colors.default;
-  const colors = Colors[teamSelectedId] ?? {};
-  const defaultColor = color && backgroundColor ? { color, backgroundColor } : defaultColors;
-  const teamColors = colors.backgroundColor && colors.backgroundColor !== '' ? colors : defaultColor;
+
+  const colorsTeamSelected = Colors[teamSelectedId] ?? {};
+  const teamClrs =
+    Object.keys(colorsTeamSelected).length > 0
+      ? { color: colorsTeamSelected.color, backgroundColor: colorsTeamSelected.backgroundColor }
+      : { color: `#${color}`, backgroundColor: `#${backgroundColor}` };
+  const colorTeam = teamClrs.backgroundColor && teamClrs.backgroundColor !== '' ? teamClrs : Colors['default'];
 
   let cardClass = show
     ? {
-        ...teamColors,
+        ...colorTeam,
         fontSize,
       }
     : {
         fontSize,
         opacity: '0.97',
-
         backgroundColor: '#ffffee',
       };
 
   let selectedCard = selected
     ? {
         filter: 'brightness(1.25) saturate(1.5) contrast(1.05)',
-        border: 'double' + teamColors?.color,
+        border: 'double' + colorTeam?.color,
       }
     : {};
 
@@ -146,7 +148,7 @@ export default function Cards({
                 type="font-awesome"
                 style={{ paddingRight: isSmallDevice ? 5 : 10 }}
                 size={isSmallDevice ? 10 : 15}
-                color={teamColors.color}
+                color={colorTeam?.color}
               />
             )}
             {displayDate}
@@ -201,9 +203,9 @@ export default function Cards({
               resizeMode="contain"
               source={awayTeamLogo ? { uri: awayTeamLogo } : defaultLogo}
             />
-            <Text style={{ ...cardClass, backgroundColor: 'transparent' }}>{teamNameAway}</Text>
-            <Text style={{ ...cardClass, backgroundColor: 'transparent' }}>@</Text>
-            <Text style={{ ...cardClass, backgroundColor: 'transparent' }}>{teamNameHome}</Text>
+            <Text style={{ ...cardClass, backgroundColor: 'transparent', fontWeight: 'bold' }}>{teamNameAway}</Text>
+            <Text style={{ ...cardClass, backgroundColor: 'transparent', fontWeight: 'bold' }}>@</Text>
+            <Text style={{ ...cardClass, backgroundColor: 'transparent', fontWeight: 'bold' }}>{teamNameHome}</Text>
             <Image
               style={{
                 width: '50%',
@@ -316,7 +318,7 @@ export default function Cards({
         >
           {displayTitle()}
         </Card.Title>
-        <Card.Divider style={{ backgroundColor: teamColors.color }} />
+        <Card.Divider style={{ backgroundColor: colorTeam?.color }} />
         {displayContent()}
       </Card>
     </div>
