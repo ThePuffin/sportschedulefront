@@ -16,7 +16,7 @@ const leagueLogos = {
   NHL: require('../assets/images/NHL.png'),
   WNBA: require('../assets/images/WNBA.png'),
   MLS: require('../assets/images/MLS.png'),
-
+  PWHL: require('../assets/images/PWHL.png'),
   DEFAULT: require('../assets/images/DEFAULT.png'),
 };
 

@@ -13,6 +13,13 @@ export enum League {
   WNCAAB = 'WNCAAB',
 }
 
+export enum CollegeLeague {
+  NCAAF = 'NCAAF',
+  NCAAB = 'NCAAB',
+  NCCABB = 'NCCABB',
+  WNCAAB = 'WNCAAB',
+}
+
 export enum ButtonsKind {
   ADDTEAM = 'add team',
   REMOVETEAM = 'remove team',
