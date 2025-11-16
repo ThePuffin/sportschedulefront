@@ -24,13 +24,14 @@ export enum ButtonsKind {
 
 export enum emoticonEnum {
   NHL = '🏒',
+  PWHL = '🏒',
   NFL = '🏈',
-  NBA = ' 🏀',
+  NCAAF = '🏈',
   MLB = '⚾',
+  NCCABB = '⚾',
+  NBA = '🏀',
+  NCAAB = '🏀',
+  WNCAAB = '⛹️‍♀️',
+  WNBA = '⛹️‍♀️',
   MLS = '⚽',
-  NCAAF = ' 🏈',
-  NCAAB = ' 🏀',
-  NCCABB = ' ⚾',
-  WNCAAB = ' ⛹️‍♀️',
-  WNBA = ' ⛹️‍♀️',
 }
