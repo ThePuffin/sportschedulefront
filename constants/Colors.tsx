@@ -568,8 +568,8 @@ export const Colors = {
     backgroundColor: ' #e2d4c4',
   },
   'PWHL-NY': {
-    color: '#00b9b3',
-    backgroundColor: '#eb8b04',
+    backgroundColor: '#00b9b3',
+    color: '#eb8b04',
   },
   'PWHL-SEA': {
     color: '#0C5256',
