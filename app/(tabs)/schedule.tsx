@@ -83,7 +83,7 @@ export default function Schedule() {
       }
       fetchGames();
     }
-  }, [teamSelected]);
+  }, [teamSelected, leagueOfSelectedTeam]);
 
   useEffect(() => {
     if (leaguesAvailable.length === 0) {

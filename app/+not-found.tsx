@@ -13,6 +13,12 @@ export default function NotFoundScreen() {
         <Link href="/" style={styles.link}>
           <ThemedText type="link">Go to home screen!</ThemedText>
         </Link>
+        <Link href="/" style={styles.link}>
+          <img
+            src="https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExZmpnZnAwajk3OGF5aGkzZWoweWZ0eWl1OWN3MmZteGVsZTJjcjV6ZSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Wc3USjlCFXHh1FYkyA/giphy.gif"
+            alt="mascott dance"
+          />
+        </Link>
       </ThemedView>
     </>
   );
