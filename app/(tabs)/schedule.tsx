@@ -283,6 +283,17 @@ export default function Schedule() {
     );
   };
 
+  const removeOldGames = (games: FilterGames) => {
+    const today = new Date().toISOString().split('T')[0];
+    const keys = Object.keys(games);
+    keys.forEach((key) => {
+      if (key < today) {
+        delete games[key];
+      }
+    });
+    return games;
+  };
+
   const getGamesFromApi = async (): Promise<FilterGames> => {
     if (teamSelected && teamSelected.length !== 0) {
       try {
@@ -295,7 +306,7 @@ export default function Schedule() {
           const scheduleLeague = scheduleDataStored[scheduleKeys[0]]?.[0]?.league;
           const teamSelected = localStorage.getItem('teamSelected') || '';
           if (scheduleTeam === teamSelected || (teamSelected === 'all' && scheduleLeague === leagueOfSelectedTeam)) {
-            setGames(scheduleDataStored);
+            setGames(removeOldGames(scheduleDataStored));
           } else {
             setGames({});
           }
@@ -306,7 +317,7 @@ export default function Schedule() {
           const selectionLeague = storedLeague || leaguesAvailable[0];
           const smallScheduleData = await smallFetchRemainingGamesByLeague(selectionLeague);
           localStorage.setItem('scheduleData', JSON.stringify(smallScheduleData));
-          setGames(smallScheduleData);
+          setGames(removeOldGames(smallScheduleData));
           setleagueOfSelectedTeam(selectionLeague);
           scheduleData = await fetchRemainingGamesByLeague(selectionLeague);
         } else {
@@ -318,10 +329,10 @@ export default function Schedule() {
           const now = new Date().toISOString().split('T')[0];
           scheduleData[now] = [];
         }
-
+        
         localStorage.setItem('scheduleData', JSON.stringify(scheduleData));
 
-        setGames(scheduleData);
+        setGames(removeOldGames(scheduleData));
       } catch (error) {
         console.error('fetch games failed, using cached schedule if available', error);
         const scheduleDataRaw = localStorage.getItem('scheduleData');
