@@ -2,10 +2,11 @@ import Selector from '@/components/Selector';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { getRandomTeamId, randomNumber, translateWord } from '@/utils/utils';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Dimensions, ScrollView, View } from 'react-native';
 import Accordion from '../../components/Accordion'; // Added import
 import Loader from '../../components/Loader';
+import { ScrollToTopButton, ScrollToTopButtonRef } from '../../components/ScrollToTopButton';
 import {
   fetchLeagues,
   fetchRemainingGamesByLeague,
@@ -23,6 +24,8 @@ export default function Schedule() {
   const [isSmallDevice, setIsSmallDevice] = useState(false);
   const [leaguesAvailable, setLeaguesAvailable] = useState<string[]>([]);
   const [leagueOfSelectedTeam, setleagueOfSelectedTeam] = useState<string>('');
+  const scrollViewRef = useRef<ScrollView>(null);
+  const scrollToTopButtonRef = useRef<ScrollToTopButtonRef>(null);
 
   const allOption = {
     uniqueId: 'all',
@@ -395,13 +398,20 @@ export default function Schedule() {
   }
 
   return (
-    <ScrollView>
-      {!teamSelected.length && (
-        <View style={{ height: '100vh', display: 'grid', placeItems: 'center' }}>
-          <Loader />
-        </View>
-      )}
-      {display()}
-    </ScrollView>
+    <ThemedView style={{ flex: 1 }}>
+      <ScrollView
+        ref={scrollViewRef}
+        onScroll={(event) => scrollToTopButtonRef.current?.handleScroll(event)}
+        scrollEventThrottle={16}
+      >
+        {!teamSelected.length && (
+          <View style={{ height: '100vh', display: 'grid', placeItems: 'center' }}>
+            <Loader />
+          </View>
+        )}
+        {display()}
+      </ScrollView>
+      <ScrollToTopButton ref={scrollToTopButtonRef} scrollViewRef={scrollViewRef} />
+    </ThemedView>
   );
 }
