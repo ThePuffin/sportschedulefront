@@ -183,13 +183,17 @@ export default function Calendar() {
     }
   };
 
-  const handleTeamSelectionChange = (teamSelectedId: string, i: number) => {
-    const newTeamsSelected = [...teamsSelected];
-    newTeamsSelected[i] = teamSelectedId;
-    storeTeamsSelected(newTeamsSelected);
-    const newSelection = gamesSelected.filter((gameSelected) => newTeamsSelected.includes(gameSelected.teamSelectedId));
-    setGamesSelected(newSelection);
-    localStorage.setItem('gameSelected', newSelection.map((game) => JSON.stringify(game)).join(';'));
+  const handleTeamSelectionChange = (teamSelectedId: string | string[], i: number) => {
+    if (typeof teamSelectedId === 'string') {
+      const newTeamsSelected = [...teamsSelected];
+      newTeamsSelected[i] = teamSelectedId;
+      storeTeamsSelected(newTeamsSelected);
+      const newSelection = gamesSelected.filter((gameSelected) =>
+        newTeamsSelected.includes(gameSelected.teamSelectedId)
+      );
+      setGamesSelected(newSelection);
+      localStorage.setItem('gameSelected', newSelection.map((game) => JSON.stringify(game)).join(';'));
+    }
   };
 
   const handleButtonClick = async (clickedButton: string) => {
