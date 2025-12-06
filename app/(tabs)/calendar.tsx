@@ -45,24 +45,29 @@ export default function Calendar() {
       localStorage.setItem('endDate', end);
     }
     if (start !== storedStartDate || end !== storedEndDate) {
-      setDateRange({ startDate: start ?? beginDate.toISOString(), endDate: end ?? endDate.toISOString() });
+      setDateRange({
+        startDate: new Date(start ?? beginDate.toISOString()),
+        endDate: new Date(end ?? endDate.toISOString()),
+      });
       getGamesFromApi(start ?? beginDate.toISOString(), end ?? endDate.toISOString());
     }
   };
 
   const [dateRange, setDateRange] = useState({
-    startDate: localStorage.getItem('startDate') ?? beginDate.toISOString(),
-    endDate: localStorage.getItem('endDate') ?? endDate.toISOString(),
+    startDate: new Date(localStorage.getItem('startDate') ?? beginDate),
+    endDate: new Date(localStorage.getItem('endDate') ?? endDate),
   });
 
-  const handleDateChange = (startDate: string, endDate: string) => {
-    localStorage.setItem('startDate', startDate);
-    localStorage.setItem('endDate', endDate);
-    getGamesFromApi(startDate, endDate);
+  const handleDateChange = (startDate: Date, endDate: Date) => {
+    const start = startDate.toISOString();
+    const end = endDate.toISOString();
+    localStorage.setItem('startDate', start);
+    localStorage.setItem('endDate', end);
+    getGamesFromApi(start, end);
     setDateRange({ startDate, endDate });
     const newGamesSelection = gamesSelected.filter((gameSelected) => {
       const gameDate = new Date(gameSelected.gameDate);
-      return gameDate >= new Date(startDate) && gameDate <= new Date(endDate);
+      return gameDate >= startDate && gameDate <= endDate;
     });
     setGamesSelected(newGamesSelection);
     localStorage.setItem('gameSelected', newGamesSelection.map((game) => JSON.stringify(game)).join(';'));
@@ -315,7 +320,7 @@ export default function Calendar() {
         onScroll={(event) => scrollToTopButtonRef.current?.handleScroll(event)}
         scrollEventThrottle={16}
       >
-        <DateRangePicker dateRange={dateRange} onDateChange={handleDateChange} noEnd={false} />
+        <DateRangePicker dateRange={dateRange} onDateChange={handleDateChange} />
         <Buttons
           onClicks={handleButtonClick}
           data={{
@@ -333,7 +338,7 @@ export default function Calendar() {
           />
         )}
         {!teamsSelected.length && (
-          <View style={{ height: '100vh', display: 'grid', placeItems: 'center' }}>
+          <View style={{ height: '10%', justifyContent: 'center', alignItems: 'center' }}>
             <Loader />
           </View>
         )}
