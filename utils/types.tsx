@@ -56,6 +56,7 @@ export type AccordionProps = {
   readonly gamesFiltred: readonly GameFormatted[];
   readonly open?: boolean;
   readonly isCounted?: boolean;
+  readonly disableToggle?: boolean;
   readonly showDate?: boolean;
 };
 

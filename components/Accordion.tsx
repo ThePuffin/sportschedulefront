@@ -13,11 +13,12 @@ export default function Accordion({
   open = false,
   isCounted = false,
   showDate = false,
+  disableToggle = false,
 }: Readonly<AccordionProps>) {
-  const [expanded, setExpanded] = useState(open ?? i === 0);
+  const [expanded, setExpanded] = useState(disableToggle ? true : open ?? i === 0);
   const makeCards = () => {
     if (!gamesFiltred?.length) {
-      return <ThemedText>There are no games today</ThemedText>
+      return <ThemedText>There are no games today</ThemedText>;
     }
     if (gamesFiltred.length) {
       return gamesFiltred.map((game) => {
@@ -32,12 +33,12 @@ export default function Accordion({
             numberSelected={1}
             showDate={showDate}
             showButtons={true}
-            style={{ margin: 0, padding: 0 }}
+            selected={true}
           />
         );
       });
     }
-    return <ThemedText>{translateWord('noResults')}</ThemedText>
+    return <ThemedText>{translateWord('noResults')}</ThemedText>;
   };
 
   return (
@@ -51,9 +52,8 @@ export default function Accordion({
           </ListItem.Content>
         }
         isExpanded={expanded}
-        onPress={() => {
-          setExpanded(!expanded);
-        }}
+        noIcon={disableToggle}
+        onPress={disableToggle ? undefined : () => setExpanded(!expanded)}
       >
         {makeCards()}
       </ListItem.Accordion>

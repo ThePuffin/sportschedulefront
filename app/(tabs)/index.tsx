@@ -153,9 +153,16 @@ export default function GameofTheDay() {
             teamSelectedId &&
             gamesForLeagues.some((g) => g.homeTeamId === teamSelectedId || g.awayTeamId === teamSelectedId);
 
-          if (!teamHasGames && teamSelectedId) {
+          if (teamHasGames && teamSelectedId) {
+            // Keep team filter and update filtered games
+            const filteredGames = gamesForLeagues.filter(
+              (g) => g.homeTeamId === teamSelectedId || g.awayTeamId === teamSelectedId
+            );
+            setGamesFiltred(filteredGames);
+          } else if (!teamHasGames && teamSelectedId) {
             // Reset team filter if no games for this team
             setTeamSelectedId('');
+            setGamesFiltred(gamesForLeagues);
           }
 
           return prevGames;
@@ -304,6 +311,8 @@ export default function GameofTheDay() {
   const displayAccordion = useCallback(() => {
     return leaguesAvailable.map((league, i) => {
       let gamesFiltred: GameFormatted[] = [...games];
+      const leaguesNumber = Array.from(new Set(games.map((game) => game.league))).length || 0;
+      const showSingleColumn = leaguesNumber === 1 || teamSelectedId !== '';
       if (league !== League.ALL) {
         gamesFiltred = gamesFiltred.filter((game) => game.league === league && game.awayTeamLogo && game.homeTeamLogo);
       }
@@ -319,7 +328,14 @@ export default function GameofTheDay() {
       if (gamesFiltred.length > 0) {
         return (
           <td key={league} style={{ verticalAlign: 'baseline' }}>
-            <Accordion filter={translatedLeague} i={i} gamesFiltred={gamesFiltred} open={true} isCounted={false} />
+            <Accordion
+              filter={translatedLeague}
+              i={i}
+              gamesFiltred={gamesFiltred}
+              open={true}
+              isCounted={false}
+              disableToggle={showSingleColumn}
+            />
           </td>
         );
       }
