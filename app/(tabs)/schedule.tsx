@@ -23,6 +23,7 @@ export default function Schedule() {
   const [games, setGames] = useState<FilterGames>({});
   const [teams, setTeams] = useState<Team[]>([]);
   const [teamSelected, setTeamSelected] = useState<string>('');
+  const [teamFilter, setTeamFilter] = useState<string>('');
   const [leagueTeams, setLeagueTeams] = useState<Team[]>([]);
   const [isSmallDevice, setIsSmallDevice] = useState(false);
   const [leaguesAvailable, setLeaguesAvailable] = useState<string[]>([]);
@@ -151,6 +152,7 @@ export default function Schedule() {
   };
 
   const handleTeamSelectionChange = (teamSelectedId: string | string[], i: number) => {
+    setTeamFilter('');
     const finalTeamId = Array.isArray(teamSelectedId) ? teamSelectedId[0] : teamSelectedId;
     if (finalTeamId === 'all') {
       localStorage.setItem('teamSelected', 'all');
@@ -161,7 +163,12 @@ export default function Schedule() {
     persistTeamForLeague(leagueOfSelectedTeam, finalTeamId);
   };
 
+  const handleTeamFilterChange = (teamSelectedId: string | string[], i: number) => {
+    setTeamFilter(Array.isArray(teamSelectedId) ? teamSelectedId[0] : teamSelectedId);
+  };
+
   const handleLeagueSelectionChange = (leagueSelectedId: string | string[], i: number) => {
+    setTeamFilter('');
     const finalLeagueId = Array.isArray(leagueSelectedId) ? leagueSelectedId[0] : leagueSelectedId;
     localStorage.setItem('leagueSelected', finalLeagueId);
     const teamsAvailableInLeague = teams.filter(({ league }) => league === finalLeagueId);
@@ -200,20 +207,27 @@ export default function Schedule() {
       itemsSelectedIds: [],
       itemSelectedId: teamSelected,
     };
+    const dataTeamsFilter = {
+      i: randomNumber(999999),
+      items: teamsForSelector.filter((team) => team.uniqueId !== teamSelected),
+      itemsSelectedIds: [],
+      itemSelectedId: teamFilter,
+    };
     return (
       <div key={`${teamSelected}-${teamSelected.length}`}>
         <ThemedView>
           <div style={{ width: isSmallDevice ? '100%' : '50%', margin: '0 auto', alignContent: 'center' }}>
             <Selector data={dataLeagues} onItemSelectionChange={handleLeagueSelectionChange} isClearable={false} />
             <Selector data={dataTeams} onItemSelectionChange={handleTeamSelectionChange} isClearable={false} />
+            <Selector data={dataTeamsFilter} onItemSelectionChange={handleTeamFilterChange} isClearable={true} />
           </div>
-          {displayGamesCards(teamSelected)}
+          {displayGamesCards(teamSelected, teamFilter)}
         </ThemedView>
       </div>
     );
   };
 
-  const displayGamesCards = (teamSelectedId: string) => {
+  const displayGamesCards = (teamSelectedId: string, teamFilter: string) => {
     const today = new Date().toISOString().split('T')[0];
     if (!games || (Object.keys(games).length === 1 && (games[today]?.[0]?.updateDate ?? '')) === '') {
       return (
@@ -223,11 +237,23 @@ export default function Schedule() {
         </div>
       );
     } else if (games) {
-      const filteredGames = Object.keys(games).filter((day: string) => {
-        return Array.isArray(games[day]) && games[day].some((game: GameFormatted) => game.updateDate);
+      let subFilteredGames = games;
+      if (teamFilter && teamFilter !== '') {
+        const filterNameGame = teamFilter === 'NHL-UTAH' ? 'NHL-UTA' : teamFilter;
+        subFilteredGames = Object.fromEntries(
+          Object.entries(games).filter(
+            ([_, game]) => game[0].homeTeamId === filterNameGame || game[0].awayTeamId === filterNameGame
+          )
+        );
+      }
+
+      let filteredGamesDates = Object.keys(subFilteredGames).filter((day: string) => {
+        return (
+          Array.isArray(subFilteredGames[day]) && subFilteredGames[day].some((game: GameFormatted) => game.updateDate)
+        );
       });
 
-      const months = filteredGames.reduce((acc: { [key: string]: string[] }, day: string) => {
+      const months = filteredGamesDates.reduce((acc: { [key: string]: string[] }, day: string) => {
         const month = new Date(day).toLocaleString('default', { month: 'long' });
         if (!acc[month]) {
           acc[month] = [];
@@ -239,7 +265,7 @@ export default function Schedule() {
       if (Object.keys(months).length) {
         return Object.entries(months).map(([month, daysInMonth], monthIndex) => {
           const gamesForThisMonth: GameFormatted[] = daysInMonth.reduce((acc: GameFormatted[], day: string) => {
-            const dayGames = Array.isArray(games[day]) ? games[day] : [];
+            const dayGames = Array.isArray(subFilteredGames[day]) ? subFilteredGames[day] : [];
             if (teamSelectedId === 'all') {
               if (dayGames.length) {
                 acc.push(...dayGames);
@@ -262,7 +288,7 @@ export default function Schedule() {
                 filter={month}
                 i={monthIndex}
                 gamesFiltred={gamesForThisMonth}
-                open={monthIndex === 0}
+                open={teamFilter !== '' || monthIndex === 0}
                 showDate={true}
                 isCounted={true}
               />
