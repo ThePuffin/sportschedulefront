@@ -1,4 +1,4 @@
-import { FilterGames, Team } from '@/utils/types';
+import { FilterGames, GameFormatted, Team } from '@/utils/types';
 import * as fflate from 'fflate';
 
 const EXPO_PUBLIC_API_BASE_URL =
@@ -201,5 +201,17 @@ export const refreshTeams = async (): Promise<void> => {
   } catch (error) {
     console.error(`Error refreshing teams:`, error);
     return;
+  }
+};
+
+export const fetchGames = async (date: string): Promise<GameFormatted[]> => {
+  try {
+    date = date || new Date().toISOString().split('T')[0];
+    const response = await fetch(`${EXPO_PUBLIC_API_BASE_URL}/games/date/${date}`);
+    const dayGames = await response.json();
+    return dayGames;
+  } catch (error) {
+    console.error(`Error fetching games for date ${date}:`, error);
+    return [];
   }
 };

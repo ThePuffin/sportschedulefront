@@ -9,24 +9,9 @@ import DateRangePicker from '../../components/DatePicker';
 import LoadingView from '../../components/LoadingView';
 import { ScrollToTopButton, ScrollToTopButtonRef } from '../../components/ScrollToTopButton';
 import { League } from '../../constants/enum';
-import { fetchLeagues, getCache, saveCache } from '../../utils/fetchData';
+import { fetchGames, fetchLeagues, getCache, saveCache } from '../../utils/fetchData';
 import { GameFormatted } from '../../utils/types';
 import { randomNumber, translateWord } from '../../utils/utils';
-
-const EXPO_PUBLIC_API_BASE_URL =
-  process.env.EXPO_PUBLIC_API_BASE_URL ?? 'https://sportschedule2025backend.onrender.com';
-
-const fetchGames = async (date: string): Promise<GameFormatted[]> => {
-  try {
-    date = date || new Date().toISOString().split('T')[0];
-    const response = await fetch(`${EXPO_PUBLIC_API_BASE_URL}/games/date/${date}`);
-    const dayGames = await response.json();
-    return dayGames;
-  } catch (error) {
-    console.error(`Error fetching games for date ${date}:`, error);
-    return [];
-  }
-};
 
 const getNextGamesFromApi = async (date: Date): Promise<{ [key: string]: GameFormatted[] }> => {
   const newFetch: { [key: string]: GameFormatted[] } = {};
@@ -423,7 +408,14 @@ export default function GameofTheDay() {
         setSelectLeagues(storedLeaguesSelected);
       }
 
-      setIsLoading(true);
+      // Only show loader if there's no cached data for today
+      const YYYYMMDD = new Date(selectDate).toISOString().split('T')[0];
+      const hasCachedDataForToday = gamesDayCache.current[YYYYMMDD]?.length > 0;
+
+      if (!hasCachedDataForToday) {
+        setIsLoading(true);
+      }
+
       try {
         await getGamesFromApi(selectDate);
 
