@@ -137,14 +137,35 @@ export default function GameofTheDay() {
     (startDate: Date, endDate: Date) => {
       readonlyRef.current = true;
       setSelectDate(startDate);
-      setTeamSelectedId('');
       setIsLoading(true);
+
       getGamesFromApi(startDate).finally(() => {
+        // Check if the currently selected team has games on the new date
+        const YYYYMMDD = new Date(startDate).toISOString().split('T')[0];
+        const gamesForDate = gamesDayCache.current[YYYYMMDD] || [];
+
+        setGames((prevGames) => {
+          // Filter games by selected leagues
+          const gamesForLeagues = prevGames.filter((game) => selectLeagues.includes(game.league as League));
+
+          // Check if selected team has any games on this date
+          const teamHasGames =
+            teamSelectedId &&
+            gamesForLeagues.some((g) => g.homeTeamId === teamSelectedId || g.awayTeamId === teamSelectedId);
+
+          if (!teamHasGames && teamSelectedId) {
+            // Reset team filter if no games for this team
+            setTeamSelectedId('');
+          }
+
+          return prevGames;
+        });
+
         readonlyRef.current = false;
         setIsLoading(false);
       });
     },
-    [getGamesFromApi, setTeamSelectedId]
+    [getGamesFromApi, selectLeagues, teamSelectedId]
   );
 
   const handleLeagueSelectionChange = useCallback(
