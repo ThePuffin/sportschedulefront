@@ -2,7 +2,7 @@ import { emoticonEnum } from '@/constants/enum';
 import { SelectorProps } from '@/utils/types';
 import { translateWord } from '@/utils/utils';
 import React, { useEffect, useState } from 'react';
-import Select, { GroupBase, StylesConfig } from 'react-select';
+import Select, { StylesConfig } from 'react-select';
 
 export default function Selector({
   data,
@@ -22,9 +22,7 @@ export default function Selector({
         const selectAllWasClicked = newValue.some((option) => option.value === 'select-all');
 
         if (selectAllWasClicked) {
-          const allItemIds = items
-            .map((item) => (typeof item === 'string' ? item : item.uniqueId))
-            .filter(Boolean);
+          const allItemIds = items.map((item) => (typeof item === 'string' ? item : item.uniqueId)).filter(Boolean);
           onItemSelectionChange(allItemIds, i);
         } else {
           const values = newValue.map((val) => val.value);
@@ -33,8 +31,12 @@ export default function Selector({
       } else {
         onItemSelectionChange((newValue as { value: string }).value, i);
       }
-    } else if (allowMultipleSelection) {
-      onItemSelectionChange([], i);
+    } else { // newValue is null
+      if (allowMultipleSelection) {
+        onItemSelectionChange([], i);
+      } else { // Single selection cleared, send empty string
+        onItemSelectionChange('', i);
+      }
     }
   };
 
@@ -77,8 +79,6 @@ export default function Selector({
           const base = item.label !== 'All' ? item.label : translateWord('all');
           return { value: item.uniqueId, label: base + icon };
         });
-    } else {
-      console.log('itemSelectedId', itemSelectedId);
     }
     const selectedItem = items.find((item) => {
       if (!item) return false;
@@ -146,6 +146,7 @@ export default function Selector({
       isMulti={allowMultipleSelection}
       isDisabled={items.length === 0 || items.length === 1}
       maxMenuHeight={220}
+      isClearable={!allowMultipleSelection}
     />
   );
 }

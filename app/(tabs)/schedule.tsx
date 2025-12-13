@@ -3,7 +3,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { getRandomTeamId, randomNumber, translateWord } from '@/utils/utils';
 import React, { useEffect, useRef, useState } from 'react';
-import { Dimensions, ScrollView, View } from 'react-native';
+import { Dimensions, ScrollView } from 'react-native';
 import Accordion from '../../components/Accordion'; // Added import
 import Loader from '../../components/Loader';
 import LoadingView from '../../components/LoadingView';
@@ -48,8 +48,8 @@ export default function Schedule() {
     async function fetchTeamsAndRestore() {
       // try cached teams first
       const cachedTeams = getCache<Team[]>('teams');
-      const teamSelected = localStorage.getItem('teamSelected') || '';
-      const selectedTeam = cachedTeams?.find((t) => t.uniqueId === teamSelected) || ({} as Team);
+      const teamSelectedLS = localStorage.getItem('teamSelected') || '';
+      const selectedTeam = cachedTeams?.find((t) => t.uniqueId === teamSelectedLS) || ({} as Team);
 
       try {
         if (cachedTeams) {
@@ -82,16 +82,13 @@ export default function Schedule() {
   }, []);
 
   useEffect(() => {
-    if (teamSelected.length > 0) {
+    if (teamSelected && teamSelected.length > 0 && leagueOfSelectedTeam && leagueOfSelectedTeam.length > 0) {
       async function fetchGames() {
-        if (leaguesAvailable.length === 0) {
-          await fetchLeagues(setLeaguesAvailable);
-        }
         await getGamesFromApi();
       }
       fetchGames();
     }
-  }, [teamSelected, leagueOfSelectedTeam]);
+  }, [teamSelected]);
 
   useEffect(() => {
     const updateDeviceType = () => {
@@ -153,26 +150,28 @@ export default function Schedule() {
     saveCache('teamsSelectedLeagues', leaguesTeams);
   };
 
-  const handleTeamSelectionChange = (teamSelectedId: string, i: number) => {
-    if (teamSelectedId === 'all') {
+  const handleTeamSelectionChange = (teamSelectedId: string | string[], i: number) => {
+    const finalTeamId = Array.isArray(teamSelectedId) ? teamSelectedId[0] : teamSelectedId;
+    if (finalTeamId === 'all') {
       localStorage.setItem('teamSelected', 'all');
       setTeamSelected('all');
     } else {
-      storeTeamSelected(teamSelectedId);
+      storeTeamSelected(finalTeamId);
     }
-    persistTeamForLeague(leagueOfSelectedTeam, teamSelectedId);
+    persistTeamForLeague(leagueOfSelectedTeam, finalTeamId);
   };
 
-  const handleLeagueSelectionChange = (leagueSelectedId: string, i: number) => {
-    localStorage.setItem('leagueSelected', leagueSelectedId);
-    const teamsAvailableInLeague = teams.filter(({ league }) => league === leagueSelectedId);
-    allOption.league = leagueSelectedId;
+  const handleLeagueSelectionChange = (leagueSelectedId: string | string[], i: number) => {
+    const finalLeagueId = Array.isArray(leagueSelectedId) ? leagueSelectedId[0] : leagueSelectedId;
+    localStorage.setItem('leagueSelected', finalLeagueId);
+    const teamsAvailableInLeague = teams.filter(({ league }) => league === finalLeagueId);
+    allOption.league = finalLeagueId;
     setLeagueTeams([allOption, ...teamsAvailableInLeague]);
-    setleagueOfSelectedTeam(leagueSelectedId);
+    setleagueOfSelectedTeam(finalLeagueId);
     const storedTeamsLeagues = getCache<{ [key: string]: string }>('teamsSelectedLeagues') || {};
     let team = '';
-    if (storedTeamsLeagues[leagueSelectedId]) {
-      team = storedTeamsLeagues[leagueSelectedId];
+    if (storedTeamsLeagues[finalLeagueId]) {
+      team = storedTeamsLeagues[finalLeagueId];
     }
 
     if (team.length === 0) {

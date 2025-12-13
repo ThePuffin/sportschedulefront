@@ -2,7 +2,6 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import React, { useEffect, useState } from 'react';
 import { Image, View, useWindowDimensions } from 'react-native';
-import Loader from '../components/Loader';
 import LoadingView from '../components/LoadingView';
 import { translateWord } from '../utils/utils';
 
@@ -42,17 +41,14 @@ export default function GameofTheDay() {
   };
 
   const refreshGamesLeague = async (league: string): Promise<void> => {
-    console.log(`Refreshing games for league: ${league}`);
     setIsLoading(true);
 
     try {
       const response = await fetch(`${EXPO_PUBLIC_API_BASE_URL}/games/refresh/${league.toUpperCase()}`, {
         method: 'POST',
       });
-      console.log(`Response status for ${league}:`, response);
       return;
     } catch (error) {
-      console.error(`Error fetching games for ${league}:`, error);
       return;
     } finally {
       setIsLoading(false);
@@ -60,14 +56,12 @@ export default function GameofTheDay() {
   };
 
   const refreshTeams = async (): Promise<void> => {
-    console.log(`Refreshing teams for all leagues`);
     setIsLoading(true);
 
     try {
       const response = await fetch(`${EXPO_PUBLIC_API_BASE_URL}/teams/refresh`, {
         method: 'POST',
       });
-      console.log(`Response status for teams:`, response);
       return;
     } catch (error) {
       console.error(`Error fetching games for teams:`, error);
