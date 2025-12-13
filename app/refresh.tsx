@@ -89,7 +89,7 @@ export default function GameofTheDay() {
   const displayNoContent = () => {
     if (isLoading) {
       return (
-        <View style={{ height: '100vh', display: 'grid', placeItems: 'center' }}>
+        <View style={{ height: '15%', justifyContent: 'center', alignItems: 'center' }}>
           <Loader />
         </View>
       );

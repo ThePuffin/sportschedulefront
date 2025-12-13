@@ -331,7 +331,7 @@ export default function Calendar() {
           />
         )}
         {!teamsSelected.length && (
-          <View style={{ height: '10%', justifyContent: 'center', alignItems: 'center' }}>
+          <View style={{ height: '15%', justifyContent: 'center', alignItems: 'center' }}>
             <Loader />
           </View>
         )}

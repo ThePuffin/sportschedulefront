@@ -391,7 +391,7 @@ export default function Schedule() {
         scrollEventThrottle={16}
       >
         {!teamSelected.length && (
-          <View style={{ height: '100vh', display: 'grid', placeItems: 'center' }}>
+          <View style={{ height: '15%', justifyContent: 'center', alignItems: 'center' }}>
             <Loader />
           </View>
         )}
