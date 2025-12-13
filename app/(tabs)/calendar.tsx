@@ -235,7 +235,7 @@ export default function Calendar() {
       return (
         <td key={`${teamSelectedId}-${teamsSelected.length}`}>
           <ThemedView>
-            <Selector data={data} onItemSelectionChange={handleTeamSelectionChange} />
+            <Selector data={data} onItemSelectionChange={handleTeamSelectionChange} isClearable={false} />
             {displayGamesCards(teamSelectedId)}
           </ThemedView>
         </td>

@@ -204,8 +204,8 @@ export default function Schedule() {
       <div key={`${teamSelected}-${teamSelected.length}`}>
         <ThemedView>
           <div style={{ width: isSmallDevice ? '100%' : '50%', margin: '0 auto', alignContent: 'center' }}>
-            <Selector data={dataLeagues} onItemSelectionChange={handleLeagueSelectionChange} />
-            <Selector data={dataTeams} onItemSelectionChange={handleTeamSelectionChange} />
+            <Selector data={dataLeagues} onItemSelectionChange={handleLeagueSelectionChange} isClearable={false} />
+            <Selector data={dataTeams} onItemSelectionChange={handleTeamSelectionChange} isClearable={false} />
           </div>
           {displayGamesCards(teamSelected)}
         </ThemedView>
