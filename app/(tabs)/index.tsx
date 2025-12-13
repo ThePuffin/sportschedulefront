@@ -1,6 +1,6 @@
 import Cards from '@/components/Cards';
+import NoResults from '@/components/NoResults';
 import Selector from '@/components/Selector';
-import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ScrollView, useWindowDimensions } from 'react-native';
@@ -246,7 +246,7 @@ export default function GameofTheDay() {
 
   const displayGamesCards = useCallback((gamesToShow: GameFormatted[]) => {
     if (gamesToShow?.length === 0) {
-      return <ThemedText>{translateWord('noResults')}</ThemedText>;
+      return <NoResults />;
     } else {
       return gamesToShow.map((game) => {
         if (game) {
@@ -316,7 +316,7 @@ export default function GameofTheDay() {
     if (isLoading) {
       return <LoadingView />;
     } else {
-      return <ThemedText>{translateWord('noResults')}</ThemedText>;
+      return <NoResults />;
     }
   }, [isLoading]);
 

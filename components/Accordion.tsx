@@ -1,9 +1,9 @@
+import NoResults from '@/components/NoResults';
 import { ThemedText } from '@/components/ThemedText';
 import { ListItem } from '@rneui/themed';
 import React, { useState } from 'react';
 import Cards from './Cards';
 
-import { translateWord } from '@/utils/utils';
 import type { AccordionProps } from '../utils/types';
 
 export default function Accordion({
@@ -38,7 +38,7 @@ export default function Accordion({
         );
       });
     }
-    return <ThemedText>{translateWord('noResults')}</ThemedText>;
+    return <NoResults />;
   };
 
   return (
