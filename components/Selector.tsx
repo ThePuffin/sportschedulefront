@@ -2,7 +2,7 @@ import { emoticonEnum } from '@/constants/enum';
 import { SelectorProps } from '@/utils/types';
 import { translateWord } from '@/utils/utils';
 import React, { useEffect, useState } from 'react';
-import Select from 'react-select';
+import Select, { GroupBase, StylesConfig } from 'react-select';
 
 export default function Selector({
   data,
@@ -10,7 +10,7 @@ export default function Selector({
   allowMultipleSelection = false,
 }: Readonly<SelectorProps>) {
   const { items, i, itemSelectedId } = data;
-  let { itemsSelectedIds } = data;
+  let { itemsSelectedIds = [] } = data;
 
   const [itemsSelection, setItemsSelection] = useState<{ value: string; label: string }[]>([]);
 
@@ -100,21 +100,21 @@ export default function Selector({
     : '';
 
   const targetHeight = 65;
-  const customStyles = {
-    control: (base: React.CSSProperties) => ({
+  type OptionType = { value: string; label: string };
+  const customStyles: StylesConfig<OptionType, boolean> = {
+    control: (base) => ({
       ...base,
-      minHeight: 'initial',
+      minHeight: `${targetHeight}px`,
     }),
-    valueContainer: (base: React.CSSProperties) => ({
+    valueContainer: (base) => ({
       ...base,
-      height: `${targetHeight - 1 - 1}px`,
       padding: '0 8px',
     }),
-    clearIndicator: (base: React.CSSProperties) => ({
+    clearIndicator: (base) => ({
       ...base,
       padding: `${(targetHeight - 20 - 1 - 1) / 2}px`,
     }),
-    dropdownIndicator: (base: React.CSSProperties) => ({
+    dropdownIndicator: (base) => ({
       ...base,
       padding: `${(targetHeight - 20 - 1 - 1) / 3}px`,
     }),
@@ -131,6 +131,7 @@ export default function Selector({
       noOptionsMessage={() => translateWord('noOptionsAvailable')}
       isMulti={allowMultipleSelection}
       isDisabled={items.length === 0 || items.length === 1}
+      maxMenuHeight={220}
     />
   );
 }
