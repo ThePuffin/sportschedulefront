@@ -99,6 +99,7 @@ export interface SelectorProps {
   };
   onItemSelectionChange: (itemSelectedId: string | string[], i: number) => void;
   allowMultipleSelection?: boolean;
+  isClearable?: boolean;
 }
 
 export interface CardsProps {
