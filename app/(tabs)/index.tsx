@@ -9,7 +9,7 @@ import DateRangePicker from '../../components/DatePicker';
 import Loader from '../../components/Loader';
 import { ScrollToTopButton, ScrollToTopButtonRef } from '../../components/ScrollToTopButton';
 import { League } from '../../constants/enum';
-import { fetchLeagues } from '../../utils/fetchData';
+import { fetchLeagues, getCache, saveCache } from '../../utils/fetchData';
 import { randomNumber, translateWord } from '../../utils/utils';
 
 interface GameFormatted {
@@ -68,7 +68,7 @@ const getNextGamesFromApi = async (date: Date): Promise<null> => {
     newFetch[nextYYYYMMDD] = await fetchGames(nextYYYYMMDD);
   }
   gamesDay = { ...newFetch };
-  localStorage.setItem('gamesDay', JSON.stringify(gamesDay));
+  saveCache('gamesDay', gamesDay);
   return null;
 };
 
@@ -91,12 +91,12 @@ export default function GameofTheDay() {
 
   const handleGames = (gamesDayExists: GameFormatted[]) => {
     const nowMinusThreeHour = new Date(Date.now() - 3 * 60 * 60 * 1000);
-    const storedLeaguesSelected = localStorage.getItem('leaguesSelected');
+    const storedLeaguesSelected = getCache<League[]>('leaguesSelected');
     let gamesToDisplay: GameFormatted[] = gamesDayExists.filter(
       ({ startTimeUTC = '' }) => new Date(startTimeUTC) >= nowMinusThreeHour
     );
     if (storedLeaguesSelected) {
-      const leaguesFromStorage = storedLeaguesSelected ? JSON.parse(storedLeaguesSelected) : LeaguesWithoutAll;
+      const leaguesFromStorage = storedLeaguesSelected ?? LeaguesWithoutAll;
 
       setSelectLeagues(leaguesFromStorage);
       setGames(gamesDayExists);
@@ -106,8 +106,8 @@ export default function GameofTheDay() {
       setGamesFiltred(gamesToDisplay);
       displayGamesCards(gamesToDisplay);
     } else {
-      const storedLeague = localStorage.getItem('league');
-      const leagueFromStorage = storedLeague ? (storedLeague as League) : League.ALL;
+      const storedLeague = getCache<League>('league');
+      const leagueFromStorage = storedLeague ?? League.ALL;
 
       setGames(gamesDayExists);
       if (leagueFromStorage !== League.ALL) {
@@ -115,7 +115,7 @@ export default function GameofTheDay() {
       }
       if (gamesToDisplay.length === 0) {
         setLeague(League.ALL);
-        localStorage.setItem('league', League.ALL);
+        saveCache('league', League.ALL);
         gamesToDisplay = gamesDayExists;
       }
       setGamesFiltred(gamesToDisplay);
@@ -126,8 +126,7 @@ export default function GameofTheDay() {
   const getGamesFromApi = async (): Promise<GameFormatted[] | undefined> => {
     const YYYYMMDD = new Date(selectDate).toISOString().split('T')[0];
     if (Object.keys(gamesDay).length === 0) {
-      const gamesDayString = localStorage.getItem('gamesDay');
-      const localStorageGamesDay = gamesDayString ? JSON.parse(gamesDayString) : {};
+      const localStorageGamesDay = getCache<{ [key: string]: GameFormatted[] }>('gamesDay');
       gamesDay = localStorageGamesDay || {};
     }
     if (gamesDay?.[YYYYMMDD]?.length) {
@@ -157,7 +156,7 @@ export default function GameofTheDay() {
   const handleLeagueSelectionChange = (leagueSelectedId: League | League[], i: number) => {
     const nowMinusOneHour = new Date(new Date().getTime() - 3 * 60 * 60 * 1000);
     if (Array.isArray(leagueSelectedId)) {
-      localStorage.setItem('leaguesSelected', JSON.stringify(leagueSelectedId));
+      saveCache('leaguesSelected', leagueSelectedId);
       setSelectLeagues(leagueSelectedId);
       const filteredGames = games.filter(
         (game) =>
@@ -165,7 +164,7 @@ export default function GameofTheDay() {
       );
       setGamesFiltred([...filteredGames]);
     } else {
-      localStorage.setItem('league', leagueSelectedId);
+      saveCache('league', leagueSelectedId);
       setLeague(leagueSelectedId as League);
       if (leagueSelectedId === League.ALL) {
         setGamesFiltred([...games]);
@@ -275,18 +274,18 @@ export default function GameofTheDay() {
   useEffect(() => {
     async function fetchGames() {
       fetchLeagues(setLeaguesAvailable);
-      const storedLeague = localStorage.getItem('league');
-      const storedLeagues = localStorage.getItem('leagues');
-      const storedLeaguesSelected = localStorage.getItem('leaguesSelected');
+      const storedLeague = getCache<League>('league');
+      const storedLeagues = getCache<string[]>('leagues');
+      const storedLeaguesSelected = getCache<League[]>('leaguesSelected');
 
       if (storedLeagues) {
-        await setLeaguesAvailable(JSON.parse(storedLeagues));
+        setLeaguesAvailable(storedLeagues);
       }
       if (storedLeague) {
-        await setLeague(storedLeague as League);
+        setLeague(storedLeague as League);
       }
       if (storedLeaguesSelected) {
-        await setSelectLeagues(JSON.parse(storedLeaguesSelected));
+        setSelectLeagues(storedLeaguesSelected);
       }
 
       await getGamesFromApi();

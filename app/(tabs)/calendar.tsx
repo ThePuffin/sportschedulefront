@@ -1,6 +1,6 @@
 import DateRangePicker from '@/components/DatePicker';
 import { ThemedView } from '@/components/ThemedView';
-import { fetchTeams } from '@/utils/fetchData';
+import { fetchTeams, getCache, saveCache } from '@/utils/fetchData';
 import React, { useEffect, useRef, useState } from 'react';
 import { Dimensions, ScrollView, View } from 'react-native';
 import Buttons from '../../components/Buttons';
@@ -70,13 +70,11 @@ export default function Calendar() {
       return gameDate >= startDate && gameDate <= endDate;
     });
     setGamesSelected(newGamesSelection);
-    localStorage.setItem('gameSelected', newGamesSelection.map((game) => JSON.stringify(game)).join(';'));
+    saveCache('gameSelected', newGamesSelection);
   };
 
   const getSelectedTeams = (allTeams: Team[]) => {
-    const selection = localStorage.getItem('teamsSelected')
-      ? JSON.parse(localStorage.getItem('teamsSelected') ?? '[]').map((team: Team) => team.uniqueId)
-      : teamsSelected ?? [];
+    const selection = getCache<Team[]>('teamsSelected')?.map((team) => team.uniqueId) ?? teamsSelected ?? [];
     if (!selection.length) {
       while (selection.length < 2) {
         addNewTeamId(selection, allTeams);
@@ -86,9 +84,8 @@ export default function Calendar() {
   };
 
   const getStoredGames = () => {
-    const gamesDataString = localStorage.getItem('gamesData');
-    const storedGamesDataRaw = gamesDataString && gamesDataString.length ? JSON.parse(gamesDataString) : {};
-    if (!Object.keys(storedGamesDataRaw).length) return {};
+    const storedGamesDataRaw = getCache<FilterGames>('gamesData');
+    if (!storedGamesDataRaw || !Object.keys(storedGamesDataRaw).length) return {};
 
     const begindateStr = beginDate.toISOString().split('T')[0];
 
@@ -101,25 +98,17 @@ export default function Calendar() {
   };
 
   const getStoredTeams = () => {
-    const selectionString = localStorage.getItem('teamsSelected');
-    const selection =
-      selectionString && selectionString.length
-        ? JSON.parse(localStorage.getItem('teamsSelected') ?? '[]').map((team: Team) => team.uniqueId)
-        : [];
+    const selection = getCache<Team[]>('teamsSelected')?.map((team) => team.uniqueId) ?? [];
     if (selection.length > 0) {
       storeTeamsSelected(selection);
 
       setGames(getStoredGames() as FilterGames);
 
-      const storedGamesSelected = localStorage.getItem('gameSelected')
-        ? localStorage.getItem('gameSelected')?.split(';')
-        : [];
+      const storedGamesSelected = getCache<GameFormatted[]>('gameSelected') ?? [];
       const today = new Date().toISOString().split('T')[0];
-      const gamesSelectedFromStorage = (storedGamesSelected ?? [])
-        .map((game) => JSON.parse(game))
-        .filter((game: GameFormatted) => game.gameDate >= today);
+      const gamesSelectedFromStorage = storedGamesSelected.filter((game) => game.gameDate >= today);
       setGamesSelected(gamesSelectedFromStorage);
-      localStorage.setItem('gameSelected', gamesSelectedFromStorage.map((game) => JSON.stringify(game)).join(';'));
+      saveCache('gameSelected', gamesSelectedFromStorage);
       setTeams(selection);
     } else {
       setTeamsSelected(selection);
@@ -158,7 +147,7 @@ export default function Calendar() {
           )}`
         );
         const gamesData = await response.json();
-        localStorage.setItem('gamesData', JSON.stringify(gamesData));
+        saveCache('gamesData', gamesData);
         setGames(gamesData);
       } catch (error) {
         console.error(error);
@@ -179,7 +168,7 @@ export default function Calendar() {
       .filter((team) => team);
 
     if (selectedTeams.length !== 0) {
-      localStorage.setItem('teamsSelected', JSON.stringify(selectedTeams));
+      saveCache('teamsSelected', selectedTeams);
     }
   };
 
@@ -192,7 +181,7 @@ export default function Calendar() {
         newTeamsSelected.includes(gameSelected.teamSelectedId)
       );
       setGamesSelected(newSelection);
-      localStorage.setItem('gameSelected', newSelection.map((game) => JSON.stringify(game)).join(';'));
+      saveCache('gameSelected', newSelection);
     }
   };
 
@@ -210,12 +199,12 @@ export default function Calendar() {
         storeTeamsSelected(newTeamsSelected);
         newGamesSelected = gamesSelected.filter((gameSelected) => teamsSelected.includes(gameSelected.teamSelectedId));
         setGamesSelected(newGamesSelected);
-        localStorage.setItem('gameSelected', newGamesSelected.map((game) => JSON.stringify(game)).join(';'));
+        saveCache('gameSelected', newGamesSelected);
         getGamesFromApi();
         break;
       case ButtonsKind.REMOVEGAMES:
         setGamesSelected([]);
-        localStorage.setItem('gameSelected', '');
+        saveCache('gameSelected', []);
         break;
       default:
         break;
@@ -236,7 +225,7 @@ export default function Calendar() {
     }
 
     setGamesSelected(newSelection);
-    localStorage.setItem('gameSelected', newSelection.map((game) => JSON.stringify(game)).join(';'));
+    saveCache('gameSelected', newSelection);
   };
 
   const displayTeamSelector = () => {
