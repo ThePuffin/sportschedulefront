@@ -19,12 +19,22 @@ export default function Selector({
   ) => {
     if (newValue) {
       if (Array.isArray(newValue)) {
-        itemsSelectedIds = newValue;
-        const values = newValue.map((val) => val.value);
-        onItemSelectionChange(values, i);
+        const selectAllWasClicked = newValue.some((option) => option.value === 'select-all');
+
+        if (selectAllWasClicked) {
+          const allItemIds = items
+            .map((item) => (typeof item === 'string' ? item : item.uniqueId))
+            .filter(Boolean);
+          onItemSelectionChange(allItemIds, i);
+        } else {
+          const values = newValue.map((val) => val.value);
+          onItemSelectionChange(values, i);
+        }
       } else {
         onItemSelectionChange((newValue as { value: string }).value, i);
       }
+    } else if (allowMultipleSelection) {
+      onItemSelectionChange([], i);
     }
   };
 
@@ -42,8 +52,12 @@ export default function Selector({
         })
       : [];
     const filteredItems = selectableItems.filter((item) => !itemsSelectedIds.includes(item.value));
+
+    if (allowMultipleSelection && items.length > itemsSelectedIds.length) {
+      filteredItems.unshift({ value: 'select-all', label: translateWord('selectAll') });
+    }
     setItemsSelection(filteredItems);
-  }, [items, itemsSelectedIds]);
+  }, [items, itemsSelectedIds, allowMultipleSelection]);
 
   const getValue = () => {
     if (allowMultipleSelection) {
