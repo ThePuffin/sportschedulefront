@@ -7,6 +7,7 @@ import { ScrollView, View, useWindowDimensions } from 'react-native';
 import Accordion from '../../components/Accordion';
 import DateRangePicker from '../../components/DatePicker';
 import Loader from '../../components/Loader';
+import LoadingView from '../../components/LoadingView';
 import { ScrollToTopButton, ScrollToTopButtonRef } from '../../components/ScrollToTopButton';
 import { League } from '../../constants/enum';
 import { fetchLeagues, getCache, saveCache } from '../../utils/fetchData';
@@ -218,11 +219,7 @@ export default function GameofTheDay() {
 
   const displayNoContent = () => {
     if (isLoading) {
-      return (
-        <View style={{ height: '15%', justifyContent: 'center', alignItems: 'center' }}>
-          <Loader />
-        </View>
-      );
+      return <LoadingView />;
     } else {
       return <ThemedText>{translateWord('noResults')}</ThemedText>;
     }

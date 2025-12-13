@@ -6,6 +6,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Dimensions, ScrollView, View } from 'react-native';
 import Accordion from '../../components/Accordion'; // Added import
 import Loader from '../../components/Loader';
+import LoadingView from '../../components/LoadingView';
 import { ScrollToTopButton, ScrollToTopButtonRef } from '../../components/ScrollToTopButton';
 import {
   fetchLeagues,
@@ -390,11 +391,7 @@ export default function Schedule() {
         onScroll={(event) => scrollToTopButtonRef.current?.handleScroll(event)}
         scrollEventThrottle={16}
       >
-        {!teamSelected.length && (
-          <View style={{ height: '15%', justifyContent: 'center', alignItems: 'center' }}>
-            <Loader />
-          </View>
-        )}
+        {!teamSelected.length && <LoadingView />}
         {display()}
       </ScrollView>
       <ScrollToTopButton ref={scrollToTopButtonRef} scrollViewRef={scrollViewRef} />

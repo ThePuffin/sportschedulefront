@@ -3,6 +3,7 @@ import { ThemedView } from '@/components/ThemedView';
 import React, { useEffect, useState } from 'react';
 import { Image, View, useWindowDimensions } from 'react-native';
 import Loader from '../components/Loader';
+import LoadingView from '../components/LoadingView';
 import { translateWord } from '../utils/utils';
 
 let width: number;
@@ -88,11 +89,7 @@ export default function GameofTheDay() {
 
   const displayNoContent = () => {
     if (isLoading) {
-      return (
-        <View style={{ height: '15%', justifyContent: 'center', alignItems: 'center' }}>
-          <Loader />
-        </View>
-      );
+      return <LoadingView />;
     } else {
       return <ThemedText>{translateWord('noResults')}</ThemedText>;
     }

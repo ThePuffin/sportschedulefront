@@ -7,6 +7,7 @@ import Buttons from '../../components/Buttons';
 import Cards from '../../components/Cards';
 import GamesSelected from '../../components/GamesSelected';
 import Loader from '../../components/Loader';
+import LoadingView from '../../components/LoadingView';
 import { ScrollToTopButton, ScrollToTopButtonRef } from '../../components/ScrollToTopButton';
 import Selector from '../../components/Selector';
 import { ButtonsKind } from '../../constants/enum';
@@ -330,11 +331,7 @@ export default function Calendar() {
             teamNumber={maxTeamsNumber > teamsSelected.length ? teamsSelected.length : maxTeamsNumber}
           />
         )}
-        {!teamsSelected.length && (
-          <View style={{ height: '15%', justifyContent: 'center', alignItems: 'center' }}>
-            <Loader />
-          </View>
-        )}
+        {!teamsSelected.length && <LoadingView />}
         <table style={{ tableLayout: 'fixed', width: '100%' }}>
           <tbody>
             <tr>{displayTeamSelector()}</tr>
