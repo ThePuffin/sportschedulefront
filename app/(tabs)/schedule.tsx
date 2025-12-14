@@ -207,9 +207,53 @@ export default function Schedule() {
       itemsSelectedIds: [],
       itemSelectedId: teamSelected,
     };
+
+    const uniqueTeamsFromGames = React.useMemo(() => {
+      if (teamSelected === 'all') {
+        return teamsForSelector.filter((team) => team.uniqueId !== teamSelected);
+      }
+      const teamsFromGames: Team[] = [];
+      for (const day in games) {
+        if (!Object.hasOwn(games, day)) continue;
+
+        const { homeTeam, awayTeam, league, homeTeamId, awayTeamId } = games[day][0] || {};
+        if (homeTeam && !teamsFromGames.find((t) => t.uniqueId === homeTeamId) && homeTeamId !== teamSelected) {
+          teamsFromGames.push({
+            label: homeTeam,
+            league,
+            uniqueId: homeTeamId,
+            value: homeTeamId,
+            id: homeTeamId,
+            teamLogo: '',
+            teamCommonName: homeTeam,
+            conferenceName: '',
+            divisionName: '',
+            abbrev: '',
+            updateDate: '',
+          });
+        }
+        if (awayTeam && !teamsFromGames.find((t) => t.uniqueId === awayTeamId) && awayTeamId !== teamSelected) {
+          teamsFromGames.push({
+            label: awayTeam,
+            league,
+            uniqueId: awayTeamId,
+            value: awayTeamId,
+            id: awayTeamId,
+            teamLogo: '',
+            teamCommonName: awayTeam,
+            conferenceName: '',
+            divisionName: '',
+            abbrev: '',
+            updateDate: '',
+          });
+        }
+      }
+      return teamsFromGames.sort((a, b) => a.label.localeCompare(b.label));
+    }, [games, teamSelected]);
+
     const dataTeamsFilter = {
       i: randomNumber(999999),
-      items: teamsForSelector.filter((team) => team.uniqueId !== teamSelected),
+      items: uniqueTeamsFromGames,
       itemsSelectedIds: [],
       itemSelectedId: teamFilter,
     };
@@ -288,7 +332,7 @@ export default function Schedule() {
                 filter={month}
                 i={monthIndex}
                 gamesFiltred={gamesForThisMonth}
-                open={teamFilter !== '' || monthIndex === 0}
+                open={teamFilter?.length > 0 || monthIndex === 0}
                 showDate={true}
                 isCounted={true}
               />

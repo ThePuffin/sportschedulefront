@@ -55,7 +55,8 @@ export default function GameofTheDay() {
             uniqueId: game.awayTeamId,
             league: game.league,
           }))
-      );
+      )
+      .sort((a, b) => a.label.localeCompare(b.label));
     return Array.from(new Set(filtredTeamsAvailable));
   }, [games, selectLeagues]);
 
@@ -257,7 +258,7 @@ export default function GameofTheDay() {
       return { label: league, uniqueId: league, value: league };
     });
     const leaguesData = {
-      i: 0,
+      i: 'leagues',
       items: leagues as any,
       itemsSelectedIds: selectLeagues,
       itemSelectedId: league,
@@ -273,7 +274,7 @@ export default function GameofTheDay() {
         />
         <Selector
           data={{
-            i: 1,
+            i: randomNumber(999999),
             items: teamsOfTheDay as any,
             itemSelectedId: teamSelectedId,
             itemsSelectedIds: [],

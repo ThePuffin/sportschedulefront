@@ -1,7 +1,7 @@
 import NoResults from '@/components/NoResults';
 import { ThemedText } from '@/components/ThemedText';
 import { ListItem } from '@rneui/themed';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Cards from './Cards';
 
 import type { AccordionProps } from '../utils/types';
@@ -16,6 +16,12 @@ export default function Accordion({
   disableToggle = false,
 }: Readonly<AccordionProps>) {
   const [expanded, setExpanded] = useState(disableToggle ? true : open ?? i === 0);
+
+  // Synchronize internal expanded state with the 'open' prop
+  useEffect(() => {
+    setExpanded(disableToggle ? true : open ?? i === 0);
+  }, [open, disableToggle, i]);
+
   const makeCards = () => {
     if (!gamesFiltred?.length) {
       return <ThemedText>There are no games today</ThemedText>;
