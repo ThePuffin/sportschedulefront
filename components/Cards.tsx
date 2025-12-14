@@ -2,13 +2,17 @@ import { League } from '@/constants/enum';
 import { Card } from '@rneui/base';
 import { Icon } from '@rneui/themed';
 import React, { useEffect, useState } from 'react';
-import { Dimensions, Image, Text, View } from 'react-native';
-import { Colors } from '../constants/Colors';
+import { ImageSourcePropType, Dimensions, Image, Text, View } from 'react-native';
+import { Colors, TeamColors } from '../constants/Colors';
 import { CardsProps } from '../utils/types';
 import { generateICSFile, translateWord } from '../utils/utils';
 const defaultLogo = require('../assets/images/default_logo.png');
 
-const leagueLogos = {
+interface LeagueLogosType {
+  [key: string]: ImageSourcePropType;
+}
+
+const leagueLogos: LeagueLogosType = {
   MLB: require('../assets/images/MLB.png'),
   NBA: require('../assets/images/NBA.png'),
   NFL: require('../assets/images/NFL.png'),
@@ -94,7 +98,7 @@ export default function Cards({
       : new Date(startTimeUTC).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
   }
 
-  const colorsTeamSelected = Colors[teamSelectedId] ?? {};
+  const colorsTeamSelected = (Colors[teamSelectedId] ?? {}) as TeamColors;
   const teamClrs =
     Object.keys(colorsTeamSelected).length > 0
       ? { color: colorsTeamSelected.color, backgroundColor: colorsTeamSelected.backgroundColor }
