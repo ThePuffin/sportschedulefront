@@ -2,7 +2,8 @@ import NoResults from '@/components/NoResults';
 import Selector from '@/components/Selector';
 import { ThemedView } from '@/components/ThemedView';
 import { getRandomTeamId, randomNumber } from '@/utils/utils';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useFocusEffect } from 'expo-router';
 import { Dimensions, ScrollView } from 'react-native';
 import Accordion from '../../components/Accordion'; // Added import
 import Loader from '../../components/Loader';
@@ -81,6 +82,12 @@ export default function Schedule() {
     }
     fetchTeamsAndRestore();
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      scrollViewRef.current?.scrollTo({ y: 0, animated: false });
+    }, [])
+  );
 
   useEffect(() => {
     if (teamSelected && teamSelected.length > 0 && leagueOfSelectedTeam && leagueOfSelectedTeam.length > 0) {

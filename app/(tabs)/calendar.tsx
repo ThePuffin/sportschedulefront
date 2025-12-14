@@ -1,7 +1,8 @@
 import DateRangePicker from '@/components/DatePicker';
 import { ThemedView } from '@/components/ThemedView';
 import { fetchTeams, getCache, saveCache } from '@/utils/fetchData';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useFocusEffect } from 'expo-router';
 import { Dimensions, ScrollView } from 'react-native';
 import Buttons from '../../components/Buttons';
 import Cards from '../../components/Cards';
@@ -276,6 +277,12 @@ export default function Calendar() {
     initializeDateRange();
     getStoredTeams();
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      scrollViewRef.current?.scrollTo({ y: 0, animated: false });
+    }, [])
+  );
 
   useEffect(() => {
     async function fetchTeams() {

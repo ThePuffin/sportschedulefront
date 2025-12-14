@@ -2,6 +2,7 @@ import Cards from '@/components/Cards';
 import NoResults from '@/components/NoResults';
 import Selector from '@/components/Selector';
 import { ThemedView } from '@/components/ThemedView';
+import { useFocusEffect } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ScrollView, useWindowDimensions } from 'react-native';
 import Accordion from '../../components/Accordion';
@@ -437,6 +438,12 @@ export default function GameofTheDay() {
 
     initializeGames();
   }, []); // Only run once on mount
+
+  useFocusEffect(
+    useCallback(() => {
+      scrollViewRef.current?.scrollTo({ y: 0, animated: false });
+    }, [])
+  );
 
   return (
     <ThemedView style={{ flex: 1 }}>
