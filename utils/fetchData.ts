@@ -44,7 +44,7 @@ export const getCache = <T>(cacheKey: string): T | null => {
 };
 
 // Helper function to retry after delay
-const retryFetch = async <T>(fetchFn: () => Promise<T>, retries: number = 1, delayMs: number = 10000): Promise<T> => {
+const retryFetch = async <T>(fetchFn: () => Promise<T>, retries: number = 1, delayMs: number = 6000): Promise<T> => {
   try {
     return await fetchFn();
   } catch (error) {
@@ -58,7 +58,7 @@ const retryFetch = async <T>(fetchFn: () => Promise<T>, retries: number = 1, del
 };
 
 // Helper to add timeout to fetch (accepts RequestInit options)
-const fetchWithTimeout = (url: string, timeoutMs: number = 10000, options: RequestInit = {}) => {
+const fetchWithTimeout = (url: string, timeoutMs: number = 6000, options: RequestInit = {}) => {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
