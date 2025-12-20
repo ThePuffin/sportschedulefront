@@ -2,7 +2,7 @@ import { League } from '@/constants/enum';
 import { Card } from '@rneui/base';
 import { Icon } from '@rneui/themed';
 import React, { useEffect, useState } from 'react';
-import { ImageSourcePropType, Dimensions, Image, Text, View } from 'react-native';
+import { Dimensions, Image, ImageSourcePropType, Text, View } from 'react-native';
 import { Colors, TeamColors } from '../constants/Colors';
 import { CardsProps } from '../utils/types';
 import { generateICSFile, translateWord } from '../utils/utils';
@@ -118,7 +118,7 @@ export default function Cards({
 
   let selectedCard = selected
     ? {
-        filter: 'brightness(1.25) saturate(1.5) contrast(1.05)',
+        filter: 'brightness(0.95) saturate(1) contrast(1.05)',
         border: 'double' + colorTeam?.color,
       }
     : {};
@@ -238,7 +238,12 @@ export default function Cards({
                   width: '100%',
                   height: '100%',
                   filter:
-                    'drop-shadow(-1px 0 0 #101518) drop-shadow(0 -1px 0 #101518) drop-shadow(-0.1px 0 0 #101518) drop-shadow(0 0.1px 0 #101518)',
+                    'brightness(1.1) ' +
+                    'contrast(1.2) ' +
+                    'drop-shadow(-1px 0 0 #101518) ' +
+                    'drop-shadow(0 -1px 0 #101518) ' +
+                    'drop-shadow(-0.1px 0 0 #101518) ' +
+                    'drop-shadow(0 0.1px 0 #101518)',
                 }}
                 resizeMode="contain"
                 source={awayTeamLogo ? { uri: awayTeamLogo } : defaultLogo}
