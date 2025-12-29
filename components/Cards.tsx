@@ -126,8 +126,6 @@ export default function Cards({
   const colorTeam = teamClrs.backgroundColor && teamClrs.backgroundColor !== '' ? teamClrs : Colors['default'];
 
   let shadowColor = show ? getContrastShadow(colorsTeamSelected.backgroundColor || '#FFFFFF') : '#000000';
-  console.log('shadowColor', homeTeamShort, colorsTeamSelected, shadowColor);
-
   let cardClass = show
     ? {
         ...colorTeam,

@@ -590,7 +590,7 @@ export const Colors: ColorsType = {
   },
   'PWHL-NY': {
     backgroundColor: '#00b9b3',
-    color: '#eb8b04',
+    color: '#011e42',
   },
   'PWHL-SEA': {
     color: '#0C5256',
