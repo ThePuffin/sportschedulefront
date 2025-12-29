@@ -97,6 +97,7 @@ export const translateWord = (word: string) => {
         homeScreen: 'Zur Startseite gehen!',
         selectAll: 'Alle auswählen',
         Filter: 'Filtern',
+        ended: 'Beendet',
       };
       break;
     case 'es':
@@ -112,6 +113,7 @@ export const translateWord = (word: string) => {
         homeScreen: 'Ir a la pantalla de inicio!',
         selectAll: 'Seleccionar todo',
         Filter: 'Filtrar',
+        ended: 'Finalizado',
       };
       break;
     case 'fr':
@@ -127,6 +129,7 @@ export const translateWord = (word: string) => {
         homeScreen: "Aller à la page d'accueil!",
         selectAll: 'Tout sélectionner',
         Filter: 'Filtrer',
+        ended: 'Terminé',
       };
       break;
     case 'it':
@@ -142,6 +145,7 @@ export const translateWord = (word: string) => {
         homeScreen: 'Vai alla pagina iniziale!',
         selectAll: 'Seleziona tutto',
         Filter: 'Filtrare',
+        ended: 'Terminato',
       };
       break;
     case 'ja':
@@ -157,6 +161,7 @@ export const translateWord = (word: string) => {
         homeScreen: 'ホーム画面に移動します！',
         selectAll: 'すべて選択',
         Filter: 'フィルター',
+        ended: '終了',
       };
       break;
     case 'ko':
@@ -172,6 +177,7 @@ export const translateWord = (word: string) => {
         homeScreen: '홈 화면으로 이동하세요!',
         selectAll: '모두 선택',
         Filter: '필터',
+        ended: '종료됨',
       };
       break;
     case 'nl':
@@ -187,6 +193,7 @@ export const translateWord = (word: string) => {
         homeScreen: 'Ga naar de thuispagina!',
         selectAll: 'Alles selecteren',
         Filter: 'Filteren',
+        ended: 'Afgerond',
       };
       break;
     case 'pt':
@@ -202,6 +209,7 @@ export const translateWord = (word: string) => {
         homeScreen: 'Ir para a página inicial!',
         selectAll: 'Selecionar tudo',
         Filter: 'Filtrar',
+        ended: 'Encerrado',
       };
       break;
     case 'ru':
@@ -217,6 +225,7 @@ export const translateWord = (word: string) => {
         homeScreen: 'Перейти на главную страницу!',
         selectAll: 'Выбрать все',
         Filter: 'Фильтровать',
+        ended: 'Завершено',
       };
       break;
     case 'zh':
@@ -232,6 +241,7 @@ export const translateWord = (word: string) => {
         homeScreen: '前往首页！',
         selectAll: '全选',
         Filter: '筛选',
+        ended: '已结束',
       };
       break;
     default:

@@ -466,8 +466,7 @@ export default function Schedule() {
         onScroll={(event) => scrollToTopButtonRef.current?.handleScroll(event)}
         scrollEventThrottle={16}
       >
-        {!teamSelected.length && <LoadingView />}
-        {teamSelected.length && display()}
+        {display()}
       </ScrollView>
       <ScrollToTopButton ref={scrollToTopButtonRef} scrollViewRef={scrollViewRef} />
     </ThemedView>

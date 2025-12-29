@@ -1,4 +1,4 @@
-import { League } from '@/constants/enum';
+import { League, timeDurationEnum } from '@/constants/enum';
 import { Card } from '@rneui/base';
 import { Icon } from '@rneui/themed';
 import React, { useEffect, useState } from 'react';
@@ -53,6 +53,26 @@ export default function Cards({
   const league = teamSelectedId.split('-')[0] || 'DEFAULT';
   const show = typeof data.show === 'boolean' ? data.show : data.show === 'true';
 
+  const getContrastShadow = (hexColor) => {
+    if (!hexColor || typeof hexColor !== 'string') return 'rgba(0, 0, 0, 0.3)';
+
+    let hex = hexColor.replace('#', '');
+    if (hex.length === 3) {
+      hex = hex
+        .split('')
+        .map((char) => char + char)
+        .join('');
+    }
+
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+
+    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+
+    return brightness > 128 ? 'rgba(0, 0, 0, 0.4)' : 'rgba(255, 255, 255, 0.5)';
+  };
+
   const [teamNameHome, setTeamNameHome] = useState(homeTeam);
   const [teamNameAway, setTeamNameAway] = useState(awayTeam);
   const [isSmallDevice, setIsSmallDevice] = useState(false);
@@ -105,6 +125,9 @@ export default function Cards({
       : { color: `#${color}`, backgroundColor: `#${backgroundColor}` };
   const colorTeam = teamClrs.backgroundColor && teamClrs.backgroundColor !== '' ? teamClrs : Colors['default'];
 
+  let shadowColor = show ? getContrastShadow(colorsTeamSelected.backgroundColor || '#FFFFFF') : '#000000';
+  console.log('shadowColor', homeTeamShort, colorsTeamSelected, shadowColor);
+
   let cardClass = show
     ? {
         ...colorTeam,
@@ -126,12 +149,17 @@ export default function Cards({
   const displayTitle = () => {
     const now = new Date();
     const todayEnd = new Date(data.startTimeUTC);
-    todayEnd.setHours(todayEnd.getHours() + 3);
+    todayEnd.setHours(todayEnd.getHours() + timeDurationEnum[data.league as keyof typeof timeDurationEnum]);
 
-    const displayDate =
-      data.startTimeUTC && now >= new Date(data.startTimeUTC) && now < todayEnd
-        ? translateWord('inProgress')
-        : gameDate;
+    let displayDate = gameDate;
+
+    if (data.startTimeUTC) {
+      const startTime = new Date(data.startTimeUTC);
+
+      if (now >= startTime) {
+        displayDate = now > todayEnd ? translateWord('ended') : translateWord('inProgress');
+      }
+    }
 
     if (arenaName && arenaName !== '') {
       return (
@@ -237,13 +265,7 @@ export default function Cards({
                 style={{
                   width: '100%',
                   height: '100%',
-                  filter:
-                    'brightness(1.1) ' +
-                    'contrast(1.2) ' +
-                    'drop-shadow(-1px 0 0 #101518) ' +
-                    'drop-shadow(0 -1px 0 #101518) ' +
-                    'drop-shadow(-0.1px 0 0 #101518) ' +
-                    'drop-shadow(0 0.1px 0 #101518)',
+                  filter: 'brightness(1.1) ' + 'contrast(1.2) ' + `drop-shadow(0 0 2px ${shadowColor})`,
                 }}
                 resizeMode="contain"
                 source={awayTeamLogo ? { uri: awayTeamLogo } : defaultLogo}
@@ -252,7 +274,7 @@ export default function Cards({
                 <Text
                   style={{
                     position: 'absolute',
-                    fontWeight: 'bold',
+                    fontWeight: 'bolder',
                     fontSize: isSmallDevice ? 10 : 12,
                     color: '#ffffff',
                     textAlign: 'center',
@@ -281,8 +303,7 @@ export default function Cards({
                 style={{
                   width: '100%',
                   height: '100%',
-                  filter:
-                    'drop-shadow(-1.5px 0 0 #101518) drop-shadow(0 -1px 0 #101518) drop-shadow(-0.1px 0 0 #101518) drop-shadow(0 0.1px 0 #101518)',
+                  filter: `drop-shadow(0 0 2px ${shadowColor})`,
                 }}
                 resizeMode="contain"
                 source={homeTeamLogo ? { uri: homeTeamLogo } : defaultLogo}
