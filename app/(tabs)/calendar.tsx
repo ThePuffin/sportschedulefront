@@ -7,7 +7,6 @@ import { Dimensions, ScrollView } from 'react-native';
 import Buttons from '../../components/Buttons';
 import Cards from '../../components/Cards';
 import GamesSelected from '../../components/GamesSelected';
-import Loader from '../../components/Loader';
 import LoadingView from '../../components/LoadingView';
 import { ScrollToTopButton, ScrollToTopButtonRef } from '../../components/ScrollToTopButton';
 import Selector from '../../components/Selector';
@@ -271,7 +270,7 @@ export default function Calendar() {
         });
       }
     }
-    return <Loader />;
+    return <LoadingView />;
   };
   useEffect(() => {
     initializeDateRange();
@@ -335,7 +334,7 @@ export default function Calendar() {
           <GamesSelected
             onAction={handleGamesSelection}
             data={gamesSelected}
-            teamNumber={maxTeamsNumber > teamsSelected.length ? teamsSelected.length : maxTeamsNumber}
+            teamNumber={maxTeamsNumber > teamsSelected?.length ? teamsSelected.length : maxTeamsNumber}
           />
         )}
         {!teamsSelected.length && <LoadingView />}

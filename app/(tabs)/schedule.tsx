@@ -2,11 +2,10 @@ import NoResults from '@/components/NoResults';
 import Selector from '@/components/Selector';
 import { ThemedView } from '@/components/ThemedView';
 import { getRandomTeamId, randomNumber } from '@/utils/utils';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useFocusEffect } from 'expo-router';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Dimensions, ScrollView } from 'react-native';
 import Accordion from '../../components/Accordion'; // Added import
-import Loader from '../../components/Loader';
 import LoadingView from '../../components/LoadingView';
 import { ScrollToTopButton, ScrollToTopButtonRef } from '../../components/ScrollToTopButton';
 import {
@@ -355,7 +354,7 @@ export default function Schedule() {
       </div>
     ) : (
       <div>
-        <Loader />
+        <LoadingView />
       </div>
     );
   };
@@ -468,7 +467,7 @@ export default function Schedule() {
         scrollEventThrottle={16}
       >
         {!teamSelected.length && <LoadingView />}
-        {display()}
+        {teamSelected.length && display()}
       </ScrollView>
       <ScrollToTopButton ref={scrollToTopButtonRef} scrollViewRef={scrollViewRef} />
     </ThemedView>
