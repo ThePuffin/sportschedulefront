@@ -4,6 +4,7 @@ import { Icon } from '@rneui/themed';
 import React, { useEffect, useState } from 'react';
 import { Dimensions, Image, ImageSourcePropType, Text, View } from 'react-native';
 import { Colors, TeamColors } from '../constants/Colors';
+import { getCache } from '../utils/fetchData';
 import { CardsProps } from '../utils/types';
 import { generateICSFile, translateWord } from '../utils/utils';
 const defaultLogo = require('../assets/images/default_logo.png');
@@ -48,12 +49,14 @@ export default function Cards({
     backgroundColor,
     awayTeamShort,
     homeTeamShort,
+    homeTeamId,
+    awayTeamId,
   } = data;
 
   const league = teamSelectedId.split('-')[0] || 'DEFAULT';
   const show = typeof data.show === 'boolean' ? data.show : data.show === 'true';
 
-  const getContrastShadow = (hexColor) => {
+  const getContrastShadow = (hexColor: string) => {
     if (!hexColor || typeof hexColor !== 'string') return 'rgba(0, 0, 0, 0.3)';
 
     let hex = hexColor.replace('#', '');
@@ -64,9 +67,9 @@ export default function Cards({
         .join('');
     }
 
-    const r = parseInt(hex.substring(0, 2), 16);
-    const g = parseInt(hex.substring(2, 4), 16);
-    const b = parseInt(hex.substring(4, 6), 16);
+    const r = Number.parseInt(hex.substring(0, 2), 16);
+    const g = Number.parseInt(hex.substring(2, 4), 16);
+    const b = Number.parseInt(hex.substring(4, 6), 16);
 
     const brightness = (r * 299 + g * 587 + b * 114) / 1000;
 
@@ -101,6 +104,21 @@ export default function Cards({
 
     return () => {};
   }, []);
+
+  const [favoriteTeams, setFavoriteTeams] = useState<string[]>(() => getCache<string[]>('favoriteTeams') || []);
+
+  useEffect(() => {
+    const updateFavorites = () => {
+      setFavoriteTeams(getCache<string[]>('favoriteTeams') || []);
+    };
+    if (globalThis.window !== undefined) {
+      globalThis.window.addEventListener('favoritesUpdated', updateFavorites);
+      return () => globalThis.window.removeEventListener('favoritesUpdated', updateFavorites);
+    }
+  }, []);
+
+  const isFavorite =
+    !!startTimeUTC && !showDate ? favoriteTeams.includes(homeTeamId) || favoriteTeams.includes(awayTeamId) : false;
 
   const date = data?.gameDate ? new Date(data.gameDate) : new Date();
   let gameDate = new Date(date).toLocaleDateString(undefined, {
@@ -141,6 +159,15 @@ export default function Cards({
     ? {
         filter: 'brightness(0.95) saturate(1) contrast(1.05)',
         border: 'double' + colorTeam?.color,
+      }
+    : {};
+
+  let favoriteCardStyle = isFavorite
+    ? {
+        borderColor: colorTeam.color,
+        borderWidth: 3,
+        borderStyle: 'solid',
+        boxShadow: `0px 0px 9px #FFD700`,
       }
     : {};
 
@@ -389,6 +416,7 @@ export default function Cards({
         containerStyle={{
           marginLeft: 0,
           marginRight: 0,
+          ...favoriteCardStyle,
           ...selectedCard,
           ...cardClass,
           height: 270,
@@ -409,6 +437,25 @@ export default function Cards({
             }}
             accessibilityLabel={`${league} logo`}
           />
+        )}
+        {isFavorite && (
+          <View
+            style={{
+              position: 'absolute',
+              top: -10,
+              right: -10,
+              zIndex: 10,
+            }}
+          >
+            <Icon
+              name="star"
+              type="font-awesome"
+              color="#000"
+              size={22}
+              containerStyle={{ position: 'absolute', top: -1, left: -1 }}
+            />
+            <Icon name="star" type="font-awesome" color="#FFD700" size={20} />
+          </View>
         )}
         <Card.Title
           style={{

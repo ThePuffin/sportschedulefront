@@ -84,6 +84,24 @@ export const translateWord = (word: string) => {
   let translation: { [key: string]: string } = {};
   const language = navigator.language.split('-')[0];
   switch (language) {
+    case 'fr':
+      translation = {
+        all: 'TOUS',
+        gamesOfDay: 'Programme du jour',
+        remainingGames: 'Matchs restants',
+        calendars: 'Calendriers',
+        noResults: 'Pas de résultats',
+        inProgress: 'En cours',
+        noOptionsAvailable: 'Aucune option disponible',
+        wrongPage: "Cette page n'existe pas.",
+        homeScreen: "Aller à la page d'accueil!",
+        selectAll: 'Tout sélectionner',
+        Filter: 'Filtrer',
+        ended: 'Terminé',
+        yourFav: 'Vos équipes favorites',
+        register: 'Sauvegarder',
+      };
+      break;
     case 'de':
       translation = {
         all: 'alle',
@@ -98,6 +116,8 @@ export const translateWord = (word: string) => {
         selectAll: 'Alle auswählen',
         Filter: 'Filtern',
         ended: 'Beendet',
+        yourFav: 'Deine Lieblingsteams',
+        register: 'Speichern',
       };
       break;
     case 'es':
@@ -114,24 +134,11 @@ export const translateWord = (word: string) => {
         selectAll: 'Seleccionar todo',
         Filter: 'Filtrar',
         ended: 'Finalizado',
+        yourFav: 'Tus equipos favoritos',
+        register: 'Guardar',
       };
       break;
-    case 'fr':
-      translation = {
-        all: 'TOUS',
-        gamesOfDay: 'Programme du jour',
-        remainingGames: 'Matchs restants',
-        calendars: 'Calendriers',
-        noResults: 'Pas de résultats',
-        inProgress: 'En cours',
-        noOptionsAvailable: 'Aucune option disponible',
-        wrongPage: "Cette page n'existe pas.",
-        homeScreen: "Aller à la page d'accueil!",
-        selectAll: 'Tout sélectionner',
-        Filter: 'Filtrer',
-        ended: 'Terminé',
-      };
-      break;
+
     case 'it':
       translation = {
         all: 'TUTTI',
@@ -146,6 +153,8 @@ export const translateWord = (word: string) => {
         selectAll: 'Seleziona tutto',
         Filter: 'Filtrare',
         ended: 'Terminato',
+        yourFav: 'Le tue squadre preferite',
+        register: 'Salva',
       };
       break;
     case 'ja':
@@ -162,6 +171,8 @@ export const translateWord = (word: string) => {
         selectAll: 'すべて選択',
         Filter: 'フィルター',
         ended: '終了',
+        yourFav: 'お気に入りのチーム',
+        register: '保存',
       };
       break;
     case 'ko':
@@ -178,6 +189,8 @@ export const translateWord = (word: string) => {
         selectAll: '모두 선택',
         Filter: '필터',
         ended: '종료됨',
+        yourFav: '좋아하는 팀',
+        register: '저장',
       };
       break;
     case 'nl':
@@ -194,6 +207,8 @@ export const translateWord = (word: string) => {
         selectAll: 'Alles selecteren',
         Filter: 'Filteren',
         ended: 'Afgerond',
+        yourFav: 'Je favoriete teams',
+        register: 'Opslaan',
       };
       break;
     case 'pt':
@@ -210,6 +225,8 @@ export const translateWord = (word: string) => {
         selectAll: 'Selecionar tudo',
         Filter: 'Filtrar',
         ended: 'Encerrado',
+        yourFav: 'Seus times favoritos',
+        register: 'Salvar',
       };
       break;
     case 'ru':
@@ -226,6 +243,8 @@ export const translateWord = (word: string) => {
         selectAll: 'Выбрать все',
         Filter: 'Фильтровать',
         ended: 'Завершено',
+        yourFav: 'Ваши любимые команды',
+        register: 'Сохранить',
       };
       break;
     case 'zh':
@@ -242,6 +261,8 @@ export const translateWord = (word: string) => {
         selectAll: '全选',
         Filter: '筛选',
         ended: '已结束',
+        yourFav: '你最喜欢的球队',
+        register: '保存',
       };
       break;
     default:
@@ -257,6 +278,9 @@ export const translateWord = (word: string) => {
         homeScreen: 'Go to home screen!',
         selectAll: 'Select All',
         Filter: 'Filter',
+        ended: 'Ended',
+        yourFav: 'Your favorite teams',
+        register: 'Save',
       };
       break;
   }

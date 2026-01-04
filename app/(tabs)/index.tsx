@@ -6,9 +6,9 @@ import { useFocusEffect } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ScrollView, useWindowDimensions } from 'react-native';
 import Accordion from '../../components/Accordion';
+import { ActionButton, ActionButtonRef } from '../../components/ActionButton';
 import DateRangePicker from '../../components/DatePicker';
 import LoadingView from '../../components/LoadingView';
-import { ScrollToTopButton, ScrollToTopButtonRef } from '../../components/ScrollToTopButton';
 import { League } from '../../constants/enum';
 import { fetchGames, fetchLeagues, getCache, saveCache } from '../../utils/fetchData';
 import { GameFormatted } from '../../utils/types';
@@ -64,7 +64,7 @@ export default function GameofTheDay() {
   const [teamSelectedId, setTeamSelectedId] = useState<string>('');
   const gamesDayCache = useRef<{ [key: string]: GameFormatted[] }>({});
   const scrollViewRef = useRef<ScrollView>(null);
-  const scrollToTopButtonRef = useRef<ScrollToTopButtonRef>(null);
+  const ActionButtonRef = useRef<ActionButtonRef>(null);
 
   const pruneOldGamesCache = (cache: { [key: string]: GameFormatted[] }) => {
     const today = new Date().toISOString().split('T')[0];
@@ -447,15 +447,18 @@ export default function GameofTheDay() {
 
   return (
     <ThemedView style={{ flex: 1 }}>
-      <DateRangePicker readonly={readonlyRef.current} onDateChange={handleDateChange} selectDate={selectDate} />
-      <ScrollView
-        ref={scrollViewRef}
-        onScroll={(event) => scrollToTopButtonRef.current?.handleScroll(event)}
-        scrollEventThrottle={16}
-      >
-        <ThemedView>{windowWidth > 768 ? displayLargeDeviceContent() : displaySmallDeviceContent()}</ThemedView>
-      </ScrollView>
-      <ScrollToTopButton ref={scrollToTopButtonRef} scrollViewRef={scrollViewRef} />
+      <>
+        <DateRangePicker readonly={readonlyRef.current} onDateChange={handleDateChange} selectDate={selectDate} />
+        <ScrollView
+          ref={scrollViewRef}
+          onScroll={(event) => ActionButtonRef.current?.handleScroll(event)}
+          scrollEventThrottle={16}
+        >
+          <ThemedView>{windowWidth > 768 ? displayLargeDeviceContent() : displaySmallDeviceContent()}</ThemedView>
+        </ScrollView>
+      </>
+
+      <ActionButton ref={ActionButtonRef} scrollViewRef={scrollViewRef} />
     </ThemedView>
   );
 }

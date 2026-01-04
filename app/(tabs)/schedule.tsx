@@ -6,8 +6,8 @@ import { useFocusEffect } from 'expo-router';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Dimensions, ScrollView } from 'react-native';
 import Accordion from '../../components/Accordion'; // Added import
+import { ActionButton, ActionButtonRef } from '../../components/ActionButton';
 import LoadingView from '../../components/LoadingView';
-import { ScrollToTopButton, ScrollToTopButtonRef } from '../../components/ScrollToTopButton';
 import {
   fetchLeagues,
   fetchRemainingGamesByLeague,
@@ -29,7 +29,7 @@ export default function Schedule() {
   const [leaguesAvailable, setLeaguesAvailable] = useState<string[]>([]);
   const [leagueOfSelectedTeam, setleagueOfSelectedTeam] = useState<string>('');
   const scrollViewRef = useRef<ScrollView>(null);
-  const scrollToTopButtonRef = useRef<ScrollToTopButtonRef>(null);
+  const ActionButtonRef = useRef<ActionButtonRef>(null);
 
   const allOption = {
     uniqueId: 'all',
@@ -121,7 +121,8 @@ export default function Schedule() {
       if (teamsSelectedIds.length > 0) {
         selection = teamsSelectedIds[0]?.uniqueId || randomTeam;
       } else {
-        selection = randomTeam;
+        const favoriteTeams = getCache<string[]>('favoriteTeams')?.filter((team) => team !== '') || [];
+        selection = favoriteTeams.length > 0 ? favoriteTeams[0] : randomTeam;
       }
     }
     // pass the freshly fetched teams so we can derive league immediately
@@ -188,9 +189,15 @@ export default function Schedule() {
     }
 
     if (team.length === 0) {
-      team = teamsAvailableInLeague.length
-        ? teamsAvailableInLeague[randomNumber(teamsAvailableInLeague.length - 1)].uniqueId
-        : 'all';
+      const favoriteTeams = getCache<string[]>('favoriteTeams')?.filter((team) => team !== '') || [];
+      const favoriteInLeague = favoriteTeams.find((favId) => teamsAvailableInLeague.some((t) => t.uniqueId === favId));
+      if (favoriteInLeague) {
+        team = favoriteInLeague;
+      } else {
+        team = teamsAvailableInLeague.length
+          ? teamsAvailableInLeague[randomNumber(teamsAvailableInLeague.length - 1)].uniqueId
+          : 'all';
+      }
     }
     localStorage.setItem('teamSelected', team);
     setTeamSelected(team);
@@ -463,12 +470,12 @@ export default function Schedule() {
     <ThemedView style={{ flex: 1 }}>
       <ScrollView
         ref={scrollViewRef}
-        onScroll={(event) => scrollToTopButtonRef.current?.handleScroll(event)}
+        onScroll={(event) => ActionButtonRef.current?.handleScroll(event)}
         scrollEventThrottle={16}
       >
         {display()}
       </ScrollView>
-      <ScrollToTopButton ref={scrollToTopButtonRef} scrollViewRef={scrollViewRef} />
+      <ActionButton ref={ActionButtonRef} scrollViewRef={scrollViewRef} />
     </ThemedView>
   );
 }

@@ -28,7 +28,7 @@ export enum ButtonsKind {
 
 export const emoticonEnum = {
   NHL: '🏒',
-  PWHL: '🏒',
+  PWHL: '⚫',
   NFL: '🏈',
   NCAAF: '🏈',
   MLB: '⚾',
@@ -38,7 +38,7 @@ export const emoticonEnum = {
   WNCAAB: '⛹️‍♀️',
   WNBA: '⛹️‍♀️',
   MLS: '⚽',
-}
+};
 
 export const timeDurationEnum = {
   NHL: 3,
@@ -52,4 +52,4 @@ export const timeDurationEnum = {
   WNCAAB: 2.5,
   WNBA: 2.5,
   MLS: 2,
-}
+};
