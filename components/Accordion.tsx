@@ -14,6 +14,7 @@ export default function Accordion({
   isCounted = false,
   showDate = false,
   disableToggle = false,
+  gamesSelected = [],
 }: Readonly<AccordionProps>) {
   const [expanded, setExpanded] = useState(disableToggle ? true : open ?? i === 0);
 
@@ -29,6 +30,7 @@ export default function Accordion({
     if (gamesFiltred.length) {
       return gamesFiltred.map((game) => {
         const gameId = game._id ?? Math.random();
+        const isSelected = gamesSelected.some((gameSelect) => game._id === gameSelect._id);
         return (
           <Cards
             onSelection={() => {
@@ -39,7 +41,7 @@ export default function Accordion({
             numberSelected={1}
             showDate={showDate}
             showButtons={true}
-            selected={true}
+            selected={isSelected}
           />
         );
       });

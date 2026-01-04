@@ -15,6 +15,7 @@ const MAPPING = {
   'chevron.right': 'chevron-right',
   'arrow.up': 'arrow-upward',
   'star.fill': 'star',
+  'check-square': 'check-box',
 } as Partial<
   Record<import('expo-symbols').SymbolViewProps['name'], React.ComponentProps<typeof MaterialIcons>['name']>
 >;

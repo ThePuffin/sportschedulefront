@@ -34,7 +34,7 @@ export default function Cards({
   showButtons = false,
   onSelection = () => {},
   numberSelected = 0,
-  selected = false,
+  selected: isSelected = false,
 }: Readonly<CardsProps>) {
   const {
     homeTeam,
@@ -120,6 +120,8 @@ export default function Cards({
   const isFavorite =
     !!startTimeUTC && !showDate ? favoriteTeams.includes(homeTeamId) || favoriteTeams.includes(awayTeamId) : false;
 
+  const isCardSelected = isSelected && !showButtons;
+
   const date = data?.gameDate ? new Date(data.gameDate) : new Date();
   let gameDate = new Date(date).toLocaleDateString(undefined, {
     day: '2-digit',
@@ -155,21 +157,21 @@ export default function Cards({
         backgroundColor: '#ffffee',
       };
 
-  let selectedCard = selected
+  let selectedCard = isCardSelected
     ? {
-        filter: 'brightness(0.95) saturate(1) contrast(1.05)',
-        border: 'double' + colorTeam?.color,
+        filter: 'brightness(0.5) saturate(1) contrast(1.05)',
       }
     : {};
 
-  let favoriteCardStyle = isFavorite
-    ? {
-        borderColor: colorTeam.color,
-        borderWidth: 3,
-        borderStyle: 'solid',
-        boxShadow: `0px 0px 9px #FFD700`,
-      }
-    : {};
+  let favoriteCardStyle =
+    isFavorite || isCardSelected
+      ? {
+          border: 'double' + colorTeam?.color,
+          borderWidth: 3,
+          borderStyle: 'solid',
+          boxShadow: `0px 0px 9px #FFD700`,
+        }
+      : {};
 
   const displayTitle = () => {
     const now = new Date();
@@ -438,7 +440,7 @@ export default function Cards({
             accessibilityLabel={`${league} logo`}
           />
         )}
-        {isFavorite && (
+        {(isFavorite || isCardSelected) && (
           <View
             style={{
               position: 'absolute',
@@ -448,13 +450,37 @@ export default function Cards({
             }}
           >
             <Icon
-              name="star"
+              name={isFavorite ? 'star' : 'check-square'}
               type="font-awesome"
               color="#000"
               size={22}
               containerStyle={{ position: 'absolute', top: -1, left: -1 }}
             />
-            <Icon name="star" type="font-awesome" color="#FFD700" size={20} />
+            <Icon
+              name={isFavorite ? 'star' : 'check-square'}
+              type="font-awesome"
+              color={isFavorite ? '#FFD700' : colorTeam?.color || 'white'}
+              size={20}
+            />
+          </View>
+        )}
+        {!isCardSelected && isSelected && (
+          <View
+            style={{
+              position: 'absolute',
+              top: -10,
+              right: isFavorite ? 15 : -10,
+              zIndex: 10,
+            }}
+          >
+            <Icon
+              name="check-square"
+              type="font-awesome"
+              color="#000"
+              size={22}
+              containerStyle={{ position: 'absolute', top: -1, left: -1 }}
+            />
+            <Icon name="check-square" type="font-awesome" color={colorTeam?.color || 'white'} size={20} />
           </View>
         )}
         <Card.Title

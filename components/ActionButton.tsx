@@ -86,7 +86,15 @@ const ActionButtonWithRef: React.ForwardRefRenderFunction<ActionButtonRef, Actio
             }
           }}
         >
-          <ThemedView style={[styles.button, { backgroundColor: isVisibleScrollTop ? 'black' : 'white' }]}>
+          <ThemedView
+            style={[
+              styles.button,
+              {
+                backgroundColor: isVisibleScrollTop ? 'black' : 'white',
+                borderColor: isVisibleScrollTop ? 'white' : 'black',
+              },
+            ]}
+          >
             <IconSymbol
               name={isVisibleScrollTop ? 'arrow.up' : 'star.fill'}
               color={isVisibleScrollTop ? 'white' : '#EFBF04'}

@@ -11,7 +11,7 @@ import DateRangePicker from '../../components/DatePicker';
 import LoadingView from '../../components/LoadingView';
 import { League } from '../../constants/enum';
 import { fetchGames, fetchLeagues, getCache, saveCache } from '../../utils/fetchData';
-import { GameFormatted } from '../../utils/types';
+import { GameFormatted, Team } from '../../utils/types';
 import { randomNumber, translateWord } from '../../utils/utils';
 
 const getNextGamesFromApi = async (date: Date): Promise<{ [key: string]: GameFormatted[] }> => {
@@ -39,6 +39,8 @@ export default function GameofTheDay() {
   const readonlyRef = useRef(false);
   const lastGamesUpdateRef = useRef<Date | null>(null);
   const hasInitializedRef = useRef(false);
+
+  const [gamesSelected, setGamesSelected] = useState<Team[]>(() => getCache<Team[]>('gameSelected') || []);
 
   const teamsOfTheDay = useMemo(() => {
     const filtredTeamsAvailable = games
@@ -231,28 +233,33 @@ export default function GameofTheDay() {
     [selectLeagues]
   );
 
-  const displayGamesCards = useCallback((gamesToShow: GameFormatted[]) => {
-    if (gamesToShow?.length === 0) {
-      return <NoResults />;
-    } else {
-      return gamesToShow.map((game) => {
-        if (game) {
-          const gameId = game?._id ?? randomNumber(999999);
-          return (
-            <Cards
-              key={gameId}
-              data={game}
-              numberSelected={1}
-              showButtons={true}
-              showDate={false}
-              onSelection={() => {}}
-              selected={true}
-            />
-          );
-        }
-      });
-    }
-  }, []);
+  const displayGamesCards = useCallback(
+    (gamesToShow: GameFormatted[]) => {
+      if (gamesToShow?.length === 0) {
+        return <NoResults />;
+      } else {
+        return gamesToShow.map((game) => {
+          if (game) {
+            const gameId = game?._id ?? randomNumber(999999);
+
+            const isSelected = gamesSelected.some((gameSelect) => game._id === gameSelect._id);
+            return (
+              <Cards
+                key={gameId}
+                data={game}
+                numberSelected={1}
+                showButtons={true}
+                showDate={false}
+                onSelection={() => {}}
+                selected={isSelected}
+              />
+            );
+          }
+        });
+      }
+    },
+    [gamesSelected]
+  );
 
   const displaySelect = useCallback(() => {
     const leagues = leaguesAvailable.map((league: string) => {
@@ -341,12 +348,13 @@ export default function GameofTheDay() {
               open={true}
               isCounted={false}
               disableToggle={showSingleColumn}
+              gamesSelected={gamesSelected}
             />
           </td>
         );
       }
     });
-  }, [leaguesAvailable, games, teamSelectedId]);
+  }, [leaguesAvailable, games, teamSelectedId, gamesSelected]);
 
   const displayLargeDeviceContent = useCallback(() => {
     if (!games || games.length === 0 || !leaguesAvailable || leaguesAvailable.length === 0) {
@@ -441,6 +449,7 @@ export default function GameofTheDay() {
 
   useFocusEffect(
     useCallback(() => {
+      setGamesSelected(getCache<Team[]>('gameSelected') || []);
       scrollViewRef.current?.scrollTo({ y: 0, animated: false });
     }, [])
   );
