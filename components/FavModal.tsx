@@ -1,5 +1,6 @@
 import Selector from '@/components/Selector';
 import { TeamsEnum } from '@/constants/Teams';
+import { getCache } from '@/utils/fetchData';
 import { Team } from '@/utils/types';
 import { translateWord } from '@/utils/utils';
 import React, { useEffect, useState } from 'react';
@@ -19,6 +20,14 @@ const FavModal = ({
   onSave: (teams: string[]) => void;
 }) => {
   const [isSmallDevice, setIsSmallDevice] = useState(Dimensions.get('window').width < 768);
+  const [localFavorites, setLocalFavorites] = useState<string[]>(favoriteTeams);
+
+  useEffect(() => {
+    if (isOpen) {
+      const cached = getCache<string[]>('favoriteTeams');
+      setLocalFavorites(cached || favoriteTeams);
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     const onChange = () => {
@@ -46,7 +55,7 @@ const FavModal = ({
 
   const handleSelection = (position: number, teamId: string | string[]) => {
     const id = Array.isArray(teamId) ? teamId[0] : teamId;
-    const updatedTeams = [...favoriteTeams];
+    const updatedTeams = [...localFavorites];
 
     // Ensure we have 5 slots
     while (updatedTeams.length < maxFavorites) updatedTeams.push('');
@@ -57,7 +66,15 @@ const FavModal = ({
     const uniqueTeams = Array.from(new Set(updatedTeams.filter((team) => team !== ''))).filter((team) => !!team);
 
     while (uniqueTeams.length < maxFavorites) uniqueTeams.push('');
-    onSave(uniqueTeams);
+    setLocalFavorites(uniqueTeams);
+  };
+
+  const handleSave = () => {
+    onSave(localFavorites);
+    if (globalThis.window !== undefined) {
+      globalThis.window.dispatchEvent(new Event('favoritesUpdated'));
+    }
+    onClose();
   };
 
   return (
@@ -67,15 +84,15 @@ const FavModal = ({
           <Text style={styles.modalText}>{translateWord('yourFav')}:</Text>
 
           <View style={styles.selector}>
-            {Array.from({ length: Math.min(favoriteTeams.filter((t) => !!t).length + 1, maxFavorites) }).map(
+            {Array.from({ length: Math.min(localFavorites.filter((t) => !!t).length + 1, maxFavorites) }).map(
               (_, index) => {
-                const selectedId = favoriteTeams[index] || '';
+                const selectedId = localFavorites[index] || '';
                 const filteredItems = teamsForFavorites.filter(
-                  (team) => !favoriteTeams.includes(team.uniqueId) || team.uniqueId === selectedId
+                  (team) => !localFavorites.includes(team.uniqueId) || team.uniqueId === selectedId
                 );
                 return (
                   <Selector
-                    key={selectedId || 'index'}
+                    key={selectedId || 'new-entry'}
                     data={{
                       i: index,
                       items: filteredItems,
@@ -92,7 +109,7 @@ const FavModal = ({
           </View>
 
           <View style={styles.buttonsContainer}>
-            <Pressable style={[styles.button, styles.buttonClose]} onPress={onClose}>
+            <Pressable style={[styles.button, styles.buttonClose]} onPress={handleSave}>
               <Text style={styles.textStyle}>{translateWord('register')}</Text>
             </Pressable>
             <Pressable style={[styles.button, styles.buttonClose, styles.buttonCancel]} onPress={onClose}>

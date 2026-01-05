@@ -236,6 +236,19 @@ export default function Cards({
     return <Card.Title style={{ fontSize }}>{gameDate}</Card.Title>;
   };
 
+  const renderTeamStar = () => (
+    <View style={{ marginLeft: 5, justifyContent: 'center', alignItems: 'center' }}>
+      <Icon name="star" type="font-awesome" size={12} color="#ffd900c0" />
+      <Icon
+        name="star"
+        type="font-awesome"
+        size={10}
+        color="#FFD700"
+        containerStyle={{ position: 'absolute' }}
+      />
+    </View>
+  );
+
   const displayContent = () => {
     if (homeTeam && awayTeam) {
       const stadiumSearch = arenaName.replace(/\s+/g, '+') + ',' + placeName.replace(/\s+/g, '+');
@@ -312,9 +325,15 @@ export default function Cards({
                 </Text>
               )}
             </div>
-            <Text style={{ ...cardClass, backgroundColor: 'transparent', fontWeight: 'bold' }}>{teamNameAway}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+              <Text style={{ ...cardClass, backgroundColor: 'transparent', fontWeight: 'bold' }}>{teamNameAway}</Text>
+              {(!showButtons || !isFavorite) && favoriteTeams.includes(awayTeamId) && renderTeamStar()}
+            </View>
             <Text style={{ ...cardClass, backgroundColor: 'transparent', fontWeight: 'bold' }}>@</Text>
-            <Text style={{ ...cardClass, backgroundColor: 'transparent', fontWeight: 'bold' }}>{teamNameHome}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+              <Text style={{ ...cardClass, backgroundColor: 'transparent', fontWeight: 'bold' }}>{teamNameHome}</Text>
+              {(!showButtons || !isFavorite) && favoriteTeams.includes(homeTeamId) && renderTeamStar()}
+            </View>
 
             {/* Home Team Logo Container */}
             <div
@@ -462,13 +481,10 @@ export default function Cards({
           />
         )}
         {isFavorite && renderIcon('star', '#FFD700', -10)}
-        {(isSelected || isSelectable) &&
+        {show &&
+          (isSelected || isSelectable) &&
           !(isFavorite && isCardSelected) &&
-          renderIcon(
-            isSelected ? 'check-square' : 'square',
-            colorTeam?.color || 'white',
-            isFavorite ? 15 : -10,
-          )}
+          renderIcon(isSelected ? 'check-square' : 'plus-square-o', colorTeam?.color || 'white', isFavorite ? 15 : -10)}
         <Card.Title
           style={{
             overflow: 'hidden',
