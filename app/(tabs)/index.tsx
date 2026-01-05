@@ -40,7 +40,9 @@ export default function GameofTheDay() {
   const lastGamesUpdateRef = useRef<Date | null>(null);
   const hasInitializedRef = useRef(false);
 
-  const [gamesSelected, setGamesSelected] = useState<Team[]>(() => getCache<Team[]>('gameSelected') || []);
+  const [gamesSelected, setGamesSelected] = useState<GameFormatted[]>(
+    () => getCache<GameFormatted[]>('gameSelected') || []
+  );
 
   const teamsOfTheDay = useMemo(() => {
     const filtredTeamsAvailable = games
@@ -242,7 +244,9 @@ export default function GameofTheDay() {
           if (game) {
             const gameId = game?._id ?? randomNumber(999999);
 
-            const isSelected = gamesSelected.some((gameSelect) => game._id === gameSelect._id);
+            const isSelected = gamesSelected.some(
+              (gameSelect) => game.homeTeamId === gameSelect.homeTeamId && game.startTimeUTC === gameSelect.startTimeUTC
+            );
             return (
               <Cards
                 key={gameId}

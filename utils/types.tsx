@@ -58,7 +58,7 @@ export type AccordionProps = {
   readonly isCounted?: boolean;
   readonly disableToggle?: boolean;
   readonly showDate?: boolean;
-  readonly gamesSelected?: readonly Team[];
+  readonly gamesSelected?: readonly GameFormatted[];
 };
 
 export interface ButtonsProps {

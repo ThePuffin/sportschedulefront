@@ -30,6 +30,9 @@ export default function Schedule() {
   const [leagueOfSelectedTeam, setleagueOfSelectedTeam] = useState<string>('');
   const scrollViewRef = useRef<ScrollView>(null);
   const ActionButtonRef = useRef<ActionButtonRef>(null);
+  const [gamesSelected, setGamesSelected] = useState<GameFormatted[]>(
+    () => getCache<GameFormatted[]>('gameSelected') || []
+  );
 
   const allOption = {
     uniqueId: 'all',
@@ -85,6 +88,7 @@ export default function Schedule() {
   useFocusEffect(
     useCallback(() => {
       scrollViewRef.current?.scrollTo({ y: 0, animated: false });
+      setGamesSelected(getCache<GameFormatted[]>('gameSelected') || []);
     }, [])
   );
 
@@ -348,6 +352,7 @@ export default function Schedule() {
                 open={teamFilter?.length > 0 || monthIndex === 0}
                 showDate={true}
                 isCounted={true}
+                gamesSelected={gamesSelected}
               />
             </div>
           );

@@ -30,7 +30,9 @@ export default function Accordion({
     if (gamesFiltred.length) {
       return gamesFiltred.map((game) => {
         const gameId = game._id ?? Math.random();
-        const isSelected = gamesSelected.some((gameSelect) => game._id === gameSelect._id);
+        const isSelected = gamesSelected.some(
+          (gameSelect) => game.homeTeamId === gameSelect.homeTeamId && game.startTimeUTC === gameSelect.startTimeUTC
+        );
         return (
           <Cards
             onSelection={() => {
