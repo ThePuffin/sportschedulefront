@@ -50,7 +50,7 @@ const isTeamGamesEntryFresh = (entry?: TeamGamesCacheEntry): entry is TeamGamesC
 const isCacheValid = (cacheKey: string, maxDuration: number = 1): boolean => {
   const timestamp = localStorage.getItem(`${cacheKey}_timestamp`);
   if (!timestamp) return false;
-  const cached = parseInt(timestamp, 10);
+  const cached = Number.parseInt(timestamp, 10);
   const now = Date.now();
   const oneDayMs = maxDuration * 60 * 60 * 1000;
   return now - cached < oneDayMs;

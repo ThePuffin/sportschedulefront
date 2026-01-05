@@ -91,9 +91,14 @@ const FavModal = ({
             )}
           </View>
 
-          <Pressable style={[styles.button, styles.buttonClose]} onPress={onClose}>
-            <Text style={styles.textStyle}>{translateWord('register')}</Text>
-          </Pressable>
+          <View style={styles.buttonsContainer}>
+            <Pressable style={[styles.button, styles.buttonClose]} onPress={onClose}>
+              <Text style={styles.textStyle}>{translateWord('register')}</Text>
+            </Pressable>
+            <Pressable style={[styles.button, styles.buttonClose, styles.buttonCancel]} onPress={onClose}>
+              <Text style={styles.textStyle}>{translateWord('cancel')}</Text>
+            </Pressable>
+          </View>
         </Pressable>
       </Pressable>
     </Modal>
@@ -126,6 +131,7 @@ const styles = StyleSheet.create({
     padding: 10,
     elevation: 2,
     marginTop: 20,
+    flex: 1,
   },
   buttonOpen: {
     backgroundColor: '#fff',
@@ -133,6 +139,15 @@ const styles = StyleSheet.create({
   buttonClose: {
     backgroundColor: '#000',
     zIndex: 1,
+  },
+  buttonCancel: {
+    backgroundColor: '#6c757d',
+  },
+  buttonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    gap: 10,
   },
   textStyle: {
     color: 'white',

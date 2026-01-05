@@ -100,6 +100,7 @@ export const translateWord = (word: string) => {
         ended: 'Terminé',
         yourFav: 'Vos équipes favorites',
         register: 'Sauvegarder',
+        cancel: 'Annuler',
       };
       break;
     case 'de':
@@ -118,6 +119,7 @@ export const translateWord = (word: string) => {
         ended: 'Beendet',
         yourFav: 'Deine Lieblingsteams',
         register: 'Speichern',
+        cancel: 'Abbrechen',
       };
       break;
     case 'es':
@@ -136,6 +138,7 @@ export const translateWord = (word: string) => {
         ended: 'Finalizado',
         yourFav: 'Tus equipos favoritos',
         register: 'Guardar',
+        cancel: 'Cancelar',
       };
       break;
 
@@ -155,6 +158,7 @@ export const translateWord = (word: string) => {
         ended: 'Terminato',
         yourFav: 'Le tue squadre preferite',
         register: 'Salva',
+        cancel: 'Annulla',
       };
       break;
     case 'ja':
@@ -173,6 +177,7 @@ export const translateWord = (word: string) => {
         ended: '終了',
         yourFav: 'お気に入りのチーム',
         register: '保存',
+        cancel: 'キャンセル',
       };
       break;
     case 'ko':
@@ -191,6 +196,7 @@ export const translateWord = (word: string) => {
         ended: '종료됨',
         yourFav: '좋아하는 팀',
         register: '저장',
+        cancel: '취소'
       };
       break;
     case 'nl':
@@ -209,6 +215,7 @@ export const translateWord = (word: string) => {
         ended: 'Afgerond',
         yourFav: 'Je favoriete teams',
         register: 'Opslaan',
+        cancel: 'Annuleren'
       };
       break;
     case 'pt':
@@ -227,6 +234,7 @@ export const translateWord = (word: string) => {
         ended: 'Encerrado',
         yourFav: 'Seus times favoritos',
         register: 'Salvar',
+        cancel: 'Cancelar'
       };
       break;
     case 'ru':
@@ -245,6 +253,7 @@ export const translateWord = (word: string) => {
         ended: 'Завершено',
         yourFav: 'Ваши любимые команды',
         register: 'Сохранить',
+        cancel: 'Отмена'
       };
       break;
     case 'zh':
@@ -263,6 +272,7 @@ export const translateWord = (word: string) => {
         ended: '已结束',
         yourFav: '你最喜欢的球队',
         register: '保存',
+        cancel: '取消'
       };
       break;
     default:
@@ -281,6 +291,7 @@ export const translateWord = (word: string) => {
         ended: 'Ended',
         yourFav: 'Your favorite teams',
         register: 'Save',
+        cancel: 'Cancel',
       };
       break;
   }
