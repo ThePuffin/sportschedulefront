@@ -163,7 +163,7 @@ export default function Schedule() {
     saveCache('teamsSelectedLeagues', leaguesTeams);
   };
 
-  const handleTeamSelectionChange = (teamSelectedId: string | string[], i: number) => {
+  const handleTeamSelectionChange = (teamSelectedId: string | string[]) => {
     setTeamFilter('');
     const finalTeamId = Array.isArray(teamSelectedId) ? teamSelectedId[0] : teamSelectedId;
     if (finalTeamId === 'all') {
@@ -175,11 +175,11 @@ export default function Schedule() {
     persistTeamForLeague(leagueOfSelectedTeam, finalTeamId);
   };
 
-  const handleTeamFilterChange = (teamSelectedId: string | string[], i: number) => {
+  const handleTeamFilterChange = (teamSelectedId: string | string[]) => {
     setTeamFilter(Array.isArray(teamSelectedId) ? teamSelectedId[0] : teamSelectedId);
   };
 
-  const handleLeagueSelectionChange = (leagueSelectedId: string | string[], i: number) => {
+  const handleLeagueSelectionChange = (leagueSelectedId: string | string[]) => {
     setTeamFilter('');
     const finalLeagueId = Array.isArray(leagueSelectedId) ? leagueSelectedId[0] : leagueSelectedId;
     localStorage.setItem('leagueSelected', finalLeagueId);
@@ -235,7 +235,7 @@ export default function Schedule() {
         if (!Object.hasOwn(games, day)) continue;
 
         const { homeTeam, awayTeam, league, homeTeamId, awayTeamId } = games[day][0] || {};
-        if (homeTeam && !teamsFromGames.find((t) => t.uniqueId === homeTeamId) && homeTeamId !== teamSelected) {
+        if (homeTeam && !teamsFromGames.some((t) => t.uniqueId === homeTeamId) && homeTeamId !== teamSelected) {
           teamsFromGames.push({
             label: homeTeam,
             league,
@@ -250,7 +250,7 @@ export default function Schedule() {
             updateDate: '',
           });
         }
-        if (awayTeam && !teamsFromGames.find((t) => t.uniqueId === awayTeamId) && awayTeamId !== teamSelected) {
+        if (awayTeam && !teamsFromGames.some((t) => t.uniqueId === awayTeamId) && awayTeamId !== teamSelected) {
           teamsFromGames.push({
             label: awayTeam,
             league,
@@ -291,19 +291,19 @@ export default function Schedule() {
             <ThemedView>
               <div
                 style={
-                  !isSmallDevice
-                    ? { display: 'flex', flexDirection: 'row', alignItems: 'stretch', width: '100%' }
-                    : { width: '100%' }
+                  isSmallDevice
+                    ? { width: '100%' }
+                    : { display: 'flex', flexDirection: 'row', alignItems: 'stretch', width: '100%' }
                 }
               >
-                <div style={{ width: !isSmallDevice ? '32%' : '100%' }}>
+                <div style={{ width: isSmallDevice ? '100%' : '32%' }}>
                   <Selector
                     data={dataLeagues}
                     onItemSelectionChange={handleLeagueSelectionChange}
                     isClearable={false}
                   />
                 </div>
-                <div style={{ width: !isSmallDevice ? '32%' : '100%' }}>
+                <div style={{ width: isSmallDevice ? '100%' : '32%' }}>
                   <Selector data={dataTeams} onItemSelectionChange={handleTeamSelectionChange} isClearable={false} />
                 </div>
                 {!isSmallDevice && (
@@ -323,7 +323,7 @@ export default function Schedule() {
                     </div>
                   </div>
                 )}
-                <div style={{ width: !isSmallDevice ? '32%' : '100%' }}>
+                <div style={{ width: isSmallDevice ? '100%' : '32%' }}>
                   <Selector data={dataTeamsFilter} onItemSelectionChange={handleTeamFilterChange} isClearable={true} />
                 </div>
               </div>
@@ -429,13 +429,13 @@ export default function Schedule() {
     return games;
   };
 
-  const getGamesFromApi = async (): Promise<FilterGames> => {
+  const getGamesFromApi = async (): Promise<void> => {
     if (teamSelected && teamSelected.length !== 0) {
       try {
         let scheduleData: FilterGames;
         const scheduleDataStored = getCache<FilterGames>('scheduleData') || {};
         const scheduleKeys = Object.keys(scheduleDataStored);
-        let thisLeagueTeams = JSON.parse(JSON.stringify(leagueTeams));
+        let thisLeagueTeams = structuredClone(leagueTeams);
         if (scheduleKeys) {
           const scheduleTeam = scheduleDataStored[scheduleKeys[0]]?.[0]?.teamSelectedId;
           const scheduleLeague = scheduleDataStored[scheduleKeys[0]]?.[0]?.league;
@@ -459,7 +459,7 @@ export default function Schedule() {
           scheduleData = await fetchRemainingGamesByTeam(teamSelected);
         }
         setLeagueTeams(thisLeagueTeams);
-        fetchLeagues(setLeaguesAvailable) || leaguesAvailable;
+        fetchLeagues(setLeaguesAvailable);
         if (Object.keys(scheduleData).length === 0) {
           const now = new Date().toISOString().split('T')[0];
           scheduleData[now] = [];
@@ -484,7 +484,6 @@ export default function Schedule() {
         }
       }
     }
-    return {};
   };
 
   const storeTeamSelected = (teamSelection: string, teamsList?: Team[]) => {

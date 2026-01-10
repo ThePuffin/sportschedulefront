@@ -156,62 +156,53 @@ export default function GameofTheDay() {
     return groups;
   }, [games, selectLeagues, teamSelectedId, windowWidth]);
 
-  const handleGames = useCallback((gamesList: GameFormatted[]) => {
-    setGames(gamesList);
-  }, []);
+  const getGamesFromApi = useCallback(async (dateToFetch: Date) => {
+    const YYYYMMDD = new Date(dateToFetch).toISOString().split('T')[0];
 
-  const getGamesFromApi = useCallback(
-    async (dateToFetch: Date) => {
-      const YYYYMMDD = new Date(dateToFetch).toISOString().split('T')[0];
+    // Check cache first
+    const cachedGames = gamesDayCache.current[YYYYMMDD];
+    if (cachedGames) {
+      const today = new Date().toISOString().split('T')[0];
+      let gamesToDisplay = cachedGames;
 
-      // Check cache first
-      const cachedGames = gamesDayCache.current[YYYYMMDD];
-      if (cachedGames) {
-        const today = new Date().toISOString().split('T')[0];
-        let gamesToDisplay = cachedGames;
+      if (YYYYMMDD === today) {
+        const yesterday = new Date(dateToFetch);
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayYYYYMMDD = yesterday.toISOString().split('T')[0];
+        const cachedYesterday = gamesDayCache.current[yesterdayYYYYMMDD];
 
-        if (YYYYMMDD === today) {
-          const yesterday = new Date(dateToFetch);
-          yesterday.setDate(yesterday.getDate() - 1);
-          const yesterdayYYYYMMDD = yesterday.toISOString().split('T')[0];
-          const cachedYesterday = gamesDayCache.current[yesterdayYYYYMMDD];
-
-          if (cachedYesterday) {
-            const nowMinusThreeHour = new Date(Date.now() - 3 * 60 * 60 * 1000);
-            const recentYesterdayGames = cachedYesterday.filter(
-              ({ startTimeUTC = '' }) => new Date(startTimeUTC) >= nowMinusThreeHour
-            );
-            const combined = [...recentYesterdayGames, ...cachedGames];
-            gamesToDisplay = combined.filter(
-              (game, index, self) => index === self.findIndex((t) => t._id === game._id)
-            );
-          }
+        if (cachedYesterday) {
+          const nowMinusThreeHour = new Date(Date.now() - 3 * 60 * 60 * 1000);
+          const recentYesterdayGames = cachedYesterday.filter(
+            ({ startTimeUTC = '' }) => new Date(startTimeUTC) >= nowMinusThreeHour
+          );
+          const combined = [...recentYesterdayGames, ...cachedGames];
+          gamesToDisplay = combined.filter((game, index, self) => index === self.findIndex((t) => t._id === game._id));
         }
-        handleGames(gamesToDisplay);
-        return;
       }
+      setGames(gamesToDisplay);
+      return;
+    }
 
-      // Fetch from API if not in cache
-      try {
-        const gamesByHourData = await fetchGamesByHour(YYYYMMDD);
-        const gamesOfTheDay = Object.values(gamesByHourData).flat();
-        gamesDayCache.current[YYYYMMDD] = gamesOfTheDay;
-        // prune old entries and persist
-        const pruned = pruneOldGamesCache({ ...(gamesDayCache.current || {}) });
-        gamesDayCache.current = pruned;
-        saveCache('gamesDay', pruned);
-        handleGames(gamesOfTheDay);
-      } catch (error) {
-        console.error(error);
-        gamesDayCache.current[YYYYMMDD] = [];
-        const prunedEmpty = pruneOldGamesCache({ ...(gamesDayCache.current || {}) });
-        gamesDayCache.current = prunedEmpty;
-        saveCache('gamesDay', prunedEmpty);
-        handleGames([]);
-      }
-    },
-    [handleGames]
-  );
+    // Fetch from API if not in cache
+    try {
+      const gamesByHourData = await fetchGamesByHour(YYYYMMDD);
+      const gamesOfTheDay = Object.values(gamesByHourData).flat();
+      gamesDayCache.current[YYYYMMDD] = gamesOfTheDay;
+      // prune old entries and persist
+      const pruned = pruneOldGamesCache({ ...(gamesDayCache.current || {}) });
+      gamesDayCache.current = pruned;
+      saveCache('gamesDay', pruned);
+      setGames(gamesOfTheDay);
+    } catch (error) {
+      console.error(error);
+      gamesDayCache.current[YYYYMMDD] = [];
+      const prunedEmpty = pruneOldGamesCache({ ...(gamesDayCache.current || {}) });
+      gamesDayCache.current = prunedEmpty;
+      saveCache('gamesDay', prunedEmpty);
+      setGames([]);
+    }
+  }, []);
 
   const handleDateChange = useCallback(
     (startDate: Date, endDate: Date) => {
@@ -328,7 +319,7 @@ export default function GameofTheDay() {
   }, [games, displayNoContent, visibleGamesByHour, gamesSelected]);
 
   const displayLargeDeviceHeader = useCallback(() => {
-    if (!games || games.length === 0 || visibleGamesByHour.length === 0) {
+    if (visibleGamesByHour.length === 0) {
       return null;
     }
     const showSingleColumn = visibleGamesByHour.length <= 1 || teamSelectedId !== '';
@@ -371,7 +362,7 @@ export default function GameofTheDay() {
         </table>
       </div>
     );
-  }, [games, visibleGamesByHour, teamSelectedId]);
+  }, [visibleGamesByHour, teamSelectedId]);
 
   const displayLargeDeviceContent = useCallback(() => {
     if (!games || games.length === 0) {

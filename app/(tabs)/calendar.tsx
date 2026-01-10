@@ -107,7 +107,8 @@ export default function Calendar() {
   };
 
   const getStoredTeams = () => {
-    const selection = getCache<Team[]>('teamsSelected')?.map((team) => team.uniqueId) ?? [];
+    const cachedTeams = getCache<Team[]>('teamsSelected');
+    const selection = cachedTeams?.map((team) => team.uniqueId) ?? [];
     if (selection.length > 0) {
       storeTeamsSelected(selection);
 
@@ -118,7 +119,9 @@ export default function Calendar() {
       const gamesSelectedFromStorage = storedGamesSelected.filter((game) => game.gameDate >= today);
       setGamesSelected(gamesSelectedFromStorage);
       saveCache('gameSelected', gamesSelectedFromStorage);
-      setTeams(selection);
+      if (cachedTeams) {
+        setTeams(cachedTeams);
+      }
     } else {
       setTeamsSelected(selection);
     }
@@ -140,7 +143,7 @@ export default function Calendar() {
   const getGamesFromApi = async (
     startDate: string | undefined = undefined,
     endDate: string | undefined = undefined
-  ): Promise<FilterGames> => {
+  ): Promise<void> => {
     if (teamsSelected && teamsSelected.length !== 0) {
       let start = readableDate(dateRange.startDate);
       let end = readableDate(dateRange.endDate);
@@ -160,10 +163,8 @@ export default function Calendar() {
         setGames(gamesData);
       } catch (error) {
         console.error(error);
-        return {};
       }
     }
-    return {};
   };
 
   const storeTeamsSelected = (teamsSelected: string[]) => {
@@ -271,7 +272,7 @@ export default function Calendar() {
 
   const displayGamesCards = (teamSelectedId: string) => {
     if (games) {
-      const days = Object.keys(games) || [];
+      const days = Object.keys(games);
       if (days.length) {
         return days.map((day: string) => {
           const game = games[day].find((game: GameFormatted) => game.teamSelectedId === teamSelectedId);
