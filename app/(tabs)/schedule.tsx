@@ -277,10 +277,21 @@ export default function Schedule() {
     return (
       <div key={`${teamSelected}-${teamSelected.length}`}>
         <ThemedView>
-          <div style={{ width: isSmallDevice ? '100%' : '50%', margin: '0 auto', alignContent: 'center' }}>
-            <Selector data={dataLeagues} onItemSelectionChange={handleLeagueSelectionChange} isClearable={false} />
-            <Selector data={dataTeams} onItemSelectionChange={handleTeamSelectionChange} isClearable={false} />
-            <Selector data={dataTeamsFilter} onItemSelectionChange={handleTeamFilterChange} isClearable={true} />
+          <div
+            style={{
+              width: isSmallDevice ? '100%' : '50%',
+              margin: '0 auto',
+              alignContent: 'center',
+              position: 'sticky',
+              top: 0,
+              zIndex: 10,
+            }}
+          >
+            <ThemedView>
+              <Selector data={dataLeagues} onItemSelectionChange={handleLeagueSelectionChange} isClearable={false} />
+              <Selector data={dataTeams} onItemSelectionChange={handleTeamSelectionChange} isClearable={false} />
+              <Selector data={dataTeamsFilter} onItemSelectionChange={handleTeamFilterChange} isClearable={true} />
+            </ThemedView>
           </div>
           {displayGamesCards(teamSelected, teamFilter)}
         </ThemedView>
