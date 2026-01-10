@@ -1,6 +1,7 @@
 import Cards from '@/components/Cards';
 import NoResults from '@/components/NoResults';
 import Selector from '@/components/Selector';
+import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { useFocusEffect } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -9,22 +10,10 @@ import Accordion from '../../components/Accordion';
 import { ActionButton, ActionButtonRef } from '../../components/ActionButton';
 import DateRangePicker from '../../components/DatePicker';
 import LoadingView from '../../components/LoadingView';
-import { League } from '../../constants/enum';
-import { fetchGames, fetchLeagues, getCache, saveCache } from '../../utils/fetchData';
+import { League, timeDurationEnum } from '../../constants/enum';
+import { fetchGamesByHour, fetchLeagues, getCache, saveCache } from '../../utils/fetchData';
 import { GameFormatted } from '../../utils/types';
 import { randomNumber } from '../../utils/utils';
-
-const fetchGamesByHour = async (date: string): Promise<{ [key: string]: GameFormatted[] }> => {
-  const EXPO_PUBLIC_API_BASE_URL =
-    process.env.EXPO_PUBLIC_API_BASE_URL ?? 'https://sportschedule2025backend.onrender.com';
-  try {
-    const response = await fetch(`${EXPO_PUBLIC_API_BASE_URL}/games/hour/${date}`);
-    return await response.json();
-  } catch (error) {
-    console.error(error);
-    return {};
-  }
-};
 
 const groupGamesByHour = (games: GameFormatted[], roundToHour: boolean = false) => {
   const grouped: { [key: string]: GameFormatted[] } = {};
@@ -51,7 +40,8 @@ const getNextGamesFromApi = async (date: Date): Promise<{ [key: string]: GameFor
     const nextDate = new Date(date);
     nextDate.setDate(nextDate.getDate() + i);
     const nextYYYYMMDD = nextDate.toISOString().split('T')[0];
-    newFetch[nextYYYYMMDD] = await fetchGames(nextYYYYMMDD);
+    const gamesByHour = await fetchGamesByHour(nextYYYYMMDD);
+    newFetch[nextYYYYMMDD] = Object.values(gamesByHour).flat();
   }
   // Return fetched days to caller so caller (component) can merge into its cache and persist
   return newFetch;
@@ -112,43 +102,83 @@ export default function GameofTheDay() {
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
 
   const gamesByHour = useMemo(() => {
-    const isMedium = windowWidth < 1200;
+    const roundToHour = windowWidth >= 768 && windowWidth < 1200;
     const nowMinusThreeHour = new Date(Date.now() - 3 * 60 * 60 * 1000);
     const validGames = games.filter((g) => new Date(g.startTimeUTC) >= nowMinusThreeHour);
-    return groupGamesByHour(validGames, isMedium);
+    return groupGamesByHour(validGames, roundToHour);
   }, [games, windowWidth]);
 
-  const handleGames = useCallback((gamesDayExists: GameFormatted[]) => {
-    const nowMinusThreeHour = new Date(Date.now() - 3 * 60 * 60 * 1000);
-    const storedLeaguesSelected = getCache<League[]>('leaguesSelected');
-    let gamesToDisplay: GameFormatted[] = gamesDayExists.filter(
-      ({ startTimeUTC = '' }) => new Date(startTimeUTC) >= nowMinusThreeHour
-    );
+  const visibleGamesByHour = useMemo(() => {
+    const getStatusWeight = (games: GameFormatted[]) => {
+      const now = new Date();
+      let hasInProgress = false;
+      let allEnded = true;
 
-    setGames(gamesDayExists);
+      for (const game of games) {
+        const startTime = new Date(game.startTimeUTC);
+        const duration = timeDurationEnum[game.league as keyof typeof timeDurationEnum] ?? 3;
+        const endTime = new Date(startTime);
+        endTime.setHours(endTime.getHours() + duration);
 
-    if (storedLeaguesSelected) {
-      const leaguesFromStorage = storedLeaguesSelected ?? LeaguesWithoutAll;
-      if (leaguesFromStorage !== LeaguesWithoutAll) {
-        gamesToDisplay = gamesToDisplay.filter((game) => leaguesFromStorage.includes(game.league as League));
+        if (now >= startTime && now <= endTime) {
+          hasInProgress = true;
+          allEnded = false;
+        } else if (now < startTime) {
+          allEnded = false;
+        }
       }
-    } else {
-      const storedLeague = getCache<League>('league');
-      const leagueFromStorage = storedLeague ?? League.ALL;
-      if (leagueFromStorage !== League.ALL) {
-        gamesToDisplay = gamesDayExists.filter((game) => game.league === leagueFromStorage);
+
+      if (hasInProgress) return 0;
+      if (!allEnded) return 1;
+      return 2;
+    };
+
+    const groups = Object.keys(gamesByHour)
+      .map((hour) => {
+        const gamesInHour = gamesByHour[hour].filter(
+          (game) =>
+            selectLeagues.includes(game.league as League) &&
+            (!teamSelectedId || game.homeTeamId === teamSelectedId || game.awayTeamId === teamSelectedId) &&
+            game.awayTeamLogo &&
+            game.homeTeamLogo
+        );
+        return { hour, games: gamesInHour };
+      })
+      .filter((group) => group.games.length > 0);
+
+    groups.sort((a, b) => {
+      const weightA = getStatusWeight(a.games);
+      const weightB = getStatusWeight(b.games);
+
+      if (weightA !== weightB) {
+        return weightA - weightB;
       }
-      if (gamesToDisplay.length === 0) {
-        setLeague(League.ALL);
-        saveCache('league', League.ALL);
-        gamesToDisplay = [...gamesDayExists];
+
+      const timeA = a.games[0]?.startTimeUTC;
+      const timeB = b.games[0]?.startTimeUTC;
+      if (timeA && timeB) {
+        return new Date(timeA).getTime() - new Date(timeB).getTime();
       }
-    }
-    gamesToDisplay.sort((a, b) => {
-      return new Date(a.startTimeUTC).getTime() - new Date(b.startTimeUTC).getTime();
+      return a.hour.localeCompare(b.hour);
     });
-    setGamesFiltred(gamesToDisplay);
-  }, []);
+
+    return groups;
+  }, [gamesByHour, selectLeagues, teamSelectedId]);
+
+  const handleGames = useCallback(
+    (gamesList: GameFormatted[]) => {
+      setGames(gamesList);
+      let filtered = gamesList;
+      if (selectLeagues.length > 0) {
+        filtered = filtered.filter((game) => selectLeagues.includes(game.league as League));
+      }
+      if (teamSelectedId) {
+        filtered = filtered.filter((g) => g.homeTeamId === teamSelectedId || g.awayTeamId === teamSelectedId);
+      }
+      setGamesFiltred(filtered);
+    },
+    [selectLeagues, teamSelectedId]
+  );
 
   const getGamesFromApi = useCallback(
     async (dateToFetch: Date) => {
@@ -324,7 +354,7 @@ export default function GameofTheDay() {
     [gamesSelected]
   );
 
-  const displaySelect = useCallback(() => {
+  const displayFilters = useCallback(() => {
     const leagues = leaguesAvailable.map((league: string) => {
       return { label: league, uniqueId: league, value: league };
     });
@@ -354,7 +384,6 @@ export default function GameofTheDay() {
           allowMultipleSelection={false}
           isClearable={true}
         />
-        {displayGamesCards(gamesFiltred)}
       </ThemedView>
     );
   }, [
@@ -363,10 +392,8 @@ export default function GameofTheDay() {
     league,
     teamsOfTheDay,
     teamSelectedId,
-    gamesFiltred,
     handleLeagueSelectionChange,
     handleTeamSelectionChange,
-    displayGamesCards,
   ]);
 
   const displayNoContent = useCallback(() => {
@@ -381,82 +408,92 @@ export default function GameofTheDay() {
     if (!games || games.length === 0 || leaguesAvailable.length === 0) {
       return displayNoContent();
     }
-    return <div>{displaySelect()}</div>;
-  }, [games, leaguesAvailable, displayNoContent, displaySelect]);
 
-  const displayAccordion = useCallback(() => {
-    const hours = Object.keys(gamesByHour).sort((a, b) => {
-      const timeA = gamesByHour[a]?.[0]?.startTimeUTC;
-      const timeB = gamesByHour[b]?.[0]?.startTimeUTC;
-      if (timeA && timeB) {
-        return new Date(timeA).getTime() - new Date(timeB).getTime();
-      }
-      return a.localeCompare(b);
-    });
-    const hoursNumber = hours.length;
-    const showSingleColumn = hoursNumber <= 1 || teamSelectedId !== '';
+    if (visibleGamesByHour.length === 0) return <NoResults />;
 
-    return hours.map((hour, i) => {
-      let gamesInHour = gamesByHour[hour];
+    return (
+      <ThemedView>
+        {visibleGamesByHour.map(({ hour, games }, i) => {
+          return (
+            <div key={hour} style={{ width: '100%', margin: '0 auto' }}>
+              <Accordion
+                filter={hour}
+                i={i}
+                gamesFiltred={games}
+                open={true}
+                isCounted={false}
+                disableToggle={false}
+                gamesSelected={gamesSelected}
+              />
+            </div>
+          );
+        })}
+      </ThemedView>
+    );
+  }, [games, leaguesAvailable, displayNoContent, visibleGamesByHour, gamesSelected]);
 
-      gamesInHour = gamesInHour.filter((game) => {
-        return (
-          selectLeagues.includes(game.league as League) &&
-          (!teamSelectedId || game.homeTeamId === teamSelectedId || game.awayTeamId === teamSelectedId) &&
-          game.awayTeamLogo &&
-          game.homeTeamLogo
-        );
-      });
-
-      if (gamesInHour.length > 0) {
-        return (
-          <td key={hour} style={{ verticalAlign: 'baseline' }}>
-            <Accordion
-              filter={hour}
-              i={i}
-              gamesFiltred={gamesInHour}
-              open={true}
-              isCounted={false}
-              disableToggle={showSingleColumn}
-              gamesSelected={gamesSelected}
-            />
-          </td>
-        );
-      }
+  const displayLargeDeviceHeader = useCallback(() => {
+    if (
+      !games ||
+      games.length === 0 ||
+      !leaguesAvailable ||
+      leaguesAvailable.length === 0 ||
+      visibleGamesByHour.length === 0
+    ) {
       return null;
-    });
-  }, [gamesByHour, selectLeagues, teamSelectedId, gamesSelected]);
+    }
+    const showSingleColumn = visibleGamesByHour.length <= 1 || teamSelectedId !== '';
+
+    return (
+      <div style={{ backgroundColor: 'white', border: '1px solid black' }}>
+        <table
+          style={{
+            tableLayout: 'fixed',
+            width: showSingleColumn ? '50%' : '100%',
+            margin: 'auto',
+            borderCollapse: 'collapse',
+          }}
+        >
+          <tbody>
+            <tr>
+              {visibleGamesByHour.map(({ hour }, index) => (
+                <td
+                  key={hour}
+                  style={{
+                    borderRight: index !== visibleGamesByHour.length - 1 ? '1px solid black' : undefined,
+                  }}
+                >
+                  <div
+                    style={{
+                      padding: 15,
+                      alignItems: 'center',
+                      display: 'flex',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <ThemedText type="subtitle" style={{ color: 'black' }}>
+                      {hour}
+                    </ThemedText>
+                  </div>
+                </td>
+              ))}
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    );
+  }, [games, leaguesAvailable, visibleGamesByHour, teamSelectedId]);
 
   const displayLargeDeviceContent = useCallback(() => {
     if (!games || games.length === 0 || !leaguesAvailable || leaguesAvailable.length === 0) {
       return displayNoContent();
     }
-    const displayedHoursCount = Object.keys(gamesByHour).reduce((count, hour) => {
-      const gamesInHour = gamesByHour[hour];
-      const hasVisibleGames = gamesInHour.some(
-        (game) =>
-          selectLeagues.includes(game.league as League) &&
-          (!teamSelectedId || game.homeTeamId === teamSelectedId || game.awayTeamId === teamSelectedId) &&
-          game.awayTeamLogo &&
-          game.homeTeamLogo
-      );
-      return hasVisibleGames ? count + 1 : count;
-    }, 0);
-    const showSingleColumn = displayedHoursCount <= 1 || teamSelectedId !== '';
+    if (visibleGamesByHour.length === 0) return <NoResults />;
+
+    const showSingleColumn = visibleGamesByHour.length <= 1 || teamSelectedId !== '';
 
     return (
       <ThemedView>
-        <Selector
-          data={{
-            i: 1,
-            items: teamsOfTheDay as any,
-            itemSelectedId: teamSelectedId,
-            itemsSelectedIds: [],
-          }}
-          onItemSelectionChange={handleTeamSelectionChange}
-          allowMultipleSelection={false}
-          isClearable={true}
-        />
         <table
           style={{
             tableLayout: 'fixed',
@@ -465,22 +502,35 @@ export default function GameofTheDay() {
           }}
         >
           <tbody>
-            <tr>{displayAccordion()}</tr>
+            <tr>
+              {visibleGamesByHour.map(({ hour, games }) => (
+                <td key={hour} style={{ verticalAlign: 'top' }}>
+                  {games.map((game) => {
+                    const gameId = game._id ?? randomNumber(999999);
+                    const isSelected = gamesSelected.some(
+                      (gameSelect) =>
+                        game.homeTeamId === gameSelect.homeTeamId && game.startTimeUTC === gameSelect.startTimeUTC
+                    );
+                    return (
+                      <Cards
+                        key={gameId}
+                        data={game}
+                        numberSelected={1}
+                        showButtons={true}
+                        showDate={false}
+                        onSelection={() => {}}
+                        selected={isSelected}
+                      />
+                    );
+                  })}
+                </td>
+              ))}
+            </tr>
           </tbody>
         </table>
       </ThemedView>
     );
-  }, [
-    games,
-    leaguesAvailable,
-    displayNoContent,
-    displayAccordion,
-    teamsOfTheDay,
-    teamSelectedId,
-    handleTeamSelectionChange,
-    gamesByHour,
-    selectLeagues,
-  ]);
+  }, [games, leaguesAvailable, displayNoContent, visibleGamesByHour, teamSelectedId, gamesSelected]);
 
   useEffect(() => {
     if (hasInitializedRef.current) return;
@@ -545,16 +595,22 @@ export default function GameofTheDay() {
 
   return (
     <ThemedView style={{ flex: 1 }}>
-      <>
-        <DateRangePicker readonly={readonlyRef.current} onDateChange={handleDateChange} selectDate={selectDate} />
-        <ScrollView
-          ref={scrollViewRef}
-          onScroll={(event) => ActionButtonRef.current?.handleScroll(event)}
-          scrollEventThrottle={16}
-        >
-          <ThemedView>{windowWidth > 768 ? displayLargeDeviceContent() : displaySmallDeviceContent()}</ThemedView>
-        </ScrollView>
-      </>
+      <ScrollView
+        ref={scrollViewRef}
+        onScroll={(event) => ActionButtonRef.current?.handleScroll(event)}
+        scrollEventThrottle={16}
+      >
+        <div style={{ position: 'sticky', top: 0, zIndex: 10 }}>
+          <ThemedView>
+            <div style={{ position: 'relative', zIndex: 20 }}>
+              <DateRangePicker readonly={readonlyRef.current} onDateChange={handleDateChange} selectDate={selectDate} />
+              {displayFilters()}
+            </div>
+            {windowWidth > 768 && displayLargeDeviceHeader()}
+          </ThemedView>
+        </div>
+        <ThemedView>{windowWidth > 768 ? displayLargeDeviceContent() : displaySmallDeviceContent()}</ThemedView>
+      </ScrollView>
 
       <ActionButton ref={ActionButtonRef} scrollViewRef={scrollViewRef} />
     </ThemedView>
