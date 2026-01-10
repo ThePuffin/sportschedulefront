@@ -198,11 +198,20 @@ export default function Calendar() {
     let newTeamsSelected;
     let newGamesSelected;
     switch (clickedButton) {
-      case ButtonsKind.ADDTEAM:
-        newTeamsSelected = addNewTeamId(teamsSelected, teams);
+      case ButtonsKind.ADDTEAM: {
+        const favoriteTeams = getCache<string[]>('favoriteTeams') || [];
+        const nextFavorite = favoriteTeams.find(
+          (fav) => !teamsSelected.includes(fav) && fav !== '' && teams.some((t) => t.uniqueId === fav)
+        );
+        if (nextFavorite) {
+          newTeamsSelected = [...teamsSelected, nextFavorite];
+        } else {
+          newTeamsSelected = addNewTeamId(teamsSelected, teams);
+        }
         storeTeamsSelected(newTeamsSelected);
         getGamesFromApi();
         break;
+      }
       case ButtonsKind.REMOVETEAM:
         newTeamsSelected = removeLastTeamId(teamsSelected);
         storeTeamsSelected(newTeamsSelected);
@@ -337,9 +346,18 @@ export default function Calendar() {
         onScroll={(event) => ActionButtonRef.current?.handleScroll(event)}
         scrollEventThrottle={16}
       >
+        {!!gamesSelected.length && (
+          <GamesSelected
+            onAction={handleGamesSelection}
+            data={gamesSelected}
+            teamNumber={maxTeamsNumber > teamsSelected?.length ? teamsSelected.length : maxTeamsNumber}
+          />
+        )}
         <div style={{ position: 'sticky', top: 0, zIndex: 10 }}>
           <ThemedView>
-            <DateRangePicker dateRange={dateRange} onDateChange={handleDateChange} />
+            <div style={{ position: 'relative', zIndex: 20 }}>
+              <DateRangePicker dateRange={dateRange} onDateChange={handleDateChange} />
+            </div>
             <Buttons
               onClicks={handleButtonClick}
               data={{
@@ -349,21 +367,14 @@ export default function Calendar() {
                 maxTeamsNumber,
               }}
             />
-            {!!gamesSelected.length && (
-              <GamesSelected
-                onAction={handleGamesSelection}
-                data={gamesSelected}
-                teamNumber={maxTeamsNumber > teamsSelected?.length ? teamsSelected.length : maxTeamsNumber}
-              />
-            )}
-            {!teamsSelected.length && <LoadingView />}
-            <table style={{ tableLayout: 'fixed', width: '100%' }}>
+            <table style={{ tableLayout: 'fixed', width: '100%', position: 'relative', zIndex: 5 }}>
               <tbody>
                 <tr>{displaySelectors()}</tr>
               </tbody>
             </table>
           </ThemedView>
         </div>
+        {!teamsSelected.length && <LoadingView />}
         <table style={{ tableLayout: 'fixed', width: '100%' }}>
           <tbody>
             <tr>{displayGamesGrid()}</tr>

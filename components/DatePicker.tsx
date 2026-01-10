@@ -90,6 +90,7 @@ export default function DateRangePicker({
               className="custom-datepicker"
               dateFormat={locale === 'fr' ? 'dd/MM/yyyy' : 'MM/dd/yyyy'}
               closeOnScroll={true}
+              shouldCloseOnSelect={true}
             />
           </div>
           <div className="date-picker-container right">
@@ -105,6 +106,7 @@ export default function DateRangePicker({
               className="custom-datepicker"
               dateFormat={locale === 'fr' ? 'dd/MM/yyyy' : 'MM/dd/yyyy'}
               closeOnScroll={true}
+              shouldCloseOnSelect={true}
             />
           </div>
         </div>
