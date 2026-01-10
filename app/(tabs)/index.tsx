@@ -11,7 +11,7 @@ import DateRangePicker from '../../components/DatePicker';
 import LoadingView from '../../components/LoadingView';
 import { League } from '../../constants/enum';
 import { fetchGames, fetchLeagues, getCache, saveCache } from '../../utils/fetchData';
-import { GameFormatted, Team } from '../../utils/types';
+import { GameFormatted } from '../../utils/types';
 import { randomNumber, translateWord } from '../../utils/utils';
 
 const getNextGamesFromApi = async (date: Date): Promise<{ [key: string]: GameFormatted[] }> => {
@@ -103,9 +103,12 @@ export default function GameofTheDay() {
       if (gamesToDisplay.length === 0) {
         setLeague(League.ALL);
         saveCache('league', League.ALL);
-        gamesToDisplay = gamesDayExists;
+        gamesToDisplay = [...gamesDayExists];
       }
     }
+    gamesToDisplay.sort((a, b) => {
+      return new Date(a.startTimeUTC).getTime() - new Date(b.startTimeUTC).getTime();
+    });
     setGamesFiltred(gamesToDisplay);
   }, []);
 
@@ -117,6 +120,27 @@ export default function GameofTheDay() {
       const cachedGames = gamesDayCache.current[YYYYMMDD];
       if (cachedGames) {
         handleGames(cachedGames);
+        const today = new Date().toISOString().split('T')[0];
+        let gamesToDisplay = cachedGames;
+
+        if (YYYYMMDD === today) {
+          const yesterday = new Date(dateToFetch);
+          yesterday.setDate(yesterday.getDate() - 1);
+          const yesterdayYYYYMMDD = yesterday.toISOString().split('T')[0];
+          const cachedYesterday = gamesDayCache.current[yesterdayYYYYMMDD];
+
+          if (cachedYesterday) {
+            const nowMinusThreeHour = new Date(Date.now() - 3 * 60 * 60 * 1000);
+            const recentYesterdayGames = cachedYesterday.filter(
+              ({ startTimeUTC = '' }) => new Date(startTimeUTC) >= nowMinusThreeHour
+            );
+            const combined = [...recentYesterdayGames, ...cachedGames];
+            gamesToDisplay = combined.filter(
+              (game, index, self) => index === self.findIndex((t) => t._id === game._id)
+            );
+          }
+        }
+        handleGames(gamesToDisplay);
         return;
       }
 
@@ -148,10 +172,6 @@ export default function GameofTheDay() {
       setIsLoading(true);
 
       getGamesFromApi(startDate).finally(() => {
-        // Check if the currently selected team has games on the new date
-        const YYYYMMDD = new Date(startDate).toISOString().split('T')[0];
-        const gamesForDate = gamesDayCache.current[YYYYMMDD] || [];
-
         setGames((prevGames) => {
           // Filter games by selected leagues
           const gamesForLeagues = prevGames.filter((game) => selectLeagues.includes(game.league as League));
@@ -185,7 +205,7 @@ export default function GameofTheDay() {
 
   const handleLeagueSelectionChange = useCallback(
     (leagueSelectedId: string | string[]) => {
-      const nowMinusOneHour = new Date(new Date().getTime() - 3 * 60 * 60 * 1000);
+      const nowMinusOneHour = new Date(Date.now() - 3 * 60 * 60 * 1000);
       setTeamSelectedId('');
       if (Array.isArray(leagueSelectedId)) {
         saveCache('leaguesSelected', leagueSelectedId);
@@ -453,7 +473,7 @@ export default function GameofTheDay() {
 
   useFocusEffect(
     useCallback(() => {
-      setGamesSelected(getCache<Team[]>('gameSelected') || []);
+      setGamesSelected(getCache<GameFormatted[]>('gameSelected') || []);
       scrollViewRef.current?.scrollTo({ y: 0, animated: false });
     }, [])
   );
