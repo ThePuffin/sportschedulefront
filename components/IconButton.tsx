@@ -65,7 +65,6 @@ const IconButton: React.FC<ExtendedIconButtonProps> = ({
       tabIndex={disabled ? -1 : 0}
       aria-disabled={disabled}
       onClick={handleClick}
-      onKeyDown={handleKeyDown}
       style={containerStyle}
       title={text}
     >
