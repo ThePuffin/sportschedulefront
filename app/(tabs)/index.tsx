@@ -345,6 +345,7 @@ export default function GameofTheDay() {
                 showDate={false}
                 onSelection={() => {}}
                 selected={isSelected}
+                disableSelection={true}
               />
             );
           }
@@ -367,23 +368,29 @@ export default function GameofTheDay() {
 
     return (
       <ThemedView>
-        <Selector
-          data={leaguesData as any}
-          onItemSelectionChange={handleLeagueSelectionChange}
-          allowMultipleSelection={true}
-          isClearable={false}
-        />
-        <Selector
-          data={{
-            i: randomNumber(999999),
-            items: teamsOfTheDay as any,
-            itemSelectedId: teamSelectedId,
-            itemsSelectedIds: [],
-          }}
-          onItemSelectionChange={handleTeamSelectionChange}
-          allowMultipleSelection={false}
-          isClearable={true}
-        />
+        <div style={windowWidth > 768 ? { display: 'flex', flexDirection: 'row', width: '100%' } : { width: '100%' }}>
+          <div style={{ width: windowWidth > 768 ? '50%' : '100%' }}>
+            <Selector
+              data={leaguesData as any}
+              onItemSelectionChange={handleLeagueSelectionChange}
+              allowMultipleSelection={true}
+              isClearable={false}
+            />
+          </div>
+          <div style={{ width: windowWidth > 768 ? '50%' : '100%' }}>
+            <Selector
+              data={{
+                i: randomNumber(999999),
+                items: teamsOfTheDay as any,
+                itemSelectedId: teamSelectedId,
+                itemsSelectedIds: [],
+              }}
+              onItemSelectionChange={handleTeamSelectionChange}
+              allowMultipleSelection={false}
+              isClearable={true}
+            />
+          </div>
+        </div>
       </ThemedView>
     );
   }, [
@@ -394,6 +401,7 @@ export default function GameofTheDay() {
     teamSelectedId,
     handleLeagueSelectionChange,
     handleTeamSelectionChange,
+    windowWidth,
   ]);
 
   const displayNoContent = useCallback(() => {
@@ -520,6 +528,7 @@ export default function GameofTheDay() {
                         showDate={false}
                         onSelection={() => {}}
                         selected={isSelected}
+                        disableSelection={true}
                       />
                     );
                   })}
