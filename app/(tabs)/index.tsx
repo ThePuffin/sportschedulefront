@@ -12,7 +12,38 @@ import LoadingView from '../../components/LoadingView';
 import { League } from '../../constants/enum';
 import { fetchGames, fetchLeagues, getCache, saveCache } from '../../utils/fetchData';
 import { GameFormatted } from '../../utils/types';
-import { randomNumber, translateWord } from '../../utils/utils';
+import { randomNumber } from '../../utils/utils';
+
+const fetchGamesByHour = async (date: string): Promise<{ [key: string]: GameFormatted[] }> => {
+  const EXPO_PUBLIC_API_BASE_URL =
+    process.env.EXPO_PUBLIC_API_BASE_URL ?? 'https://sportschedule2025backend.onrender.com';
+  try {
+    const response = await fetch(`${EXPO_PUBLIC_API_BASE_URL}/games/hour/${date}`);
+    return await response.json();
+  } catch (error) {
+    console.error(error);
+    return {};
+  }
+};
+
+const groupGamesByHour = (games: GameFormatted[], roundToHour: boolean = false) => {
+  const grouped: { [key: string]: GameFormatted[] } = {};
+  games.forEach((game) => {
+    const date = new Date(game.startTimeUTC);
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    let hour = `${hours}:${minutes}`;
+    if (roundToHour) {
+      hour = `${hours}:00`;
+    }
+
+    if (!grouped[hour]) {
+      grouped[hour] = [];
+    }
+    grouped[hour].push(game);
+  });
+  return grouped;
+};
 
 const getNextGamesFromApi = async (date: Date): Promise<{ [key: string]: GameFormatted[] }> => {
   const newFetch: { [key: string]: GameFormatted[] } = {};
@@ -78,7 +109,14 @@ export default function GameofTheDay() {
     return prunedEntries;
   };
 
-  const { width: windowWidth } = useWindowDimensions();
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+
+  const gamesByHour = useMemo(() => {
+    const isMedium = windowWidth < 1200;
+    const nowMinusThreeHour = new Date(Date.now() - 3 * 60 * 60 * 1000);
+    const validGames = games.filter((g) => new Date(g.startTimeUTC) >= nowMinusThreeHour);
+    return groupGamesByHour(validGames, isMedium);
+  }, [games, windowWidth]);
 
   const handleGames = useCallback((gamesDayExists: GameFormatted[]) => {
     const nowMinusThreeHour = new Date(Date.now() - 3 * 60 * 60 * 1000);
@@ -146,7 +184,8 @@ export default function GameofTheDay() {
 
       // Fetch from API if not in cache
       try {
-        const gamesOfTheDay = await fetchGames(YYYYMMDD);
+        const gamesByHourData = await fetchGamesByHour(YYYYMMDD);
+        const gamesOfTheDay = Object.values(gamesByHourData).flat();
         gamesDayCache.current[YYYYMMDD] = gamesOfTheDay;
         // prune old entries and persist
         const pruned = pruneOldGamesCache({ ...(gamesDayCache.current || {}) });
@@ -346,29 +385,36 @@ export default function GameofTheDay() {
   }, [games, leaguesAvailable, displayNoContent, displaySelect]);
 
   const displayAccordion = useCallback(() => {
-    return leaguesAvailable.map((league, i) => {
-      let gamesFiltred: GameFormatted[] = [...games];
-      const leaguesNumber = Array.from(new Set(games.map((game) => game.league))).length || 0;
-      const showSingleColumn = leaguesNumber === 1 || teamSelectedId !== '';
-      if (league !== League.ALL) {
-        gamesFiltred = gamesFiltred.filter((game) => game.league === league && game.awayTeamLogo && game.homeTeamLogo);
+    const hours = Object.keys(gamesByHour).sort((a, b) => {
+      const timeA = gamesByHour[a]?.[0]?.startTimeUTC;
+      const timeB = gamesByHour[b]?.[0]?.startTimeUTC;
+      if (timeA && timeB) {
+        return new Date(timeA).getTime() - new Date(timeB).getTime();
       }
+      return a.localeCompare(b);
+    });
+    const hoursNumber = hours.length;
+    const showSingleColumn = hoursNumber <= 1 || teamSelectedId !== '';
 
-      if (teamSelectedId) {
-        gamesFiltred = gamesFiltred.filter((g) => g.homeTeamId === teamSelectedId || g.awayTeamId === teamSelectedId);
-      }
+    return hours.map((hour, i) => {
+      let gamesInHour = gamesByHour[hour];
 
-      let translatedLeague = league;
-      if (league === League.ALL) {
-        translatedLeague = translateWord('selectAll');
-      }
-      if (gamesFiltred.length > 0) {
+      gamesInHour = gamesInHour.filter((game) => {
         return (
-          <td key={league} style={{ verticalAlign: 'baseline' }}>
+          selectLeagues.includes(game.league as League) &&
+          (!teamSelectedId || game.homeTeamId === teamSelectedId || game.awayTeamId === teamSelectedId) &&
+          game.awayTeamLogo &&
+          game.homeTeamLogo
+        );
+      });
+
+      if (gamesInHour.length > 0) {
+        return (
+          <td key={hour} style={{ verticalAlign: 'baseline' }}>
             <Accordion
-              filter={translatedLeague}
+              filter={hour}
               i={i}
-              gamesFiltred={gamesFiltred}
+              gamesFiltred={gamesInHour}
               open={true}
               isCounted={false}
               disableToggle={showSingleColumn}
@@ -377,15 +423,26 @@ export default function GameofTheDay() {
           </td>
         );
       }
+      return null;
     });
-  }, [leaguesAvailable, games, teamSelectedId, gamesSelected]);
+  }, [gamesByHour, selectLeagues, teamSelectedId, gamesSelected]);
 
   const displayLargeDeviceContent = useCallback(() => {
     if (!games || games.length === 0 || !leaguesAvailable || leaguesAvailable.length === 0) {
       return displayNoContent();
     }
-    const leaguesNumber = Array.from(new Set(games.map((game) => game.league))).length || 0;
-    const showSingleColumn = leaguesNumber === 1 || teamSelectedId !== '';
+    const displayedHoursCount = Object.keys(gamesByHour).reduce((count, hour) => {
+      const gamesInHour = gamesByHour[hour];
+      const hasVisibleGames = gamesInHour.some(
+        (game) =>
+          selectLeagues.includes(game.league as League) &&
+          (!teamSelectedId || game.homeTeamId === teamSelectedId || game.awayTeamId === teamSelectedId) &&
+          game.awayTeamLogo &&
+          game.homeTeamLogo
+      );
+      return hasVisibleGames ? count + 1 : count;
+    }, 0);
+    const showSingleColumn = displayedHoursCount <= 1 || teamSelectedId !== '';
 
     return (
       <ThemedView>
@@ -400,7 +457,13 @@ export default function GameofTheDay() {
           allowMultipleSelection={false}
           isClearable={true}
         />
-        <table style={{ tableLayout: 'fixed', width: showSingleColumn ? '50%' : '100%', margin: 'auto' }}>
+        <table
+          style={{
+            tableLayout: 'fixed',
+            width: showSingleColumn ? '50%' : '100%',
+            margin: 'auto',
+          }}
+        >
           <tbody>
             <tr>{displayAccordion()}</tr>
           </tbody>
@@ -415,6 +478,8 @@ export default function GameofTheDay() {
     teamsOfTheDay,
     teamSelectedId,
     handleTeamSelectionChange,
+    gamesByHour,
+    selectLeagues,
   ]);
 
   useEffect(() => {
