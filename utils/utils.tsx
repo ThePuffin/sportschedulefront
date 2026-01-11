@@ -104,6 +104,7 @@ export const translateWord = (word: string) => {
         deleteSelection: 'Supprimer la sélection',
         addColumn: 'Ajouter une colonne',
         removeColumn: 'Supprimer une colonne',
+        select: 'Sélectionnez votre choix',
       };
       break;
     case 'de':
@@ -126,6 +127,7 @@ export const translateWord = (word: string) => {
         deleteSelection: 'Auswahl löschen',
         addColumn: 'Spalte hinzufügen',
         removeColumn: 'Spalte entfernen',
+        select: 'Wähle deine Auswahl',
       };
       break;
     case 'es':
@@ -148,6 +150,7 @@ export const translateWord = (word: string) => {
         deleteSelection: 'Eliminar selección',
         addColumn: 'Añadir columna',
         removeColumn: 'Eliminar columna',
+        select: 'Selecciona tu opción',
       };
       break;
 
@@ -171,6 +174,7 @@ export const translateWord = (word: string) => {
         deleteSelection: 'Elimina selezione',
         addColumn: 'Aggiungi colonna',
         removeColumn: 'Rimuovi colonna',
+        select: 'Seleziona la tua scelta',
       };
       break;
     case 'ja':
@@ -193,6 +197,7 @@ export const translateWord = (word: string) => {
         deleteSelection: '選択を削除',
         addColumn: '列を追加',
         removeColumn: '列を削除',
+        select: 'あなたの選択を選択してください',
       };
       break;
     case 'ko':
@@ -215,6 +220,7 @@ export const translateWord = (word: string) => {
         deleteSelection: '선택 삭제',
         addColumn: '열 추가',
         removeColumn: '열 제거',
+        select: '선택하세요',
       };
       break;
     case 'nl':
@@ -237,6 +243,7 @@ export const translateWord = (word: string) => {
         deleteSelection: 'Selectie verwijderen',
         addColumn: 'Kolom toevoegen',
         removeColumn: 'Kolom verwijderen',
+        select: 'Selecteer uw keuze',
       };
       break;
     case 'pt':
@@ -259,6 +266,7 @@ export const translateWord = (word: string) => {
         deleteSelection: 'Excluir seleção',
         addColumn: 'Adicionar coluna',
         removeColumn: 'Remover coluna',
+        select: 'Selecione sua opção',
       };
       break;
     case 'ru':
@@ -281,6 +289,7 @@ export const translateWord = (word: string) => {
         deleteSelection: 'Удалить выделение',
         addColumn: 'Добавить столбец',
         removeColumn: 'Удалить столбец',
+        select: 'Выберите свой вариант',
       };
       break;
     case 'zh':
@@ -303,6 +312,7 @@ export const translateWord = (word: string) => {
         deleteSelection: '删除选择',
         addColumn: '添加列',
         removeColumn: '删除列',
+        select: '选择你的选择',
       };
       break;
     default:
@@ -325,6 +335,7 @@ export const translateWord = (word: string) => {
         deleteSelection: 'Delete Selection',
         addColumn: 'Add Column',
         removeColumn: 'Remove Column',
+        select: 'Select your choice',
       };
       break;
   }

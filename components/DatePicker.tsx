@@ -57,7 +57,7 @@ export default function DateRangePicker({
         setIsOpen(false);
       }
     }
-    if (typeof window !== 'undefined') {
+    if (globalThis.window !== undefined) {
       document.addEventListener('mousedown', handleClickOutside);
       return () => {
         document.removeEventListener('mousedown', handleClickOutside);

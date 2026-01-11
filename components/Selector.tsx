@@ -22,16 +22,16 @@ export default function Selector({
   const [tempSelectedIds, setTempSelectedIds] = useState<string[]>([]);
   const [tempSelectedId, setTempSelectedId] = useState<string>('');
   const inputRef = useRef<TextInput>(null);
+  const userClearedRef = useRef(false);
 
-  // Charger les favoris
   useEffect(() => {
     const loadFavs = () => {
       setFavoriteTeams(getCache<string[]>('favoriteTeams')?.filter((t) => t !== '') || []);
     };
     loadFavs();
-    if (typeof window !== 'undefined') {
-      window.addEventListener('favoritesUpdated', loadFavs);
-      return () => window.removeEventListener('favoritesUpdated', loadFavs);
+    if (globalThis.window !== undefined) {
+      globalThis.window.addEventListener('favoritesUpdated', loadFavs);
+      return () => globalThis.window.removeEventListener('favoritesUpdated', loadFavs);
     }
   }, []);
 
@@ -42,11 +42,10 @@ export default function Selector({
       setTempSelectedId(itemSelectedId || '');
       setTimeout(() => {
         inputRef.current?.focus();
-      }, 100);
+      }, 500);
     }
   }, [visible, itemsSelectedIds, itemSelectedId]);
 
-  // Préparer la liste des options
   const getOptions = () => {
     if (!items) return [];
     return items
@@ -57,7 +56,6 @@ export default function Selector({
         const league = typeof item === 'string' ? item : item.league || item.value;
         const isAll = labelRaw === 'All' || id === 'ALL';
 
-        // Ajouter l'emoji si disponible
         const icon = !isAll && league ? ' ' + (emoticonEnum[league as keyof typeof emoticonEnum] || '') : '';
         const label = (labelRaw === 'All' ? translateWord('all') : labelRaw) + icon;
 
@@ -70,7 +68,6 @@ export default function Selector({
         };
       })
       .sort((a, b) => {
-        // Mettre les favoris en premier
         if (a.isFav && !b.isFav) return -1;
         if (!a.isFav && b.isFav) return 1;
         return 0;
@@ -83,6 +80,8 @@ export default function Selector({
   );
 
   useEffect(() => {
+    if (allOptions.length === 0 || itemSelectedId === 'ALL') return;
+
     const validIds = new Set(allOptions.map((o) => o.id));
 
     if (allowMultipleSelection) {
@@ -92,8 +91,17 @@ export default function Selector({
         onItemSelectionChange(validSelection, i);
       }
     } else {
-      if (itemSelectedId && !validIds.has(itemSelectedId)) {
-        onItemSelectionChange('', i);
+      if (!itemSelectedId) {
+        if (userClearedRef.current) return;
+        const allOption = allOptions.find((o) => o.id === 'all' || o.id === 'ALL');
+        if (allOption) {
+          onItemSelectionChange(allOption.id, i);
+        }
+      } else {
+        userClearedRef.current = false;
+        if (!validIds.has(itemSelectedId)) {
+          onItemSelectionChange('', i);
+        }
       }
     }
   }, [allOptions, allowMultipleSelection, itemsSelectedIds, itemSelectedId, i, onItemSelectionChange]);
@@ -108,7 +116,6 @@ export default function Selector({
     ? [{ id: 'SELECT_ALL', label: translateWord('all'), isFav: false, original: null, league: '' }, ...filteredOptions]
     : filteredOptions;
 
-  // Gérer la sélection
   const handleSelect = (id: string) => {
     if (allowMultipleSelection) {
       if (id === 'SELECT_ALL') {
@@ -132,14 +139,17 @@ export default function Selector({
 
   const handleValidate = () => {
     if (allowMultipleSelection) {
+      if (tempSelectedIds.length === 0) userClearedRef.current = true;
       onItemSelectionChange(tempSelectedIds, i);
     } else {
+      if (!tempSelectedId) userClearedRef.current = true;
       onItemSelectionChange(tempSelectedId, i);
     }
     setVisible(false);
   };
 
   const handleClear = () => {
+    userClearedRef.current = true;
     if (allowMultipleSelection) {
       onItemSelectionChange([], i);
     } else {
@@ -147,7 +157,6 @@ export default function Selector({
     }
   };
 
-  // Texte affiché dans le bouton principal
   const getDisplayText = () => {
     if (allowMultipleSelection) {
       if (!itemsSelectedIds || itemsSelectedIds.length === 0) return translateWord('Filter');
@@ -157,7 +166,6 @@ export default function Selector({
 
       if (selectedLabels.length === 0) return translateWord('Filter');
 
-      // Affiche "Item 1, Item 2" ou "Item 1, Item 2 (+3)"
       if (selectedLabels.length <= 2) return selectedLabels.join(', ');
       return `${selectedLabels.slice(0, 2).join(', ')} (+${selectedLabels.length - 2})`;
     } else {
@@ -262,14 +270,14 @@ export default function Selector({
         <Pressable style={styles.modalOverlay} onPress={() => setVisible(false)}>
           <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
             <View style={styles.header}>
-              <Text style={styles.headerTitle}></Text>
+              <Text style={styles.headerTitle}>{translateWord('select') || ''}</Text>
               <TouchableOpacity onPress={() => setVisible(false)}>
                 <Icon name="times" type="font-awesome" size={20} color="#000" />
               </TouchableOpacity>
             </View>
 
             {/* Recherche */}
-            {allOptions.length > 10 && (
+            {allOptions.length > 4 && (
               <View style={styles.searchContainer}>
                 <Icon name="search" type="font-awesome" size={14} color="#999" style={{ marginRight: 8 }} />
                 <TextInput
@@ -279,6 +287,7 @@ export default function Selector({
                   value={search}
                   onChangeText={setSearch}
                   placeholderTextColor="#999"
+                  autoFocus={true}
                 />
               </View>
             )}
