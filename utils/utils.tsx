@@ -104,8 +104,13 @@ export const translateWord = (word: string) => {
         deleteSelection: 'Supprimer la sélection',
         addColumn: 'Ajouter une colonne',
         removeColumn: 'Supprimer une colonne',
-        select: 'Sélectionnez votre choix',
+        select: 'Faites votre choix',
+        selectMultiple: 'Sélectionnez vos choix',
         nothing: 'Aucun',
+        filterTeams: 'Filtrer les équipes',
+        filterLeagues: 'Filtrer les ligues',
+        filterMonths: 'Filtrer les mois',
+        findTeam: 'Trouver une équipe',
       };
       break;
     case 'de':
@@ -129,7 +134,12 @@ export const translateWord = (word: string) => {
         addColumn: 'Spalte hinzufügen',
         removeColumn: 'Spalte entfernen',
         select: 'Wähle deine Auswahl',
+        selectMultiple: 'Wählen Sie Ihre Optionen',
         nothing: 'Nichts',
+        filterTeams: 'Teams filtern',
+        filterLeagues: 'Leagues filtern',
+        filterMonths: 'Monate filtern',
+        findTeam: 'Ein Team finden',
       };
       break;
     case 'es':
@@ -153,7 +163,12 @@ export const translateWord = (word: string) => {
         addColumn: 'Añadir columna',
         removeColumn: 'Eliminar columna',
         select: 'Selecciona tu opción',
+        selectMultiple: 'Seleccione sus opciones',
         nothing: 'Nada',
+        filterTeams: 'Filtrar equipos',
+        filterLeagues: 'Filtrar ligas',
+        filterMonths: 'Filtrar meses',
+        findTeam: 'Encontrar un equipo',
       };
       break;
 
@@ -178,7 +193,12 @@ export const translateWord = (word: string) => {
         addColumn: 'Aggiungi colonna',
         removeColumn: 'Rimuovi colonna',
         select: 'Seleziona la tua scelta',
+        selectMultiple: 'Seleziona le tue scelte',
         nothing: 'Niente',
+        filterTeams: 'Filtrare squadre',
+        filterLeagues: 'Filtrare liuge',
+        filterMonths: 'Filtrare mesi',
+        findTeam: 'Trova una squadra',
       };
       break;
     case 'ja':
@@ -202,7 +222,12 @@ export const translateWord = (word: string) => {
         addColumn: '列を追加',
         removeColumn: '列を削除',
         select: 'あなたの選択を選択してください',
+        selectMultiple: '複数の選択肢を選択',
         nothing: 'なし',
+        filterTeams: 'チームをフィルター',
+        filterLeagues: 'リーグをフィルター',
+        filterMonths: '月をフィルター',
+        findTeam: 'チームを探す',
       };
       break;
     case 'ko':
@@ -226,7 +251,12 @@ export const translateWord = (word: string) => {
         addColumn: '열 추가',
         removeColumn: '열 제거',
         select: '선택하세요',
+        selectMultiple: '여러 항목을 선택하세요',
         nothing: '없음',
+        filterTeams: '팀 필터링',
+        filterLeagues: '리그 필터링',
+        filterMonths: '월 필터링',
+        findTeam: '팀 찾기',
       };
       break;
     case 'nl':
@@ -250,7 +280,12 @@ export const translateWord = (word: string) => {
         addColumn: 'Kolom toevoegen',
         removeColumn: 'Kolom verwijderen',
         select: 'Selecteer uw keuze',
+        selectMultiple: 'Selecteer uw keuzes',
         nothing: 'Niets',
+        filterTeams: 'Teams filteren',
+        filterLeagues: 'Leagues filteren',
+        filterMonths: 'Months filteren',
+        findTeam: 'Zoek een team',
       };
       break;
     case 'pt':
@@ -274,7 +309,12 @@ export const translateWord = (word: string) => {
         addColumn: 'Adicionar coluna',
         removeColumn: 'Remover coluna',
         select: 'Selecione sua opção',
+        selectMultiple: 'Selecione suas opções',
         nothing: 'Nada',
+        filterTeams: 'Filtrar times',
+        filterLeagues: 'Filtrar ligas',
+        filterMonths: 'Filtrar meses',
+        findTeam: 'Encontrar um time',
       };
       break;
     case 'ru':
@@ -298,7 +338,12 @@ export const translateWord = (word: string) => {
         addColumn: 'Добавить столбец',
         removeColumn: 'Удалить столбец',
         select: 'Выберите свой вариант',
+        selectMultiple: 'Выберите несколько вариантов',
         nothing: 'Ничего',
+        filterTeams: 'Фильтровать команды',
+        filterLeagues: 'Фильтровать лиги',
+        filterMonths: 'Фильтровать месяцы',
+        findTeam: 'Найти команду',
       };
       break;
     case 'zh':
@@ -322,7 +367,12 @@ export const translateWord = (word: string) => {
         addColumn: '添加列',
         removeColumn: '删除列',
         select: '选择你的选择',
+        selectMultiple: '选择多个选项',
         nothing: '无',
+        filterTeams: '筛选球队',
+        filterLeagues: '筛选联赛',
+        filterMonths: '筛选月份',
+        findTeam: '查找球队',
       };
       break;
     default:
@@ -346,7 +396,12 @@ export const translateWord = (word: string) => {
         addColumn: 'Add Column',
         removeColumn: 'Remove Column',
         select: 'Select your choice',
+        selectMultiple: 'Select your choices',
         nothing: 'Nothing',
+        filterTeams: 'Filter teams',
+        filterLeagues: 'Filter leagues',
+        filterMonths: 'Filter months',
+        findTeam: 'Find a Team',
       };
       break;
   }

@@ -11,7 +11,8 @@ export default function Selector({
   onItemSelectionChange,
   allowMultipleSelection = false,
   isClearable = false,
-}: Readonly<SelectorProps>) {
+  placeholder,
+}: Readonly<SelectorProps & { placeholder?: string }>) {
   const { items, i, itemSelectedId } = data;
   let { itemsSelectedIds = [] } = data;
 
@@ -163,7 +164,7 @@ export default function Selector({
 
   const getDisplayText = () => {
     if (allowMultipleSelection) {
-      if (!itemsSelectedIds || itemsSelectedIds.length === 0) return translateWord('Filter');
+      if (!itemsSelectedIds || itemsSelectedIds.length === 0) return placeholder || translateWord('Filter');
       if (itemsSelectedIds.length === allOptions.length && allOptions.length > 0) return translateWord('all');
 
       const selectedLabels = allOptions.filter((o) => itemsSelectedIds.includes(o.id)).map((o) => o.label);
@@ -174,7 +175,7 @@ export default function Selector({
       return `${selectedLabels.slice(0, 2).join(', ')} (+${selectedLabels.length - 2})`;
     } else {
       const selected = allOptions.find((o) => o.id === itemSelectedId);
-      return selected ? selected.label : translateWord('Filter');
+      return selected ? selected.label : placeholder || translateWord('Filter');
     }
   };
 
@@ -274,7 +275,9 @@ export default function Selector({
         <Pressable style={styles.modalOverlay} onPress={() => setVisible(false)}>
           <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
             <View style={styles.header}>
-              <Text style={styles.headerTitle}>{translateWord('select') || ''}</Text>
+              <Text style={styles.headerTitle}>
+                {allowMultipleSelection ? translateWord('selectMultiple') : translateWord('select') || ''}
+              </Text>
               <TouchableOpacity onPress={() => setVisible(false)}>
                 <Icon name="times" type="font-awesome" size={20} color="#000" />
               </TouchableOpacity>
@@ -287,7 +290,7 @@ export default function Selector({
                 <TextInput
                   ref={inputRef}
                   style={styles.searchInput}
-                  placeholder={translateWord('Filter')}
+                  placeholder={placeholder || translateWord('Filter')}
                   value={search}
                   onChangeText={setSearch}
                   placeholderTextColor="#999"

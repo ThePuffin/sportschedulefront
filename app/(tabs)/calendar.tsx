@@ -13,7 +13,7 @@ import Selector from '../../components/Selector';
 import { ButtonsKind } from '../../constants/enum';
 import { addDays, readableDate } from '../../utils/date';
 import { FilterGames, GameFormatted, Team } from '../../utils/types';
-import { addNewTeamId, randomNumber, removeLastTeamId } from '../../utils/utils';
+import { addNewTeamId, randomNumber, removeLastTeamId, translateWord } from '../../utils/utils';
 const EXPO_PUBLIC_API_BASE_URL =
   process.env.EXPO_PUBLIC_API_BASE_URL ?? 'https://sportschedule2025backend.onrender.com';
 
@@ -256,7 +256,12 @@ export default function Calendar() {
       return (
         <td key={`selector-${teamSelectedId}-${teamsSelected.length}`}>
           <ThemedView>
-            <Selector data={data} onItemSelectionChange={handleTeamSelectionChange} isClearable={false} />
+            <Selector
+              data={data}
+              onItemSelectionChange={handleTeamSelectionChange}
+              isClearable={false}
+              placeholder={translateWord('filterTeams')}
+            />
           </ThemedView>
         </td>
       );

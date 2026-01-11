@@ -254,6 +254,7 @@ export default function GameofTheDay() {
               onItemSelectionChange={handleLeagueSelectionChange}
               allowMultipleSelection={true}
               isClearable={false}
+              placeholder={translateWord('filterLeagues')}
             />
           </div>
           <div style={{ width: windowWidth > 768 ? '50%' : '100%' }}>
@@ -267,6 +268,7 @@ export default function GameofTheDay() {
               onItemSelectionChange={handleTeamSelectionChange}
               allowMultipleSelection={false}
               isClearable={true}
+              placeholder={translateWord('filterTeams')}
             />
           </div>
         </div>

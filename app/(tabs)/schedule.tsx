@@ -2,7 +2,7 @@ import NoResults from '@/components/NoResults';
 import Selector from '@/components/Selector';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import { getRandomTeamId, randomNumber } from '@/utils/utils';
+import { getRandomTeamId, randomNumber, translateWord } from '@/utils/utils';
 import { useFocusEffect } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ScrollView, useWindowDimensions } from 'react-native';
@@ -27,7 +27,7 @@ export default function Schedule() {
   const [teams, setTeams] = useState<Team[]>([]);
   const [teamSelected, setTeamSelected] = useState<string>('');
   const [teamFilter, setTeamFilter] = useState<string>('');
-  const [monthFilter, setMonthFilter] = useState<string>('');
+  const [monthFilter, setMonthFilter] = useState<string[]>([]);
   const [leagueTeams, setLeagueTeams] = useState<Team[]>([]);
   const { width } = useWindowDimensions();
   const isSmallDevice = width <= 768;
@@ -156,7 +156,7 @@ export default function Schedule() {
 
   const handleTeamSelectionChange = (teamSelectedId: string | string[]) => {
     setTeamFilter('');
-    setMonthFilter('');
+    setMonthFilter([]);
     const finalTeamId = Array.isArray(teamSelectedId) ? teamSelectedId[0] : teamSelectedId;
     if (finalTeamId === 'all') {
       localStorage.setItem('teamSelected', 'all');
@@ -173,7 +173,7 @@ export default function Schedule() {
 
   const handleLeagueSelectionChange = (leagueSelectedId: string | string[]) => {
     setTeamFilter('');
-    setMonthFilter('');
+    setMonthFilter([]);
     const finalLeagueId = Array.isArray(leagueSelectedId) ? leagueSelectedId[0] : leagueSelectedId;
     localStorage.setItem('leagueSelected', finalLeagueId);
     const teamsAvailableInLeague = teams.filter(({ league }) => league === finalLeagueId);
@@ -272,7 +272,7 @@ export default function Schedule() {
     };
 
     const uniqueTeamsFromGames = React.useMemo(() => {
-      if (teamSelected === 'all' && !monthFilter) {
+      if (teamSelected === 'all' && monthFilter.length === 0) {
         return teamsForSelector.filter((team) => team.uniqueId !== teamSelected);
       }
       const teamsFromGames: Team[] = [];
@@ -280,9 +280,9 @@ export default function Schedule() {
 
       for (const day in games) {
         if (!Object.hasOwn(games, day)) continue;
-        if (monthFilter) {
+        if (monthFilter.length > 0) {
           const month = new Date(day).toLocaleString('default', { month: 'long' });
-          if (month !== monthFilter) continue;
+          if (!monthFilter.includes(month)) continue;
         }
 
         const dayGames = games[day];
@@ -382,6 +382,7 @@ export default function Schedule() {
                     data={dataLeagues}
                     onItemSelectionChange={handleLeagueSelectionChange}
                     isClearable={false}
+                    placeholder={translateWord('filterLeagues')}
                   />
                 </div>
                 <div
@@ -392,7 +393,12 @@ export default function Schedule() {
                   }
                 >
                   <div style={{ width: isSmallDevice || !showTeamFilter ? '100%' : '48%' }}>
-                    <Selector data={dataTeams} onItemSelectionChange={handleTeamSelectionChange} isClearable={false} />
+                    <Selector
+                      data={dataTeams}
+                      onItemSelectionChange={handleTeamSelectionChange}
+                      isClearable={false}
+                      placeholder={translateWord('filterTeams')}
+                    />
                   </div>
                   {!isSmallDevice && showTeamFilter && (
                     <div style={{ width: '4%', display: 'flex', justifyContent: 'center' }}>
@@ -420,6 +426,7 @@ export default function Schedule() {
                         data={dataTeamsFilter}
                         onItemSelectionChange={handleTeamFilterChange}
                         isClearable={true}
+                        placeholder={translateWord('filterTeams')}
                       />
                     </div>
                   )}
@@ -462,9 +469,8 @@ export default function Schedule() {
 
     if (isSmallDevice) {
       const months = visibleGamesByMonth.map((m) => m.month);
-      const filteredMonths = monthFilter
-        ? visibleGamesByMonth.filter((m) => m.month === monthFilter)
-        : visibleGamesByMonth;
+      const filteredMonths =
+        monthFilter.length > 0 ? visibleGamesByMonth.filter((m) => monthFilter.includes(m.month)) : visibleGamesByMonth;
 
       return (
         <div>
@@ -474,11 +480,13 @@ export default function Schedule() {
                 data={{
                   i: randomNumber(999999),
                   items: months,
-                  itemsSelectedIds: [],
-                  itemSelectedId: monthFilter,
+                  itemsSelectedIds: monthFilter,
+                  itemSelectedId: '',
                 }}
-                onItemSelectionChange={(id) => setMonthFilter(Array.isArray(id) ? id[0] : id)}
+                onItemSelectionChange={(ids) => setMonthFilter(Array.isArray(ids) ? ids : [])}
                 isClearable={true}
+                allowMultipleSelection={true}
+                placeholder={translateWord('filterMonths')}
               />
             </div>
           )}

@@ -102,6 +102,7 @@ const FavModal = ({
                     onItemSelectionChange={(id) => handleSelection(index, id)}
                     allowMultipleSelection={false}
                     isClearable={true}
+                    placeholder={translateWord('findTeam')}
                   />
                 );
               }
