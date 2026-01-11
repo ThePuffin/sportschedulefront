@@ -1,25 +1,10 @@
-import { emoticonEnum } from '@/constants/enum';
+import { emoticonEnum, leagueLogos } from '@/constants/enum';
 import { getCache } from '@/utils/fetchData';
 import { SelectorProps } from '@/utils/types';
 import { translateWord } from '@/utils/utils';
 import { Icon } from '@rneui/themed';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { FlatList, Image, Modal, Pressable, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-
-const leagueLogos: { [key: string]: any } = {
-  MLB: require('../assets/images/MLB.png'),
-  NBA: require('../assets/images/NBA.png'),
-  NFL: require('../assets/images/NFL.png'),
-  NHL: require('../assets/images/NHL.png'),
-  WNBA: require('../assets/images/WNBA.png'),
-  PWHL: require('../assets/images/PWHL.png'),
-  MLS: require('../assets/images/MLS.png'),
-  NCAAF: require('../assets/images/ncaa-football.png'),
-  NCAAB: require('../assets/images/ncaa-basketball.png'),
-  NCCABB: require('../assets/images/ncaa-baseball.png'),
-  WNCAAB: require('../assets/images/ncaa-basketball-woman.png'),
-  DEFAULT: require('../assets/images/DEFAULT.png'),
-};
 
 export default function Selector({
   data,
@@ -34,6 +19,9 @@ export default function Selector({
   const [search, setSearch] = useState('');
   const [selectedLeague, setSelectedLeague] = useState<string | null>(null);
   const [favoriteTeams, setFavoriteTeams] = useState<string[]>([]);
+  const [tempSelectedIds, setTempSelectedIds] = useState<string[]>([]);
+  const [tempSelectedId, setTempSelectedId] = useState<string>('');
+  const inputRef = useRef<TextInput>(null);
 
   // Charger les favoris
   useEffect(() => {
@@ -46,6 +34,17 @@ export default function Selector({
       return () => window.removeEventListener('favoritesUpdated', loadFavs);
     }
   }, []);
+
+  useEffect(() => {
+    if (visible) {
+      setSearch('');
+      setTempSelectedIds(itemsSelectedIds || []);
+      setTempSelectedId(itemSelectedId || '');
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
+    }
+  }, [visible, itemsSelectedIds, itemSelectedId]);
 
   // Préparer la liste des options
   const getOptions = () => {
@@ -83,29 +82,61 @@ export default function Selector({
     new Set(allOptions.map((o) => o.league).filter((l) => !!l && typeof l === 'string'))
   );
 
+  useEffect(() => {
+    const validIds = new Set(allOptions.map((o) => o.id));
+
+    if (allowMultipleSelection) {
+      const currentIds = itemsSelectedIds || [];
+      const validSelection = currentIds.filter((id) => validIds.has(id));
+      if (validSelection.length !== currentIds.length) {
+        onItemSelectionChange(validSelection, i);
+      }
+    } else {
+      if (itemSelectedId && !validIds.has(itemSelectedId)) {
+        onItemSelectionChange('', i);
+      }
+    }
+  }, [allOptions, allowMultipleSelection, itemsSelectedIds, itemSelectedId, i, onItemSelectionChange]);
+
   const filteredOptions = allOptions.filter((opt) => {
     const matchesSearch = opt.label.toLowerCase().includes(search.toLowerCase());
     const matchesLeague = selectedLeague ? opt.league === selectedLeague : true;
     return matchesSearch && matchesLeague;
   });
 
+  const listData = allowMultipleSelection
+    ? [{ id: 'SELECT_ALL', label: translateWord('all'), isFav: false, original: null, league: '' }, ...filteredOptions]
+    : filteredOptions;
+
   // Gérer la sélection
   const handleSelect = (id: string) => {
     if (allowMultipleSelection) {
       if (id === 'SELECT_ALL') {
         const allIds = allOptions.map((o) => o.id);
-        const isAllSelected = allOptions.every((o) => itemsSelectedIds.includes(o.id));
-        onItemSelectionChange(isAllSelected ? [] : allIds, i);
+        const isAllSelected = allOptions.every((o) => tempSelectedIds.includes(o.id));
+        setTempSelectedIds(isAllSelected ? [] : allIds);
       } else {
-        const newSelection = itemsSelectedIds.includes(id)
-          ? itemsSelectedIds.filter((sid) => sid !== id)
-          : [...itemsSelectedIds, id];
-        onItemSelectionChange(newSelection, i);
+        const newSelection = tempSelectedIds.includes(id)
+          ? tempSelectedIds.filter((sid) => sid !== id)
+          : [...tempSelectedIds, id];
+        setTempSelectedIds(newSelection);
       }
     } else {
-      onItemSelectionChange(id, i);
-      setVisible(false);
+      if (isClearable && id === tempSelectedId) {
+        setTempSelectedId('');
+      } else {
+        setTempSelectedId(id);
+      }
     }
+  };
+
+  const handleValidate = () => {
+    if (allowMultipleSelection) {
+      onItemSelectionChange(tempSelectedIds, i);
+    } else {
+      onItemSelectionChange(tempSelectedId, i);
+    }
+    setVisible(false);
   };
 
   const handleClear = () => {
@@ -137,7 +168,7 @@ export default function Selector({
 
   const hasSelection = allowMultipleSelection ? itemsSelectedIds.length > 0 : !!itemSelectedId;
 
-  const isAllSelected = allOptions.length > 0 && allOptions.every((o) => itemsSelectedIds.includes(o.id));
+  const isAllSelected = allOptions.length > 0 && allOptions.every((o) => tempSelectedIds.includes(o.id));
 
   const isDisabled =
     !items ||
@@ -189,7 +220,7 @@ export default function Selector({
     }
 
     return (
-      <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, minHeight: 25 }}>
         {logo && (
           <Image
             source={typeof logo === 'string' ? { uri: logo } : logo}
@@ -230,25 +261,27 @@ export default function Selector({
       <Modal visible={visible} transparent animationType="fade" onRequestClose={() => setVisible(false)}>
         <Pressable style={styles.modalOverlay} onPress={() => setVisible(false)}>
           <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
-            {/* En-tête */}
             <View style={styles.header}>
-              <Text style={styles.headerTitle}>{translateWord('select') || 'Select'}</Text>
+              <Text style={styles.headerTitle}></Text>
               <TouchableOpacity onPress={() => setVisible(false)}>
                 <Icon name="times" type="font-awesome" size={20} color="#000" />
               </TouchableOpacity>
             </View>
 
             {/* Recherche */}
-            <View style={styles.searchContainer}>
-              <Icon name="search" type="font-awesome" size={14} color="#999" style={{ marginRight: 8 }} />
-              <TextInput
-                style={styles.searchInput}
-                placeholder={translateWord('search') || 'Search...'}
-                value={search}
-                onChangeText={setSearch}
-                placeholderTextColor="#999"
-              />
-            </View>
+            {allOptions.length > 10 && (
+              <View style={styles.searchContainer}>
+                <Icon name="search" type="font-awesome" size={14} color="#999" style={{ marginRight: 8 }} />
+                <TextInput
+                  ref={inputRef}
+                  style={styles.searchInput}
+                  placeholder={translateWord('Filter')}
+                  value={search}
+                  onChangeText={setSearch}
+                  placeholderTextColor="#999"
+                />
+              </View>
+            )}
 
             {/* Filtre par ligue */}
             {uniqueLeagues.length > 1 && uniqueLeagues.length < allOptions.length && (
@@ -289,22 +322,15 @@ export default function Selector({
 
             {/* Liste des options */}
             <FlatList
-              data={
-                allowMultipleSelection
-                  ? [
-                      { id: 'SELECT_ALL', label: translateWord('all'), isFav: false, original: null },
-                      ...filteredOptions,
-                    ]
-                  : filteredOptions
-              }
+              data={listData}
               keyExtractor={(item) => item.id}
               style={styles.list}
-              renderItem={({ item }) => {
+              renderItem={({ item, index }) => {
                 const isSelected = allowMultipleSelection
                   ? item.id === 'SELECT_ALL'
                     ? isAllSelected
-                    : itemsSelectedIds.includes(item.id)
-                  : itemSelectedId === item.id;
+                    : tempSelectedIds.includes(item.id)
+                  : tempSelectedId === item.id;
 
                 let logo = (item.original as any)?.logo || (item.original as any)?.teamLogo;
                 if (!logo) {
@@ -312,27 +338,56 @@ export default function Selector({
                   else if (item.league && leagueLogos[item.league]) logo = leagueLogos[item.league];
                 }
 
+                const showSeparator = index > 0 && listData[index - 1].isFav && !item.isFav;
+
                 return (
-                  <TouchableOpacity
-                    style={[styles.optionItem, isSelected && styles.optionSelected]}
-                    onPress={() => handleSelect(item.id)}
-                  >
-                    <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-                      {logo && (
-                        <Image
-                          source={typeof logo === 'string' ? { uri: logo } : logo}
-                          style={{ width: 30, height: 30, resizeMode: 'contain', marginRight: 10 }}
-                        />
+                  <View>
+                    {showSeparator && <View style={styles.separator} />}
+                    <TouchableOpacity
+                      style={[styles.optionItem, isSelected && styles.optionSelected]}
+                      onPress={() => handleSelect(item.id)}
+                    >
+                      <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                        {logo && (
+                          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                            {item.isFav && (
+                              <Icon
+                                name="star"
+                                type="font-awesome"
+                                size={12}
+                                color="#FFD700"
+                                style={{ marginRight: 5 }}
+                              />
+                            )}
+                            <Image
+                              source={typeof logo === 'string' ? { uri: logo } : logo}
+                              style={{ width: 30, height: 30, resizeMode: 'contain', marginRight: 10 }}
+                            />
+                          </View>
+                        )}
+                        <Text style={[styles.optionText, isSelected && styles.optionTextSelected]}>{item.label}</Text>
+                      </View>
+                      {isSelected && (
+                        <Icon name="check" type="font-awesome" size={14} color={isSelected ? 'white' : 'black'} />
                       )}
-                      <Text style={[styles.optionText, isSelected && styles.optionTextSelected]}>{item.label}</Text>
-                    </View>
-                    {isSelected && (
-                      <Icon name="check" type="font-awesome" size={14} color={isSelected ? 'white' : 'black'} />
-                    )}
-                  </TouchableOpacity>
+                    </TouchableOpacity>
+                  </View>
                 );
               }}
             />
+
+            {/* Boutons Valider / Annuler */}
+            <View style={styles.buttonsContainer}>
+              <Pressable
+                style={[styles.button, styles.buttonClose, styles.buttonCancel]}
+                onPress={() => setVisible(false)}
+              >
+                <Text style={[styles.textStyle, styles.textStyleCancel]}>{translateWord('cancel')}</Text>
+              </Pressable>
+              <Pressable style={[styles.button, styles.buttonClose]} onPress={handleValidate}>
+                <Text style={styles.textStyle}>{translateWord('register')}</Text>
+              </Pressable>
+            </View>
           </Pressable>
         </Pressable>
       </Modal>
@@ -444,6 +499,7 @@ const styles = StyleSheet.create({
   },
   list: {
     flexGrow: 0,
+    flexShrink: 1,
   },
   optionItem: {
     flexDirection: 'row',
@@ -455,7 +511,7 @@ const styles = StyleSheet.create({
     borderBottomColor: '#f0f0f0',
   },
   optionSelected: {
-    backgroundColor: '#323435',
+    backgroundColor: '#696969',
     borderRadius: 5,
     marginVertical: 2,
     borderBottomWidth: 0,
@@ -467,5 +523,41 @@ const styles = StyleSheet.create({
   optionTextSelected: {
     color: 'white',
     fontWeight: 'bold',
+  },
+  separator: {
+    height: 4,
+    borderTopWidth: 1,
+    borderColor: '#000',
+    marginVertical: 0,
+  },
+  buttonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    gap: 10,
+    marginTop: 15,
+  },
+  button: {
+    borderRadius: 20,
+    padding: 10,
+    elevation: 2,
+    flex: 1,
+  },
+  buttonClose: {
+    backgroundColor: '#000',
+    borderWidth: 1,
+    borderColor: 'white',
+  },
+  buttonCancel: {
+    backgroundColor: 'white',
+    borderColor: 'black',
+  },
+  textStyle: {
+    color: 'white',
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  textStyleCancel: {
+    color: 'black',
   },
 });
