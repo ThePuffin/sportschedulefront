@@ -44,7 +44,7 @@ export default function Selector({
         inputRef.current?.focus();
       }, 500);
     }
-  }, [visible, itemsSelectedIds, itemSelectedId]);
+  }, [visible]);
 
   const getOptions = () => {
     if (!items) return [];
@@ -114,6 +114,8 @@ export default function Selector({
 
   const listData = allowMultipleSelection
     ? [{ id: 'SELECT_ALL', label: translateWord('all'), isFav: false, original: null, league: '' }, ...filteredOptions]
+    : isClearable
+    ? [{ id: 'NOTHING', label: translateWord('nothing'), isFav: false, original: null, league: '' }, ...filteredOptions]
     : filteredOptions;
 
   const handleSelect = (id: string) => {
@@ -129,7 +131,9 @@ export default function Selector({
         setTempSelectedIds(newSelection);
       }
     } else {
-      if (isClearable && id === tempSelectedId) {
+      if (id === 'NOTHING') {
+        setTempSelectedId('');
+      } else if (isClearable && id === tempSelectedId) {
         setTempSelectedId('');
       } else {
         setTempSelectedId(id);
@@ -277,7 +281,7 @@ export default function Selector({
             </View>
 
             {/* Recherche */}
-            {allOptions.length > 4 && (
+            {allOptions.length > 10 && (
               <View style={styles.searchContainer}>
                 <Icon name="search" type="font-awesome" size={14} color="#999" style={{ marginRight: 8 }} />
                 <TextInput
@@ -334,11 +338,14 @@ export default function Selector({
               data={listData}
               keyExtractor={(item) => item.id}
               style={styles.list}
+              keyboardShouldPersistTaps="handled"
               renderItem={({ item, index }) => {
                 const isSelected = allowMultipleSelection
                   ? item.id === 'SELECT_ALL'
                     ? isAllSelected
                     : tempSelectedIds.includes(item.id)
+                  : item.id === 'NOTHING'
+                  ? !tempSelectedId
                   : tempSelectedId === item.id;
 
                 let logo = (item.original as any)?.logo || (item.original as any)?.teamLogo;

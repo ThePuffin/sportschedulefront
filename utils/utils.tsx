@@ -105,6 +105,7 @@ export const translateWord = (word: string) => {
         addColumn: 'Ajouter une colonne',
         removeColumn: 'Supprimer une colonne',
         select: 'Sélectionnez votre choix',
+        nothing: 'Aucun',
       };
       break;
     case 'de':
@@ -128,6 +129,7 @@ export const translateWord = (word: string) => {
         addColumn: 'Spalte hinzufügen',
         removeColumn: 'Spalte entfernen',
         select: 'Wähle deine Auswahl',
+        nothing: 'Nichts',
       };
       break;
     case 'es':
@@ -151,6 +153,7 @@ export const translateWord = (word: string) => {
         addColumn: 'Añadir columna',
         removeColumn: 'Eliminar columna',
         select: 'Selecciona tu opción',
+        nothing: 'Nada',
       };
       break;
 
@@ -175,6 +178,7 @@ export const translateWord = (word: string) => {
         addColumn: 'Aggiungi colonna',
         removeColumn: 'Rimuovi colonna',
         select: 'Seleziona la tua scelta',
+        nothing: 'Niente',
       };
       break;
     case 'ja':
@@ -198,6 +202,7 @@ export const translateWord = (word: string) => {
         addColumn: '列を追加',
         removeColumn: '列を削除',
         select: 'あなたの選択を選択してください',
+        nothing: 'なし',
       };
       break;
     case 'ko':
@@ -221,6 +226,7 @@ export const translateWord = (word: string) => {
         addColumn: '열 추가',
         removeColumn: '열 제거',
         select: '선택하세요',
+        nothing: '없음',
       };
       break;
     case 'nl':
@@ -244,6 +250,7 @@ export const translateWord = (word: string) => {
         addColumn: 'Kolom toevoegen',
         removeColumn: 'Kolom verwijderen',
         select: 'Selecteer uw keuze',
+        nothing: 'Niets',
       };
       break;
     case 'pt':
@@ -267,6 +274,7 @@ export const translateWord = (word: string) => {
         addColumn: 'Adicionar coluna',
         removeColumn: 'Remover coluna',
         select: 'Selecione sua opção',
+        nothing: 'Nada',
       };
       break;
     case 'ru':
@@ -290,6 +298,7 @@ export const translateWord = (word: string) => {
         addColumn: 'Добавить столбец',
         removeColumn: 'Удалить столбец',
         select: 'Выберите свой вариант',
+        nothing: 'Ничего',
       };
       break;
     case 'zh':
@@ -313,6 +322,7 @@ export const translateWord = (word: string) => {
         addColumn: '添加列',
         removeColumn: '删除列',
         select: '选择你的选择',
+        nothing: '无',
       };
       break;
     default:
@@ -336,6 +346,7 @@ export const translateWord = (word: string) => {
         addColumn: 'Add Column',
         removeColumn: 'Remove Column',
         select: 'Select your choice',
+        nothing: 'Nothing',
       };
       break;
   }
