@@ -147,6 +147,10 @@ export default function DateRangePicker({
     return `${start.toLocaleDateString(locale, opts)} - ${end.toLocaleDateString(locale, opts)}`;
   };
 
+  const minDate = new Date();
+  const maxDate = new Date();
+  maxDate.setFullYear(minDate.getFullYear() + 1);
+
   return (
     <div ref={wrapperRef} style={{ position: 'relative', zIndex: 100, width: '100%', margin: '10px 0' }}>
       <TouchableOpacity
@@ -181,6 +185,8 @@ export default function DateRangePicker({
               markingType={'period'}
               markedDates={getMarkedDates()}
               current={selectDate ? toDateString(selectDate) : toDateString(dateRange.startDate)}
+              minDate={toDateString(minDate)}
+              maxDate={toDateString(maxDate)}
               theme={{
                 selectedDayBackgroundColor: 'black',
                 selectedDayTextColor: 'white',
