@@ -115,7 +115,7 @@ export default function Selector({
   const listData = allowMultipleSelection
     ? [{ id: 'SELECT_ALL', label: translateWord('all'), isFav: false, original: null, league: '' }, ...filteredOptions]
     : isClearable
-    ? [{ id: 'NOTHING', label: translateWord('nothing'), isFav: false, original: null, league: '' }, ...filteredOptions]
+    ? [{ id: 'NOTHING', label: translateWord('all'), isFav: false, original: null, league: '' }, ...filteredOptions]
     : filteredOptions;
 
   const handleSelect = (id: string) => {

@@ -325,11 +325,18 @@ export default function GameofTheDay() {
     const showSingleColumn = visibleGamesByHour.length <= 1 || teamSelectedId !== '';
 
     return (
-      <div style={{ backgroundColor: 'white', border: '1px solid black' }}>
+      <div
+        style={{
+          backgroundColor: 'white',
+          border: '1px solid black',
+          width: showSingleColumn ? '50%' : '100%',
+          margin: 'auto',
+        }}
+      >
         <table
           style={{
             tableLayout: 'fixed',
-            width: showSingleColumn ? '50%' : '100%',
+            width: '100%',
             margin: 'auto',
             borderCollapse: 'collapse',
           }}

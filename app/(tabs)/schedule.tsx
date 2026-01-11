@@ -4,10 +4,12 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { getRandomTeamId, randomNumber } from '@/utils/utils';
 import { useFocusEffect } from 'expo-router';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Dimensions, ScrollView } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ScrollView, useWindowDimensions } from 'react-native';
 import Accordion from '../../components/Accordion'; // Added import
 import { ActionButton, ActionButtonRef } from '../../components/ActionButton';
+import Cards from '../../components/Cards';
+import { ColumnData, ColumnsContent, ColumnsHeader } from '../../components/ColumnsLayout';
 import LoadingView from '../../components/LoadingView';
 import {
   fetchLeagues,
@@ -25,8 +27,10 @@ export default function Schedule() {
   const [teams, setTeams] = useState<Team[]>([]);
   const [teamSelected, setTeamSelected] = useState<string>('');
   const [teamFilter, setTeamFilter] = useState<string>('');
+  const [monthFilter, setMonthFilter] = useState<string>('');
   const [leagueTeams, setLeagueTeams] = useState<Team[]>([]);
-  const [isSmallDevice, setIsSmallDevice] = useState(false);
+  const { width } = useWindowDimensions();
+  const isSmallDevice = width <= 768;
   const [leaguesAvailable, setLeaguesAvailable] = useState<string[]>([]);
   const [leagueOfSelectedTeam, setleagueOfSelectedTeam] = useState<string>('');
   const scrollViewRef = useRef<ScrollView>(null);
@@ -102,19 +106,6 @@ export default function Schedule() {
     }
   }, [teamSelected]);
 
-  useEffect(() => {
-    const updateDeviceType = () => {
-      const { width } = Dimensions.get('window');
-      if (width <= 768) {
-        setIsSmallDevice(true);
-      } else {
-        setIsSmallDevice(false);
-      }
-    };
-
-    updateDeviceType();
-  }, []);
-
   const getSelectedTeams = (allTeams: Team[]) => {
     let selection = localStorage.getItem('teamSelected') || '';
     if (selection.length === 0) {
@@ -165,6 +156,7 @@ export default function Schedule() {
 
   const handleTeamSelectionChange = (teamSelectedId: string | string[]) => {
     setTeamFilter('');
+    setMonthFilter('');
     const finalTeamId = Array.isArray(teamSelectedId) ? teamSelectedId[0] : teamSelectedId;
     if (finalTeamId === 'all') {
       localStorage.setItem('teamSelected', 'all');
@@ -181,6 +173,7 @@ export default function Schedule() {
 
   const handleLeagueSelectionChange = (leagueSelectedId: string | string[]) => {
     setTeamFilter('');
+    setMonthFilter('');
     const finalLeagueId = Array.isArray(leagueSelectedId) ? leagueSelectedId[0] : leagueSelectedId;
     localStorage.setItem('leagueSelected', finalLeagueId);
     const teamsAvailableInLeague = teams.filter(({ league }) => league === finalLeagueId);
@@ -208,6 +201,58 @@ export default function Schedule() {
     setTeamSelected(team);
   };
 
+  const visibleGamesByMonth = useMemo(() => {
+    const today = new Date().toISOString().split('T')[0];
+    if (!games || (Object.keys(games).length === 1 && (games[today]?.[0]?.updateDate ?? '')) === '') {
+      return [];
+    }
+
+    let subFilteredGames = games;
+    if (teamFilter && teamFilter !== '') {
+      const filterNameGame = teamFilter === 'NHL-UTAH' ? 'NHL-UTA' : teamFilter;
+      subFilteredGames = Object.fromEntries(
+        Object.entries(games).filter(
+          ([_, game]) => game[0].homeTeamId === filterNameGame || game[0].awayTeamId === filterNameGame
+        )
+      );
+    }
+
+    let filteredGamesDates = Object.keys(subFilteredGames).filter((day: string) => {
+      return (
+        Array.isArray(subFilteredGames[day]) && subFilteredGames[day].some((game: GameFormatted) => game.updateDate)
+      );
+    });
+
+    const months = filteredGamesDates.reduce((acc: { [key: string]: string[] }, day: string) => {
+      const month = new Date(day).toLocaleString('default', { month: 'long' });
+      if (!acc[month]) {
+        acc[month] = [];
+      }
+      acc[month].push(day);
+      return acc;
+    }, {});
+
+    return Object.entries(months)
+      .map(([month, daysInMonth]) => {
+        const gamesForThisMonth: GameFormatted[] = daysInMonth.reduce((acc: GameFormatted[], day: string) => {
+          const dayGames = Array.isArray(subFilteredGames[day]) ? subFilteredGames[day] : [];
+          if (teamSelected === 'all') {
+            if (dayGames.length) {
+              acc.push(...dayGames);
+            }
+          } else {
+            const gameOnDay = dayGames.find((game: GameFormatted) => game.teamSelectedId === teamSelected);
+            if (gameOnDay) {
+              acc.push(gameOnDay);
+            }
+          }
+          return acc;
+        }, []);
+        return { month, games: gamesForThisMonth };
+      })
+      .filter((item) => item.games.length > 0);
+  }, [games, teamFilter, teamSelected]);
+
   const display = () => {
     const leagues = leaguesAvailable || [];
 
@@ -227,47 +272,62 @@ export default function Schedule() {
     };
 
     const uniqueTeamsFromGames = React.useMemo(() => {
-      if (teamSelected === 'all') {
+      if (teamSelected === 'all' && !monthFilter) {
         return teamsForSelector.filter((team) => team.uniqueId !== teamSelected);
       }
       const teamsFromGames: Team[] = [];
+      const seenIds = new Set<string>();
+
       for (const day in games) {
         if (!Object.hasOwn(games, day)) continue;
+        if (monthFilter) {
+          const month = new Date(day).toLocaleString('default', { month: 'long' });
+          if (month !== monthFilter) continue;
+        }
 
-        const { homeTeam, awayTeam, league, homeTeamId, awayTeamId } = games[day][0] || {};
-        if (homeTeam && !teamsFromGames.some((t) => t.uniqueId === homeTeamId) && homeTeamId !== teamSelected) {
-          teamsFromGames.push({
-            label: homeTeam,
-            league,
-            uniqueId: homeTeamId,
-            value: homeTeamId,
-            id: homeTeamId,
-            teamLogo: '',
-            teamCommonName: homeTeam,
-            conferenceName: '',
-            divisionName: '',
-            abbrev: '',
-            updateDate: '',
-          });
-        }
-        if (awayTeam && !teamsFromGames.some((t) => t.uniqueId === awayTeamId) && awayTeamId !== teamSelected) {
-          teamsFromGames.push({
-            label: awayTeam,
-            league,
-            uniqueId: awayTeamId,
-            value: awayTeamId,
-            id: awayTeamId,
-            teamLogo: '',
-            teamCommonName: awayTeam,
-            conferenceName: '',
-            divisionName: '',
-            abbrev: '',
-            updateDate: '',
-          });
-        }
+        const dayGames = games[day];
+        if (!Array.isArray(dayGames)) continue;
+
+        dayGames.forEach((game) => {
+          const { homeTeam, awayTeam, league, homeTeamId, awayTeamId } = game;
+          if (homeTeam && !seenIds.has(homeTeamId) && homeTeamId !== teamSelected) {
+            seenIds.add(homeTeamId);
+            teamsFromGames.push({
+              label: homeTeam,
+              league,
+              uniqueId: homeTeamId,
+              value: homeTeamId,
+              id: homeTeamId,
+              teamLogo: '',
+              teamCommonName: homeTeam,
+              conferenceName: '',
+              divisionName: '',
+              abbrev: '',
+              updateDate: '',
+            });
+          }
+          if (awayTeam && !seenIds.has(awayTeamId) && awayTeamId !== teamSelected) {
+            seenIds.add(awayTeamId);
+            teamsFromGames.push({
+              label: awayTeam,
+              league,
+              uniqueId: awayTeamId,
+              value: awayTeamId,
+              id: awayTeamId,
+              teamLogo: '',
+              teamCommonName: awayTeam,
+              conferenceName: '',
+              divisionName: '',
+              abbrev: '',
+              updateDate: '',
+            });
+          }
+        });
       }
       return teamsFromGames.sort((a, b) => a.label.localeCompare(b.label));
-    }, [games, teamSelected]);
+    }, [games, teamSelected, monthFilter, teamsForSelector]);
+
+    const showTeamFilter = uniqueTeamsFromGames.length > 1;
 
     const dataTeamsFilter = {
       i: randomNumber(999999),
@@ -275,6 +335,33 @@ export default function Schedule() {
       itemsSelectedIds: [],
       itemSelectedId: teamFilter,
     };
+
+    const showSingleColumn = visibleGamesByMonth.length <= 1;
+    const widthStyle = showSingleColumn ? '50%' : '100%';
+
+    const columnsData: ColumnData[] = visibleGamesByMonth.map(({ month, games }) => ({
+      title: month,
+      key: month,
+      content: games.map((game) => {
+        const gameId = game._id ?? randomNumber(999999);
+        const isSelected = gamesSelected.some(
+          (gameSelect) => game.homeTeamId === gameSelect.homeTeamId && game.startTimeUTC === gameSelect.startTimeUTC
+        );
+        return (
+          <Cards
+            key={gameId}
+            data={game}
+            numberSelected={1}
+            showButtons={true}
+            showDate={true}
+            onSelection={() => {}}
+            selected={isSelected}
+            disableSelection={true}
+          />
+        );
+      }),
+    }));
+
     return (
       <div key={`${teamSelected}-${teamSelected.length}`}>
         <ThemedView>
@@ -289,133 +376,130 @@ export default function Schedule() {
             }}
           >
             <ThemedView>
-              <div
-                style={
-                  isSmallDevice
-                    ? { width: '100%' }
-                    : { display: 'flex', flexDirection: 'row', alignItems: 'stretch', width: '100%' }
-                }
-              >
-                <div style={{ width: isSmallDevice ? '100%' : '32%' }}>
+              <div style={{ width: '100%' }}>
+                <div style={{ width: '100%' }}>
                   <Selector
                     data={dataLeagues}
                     onItemSelectionChange={handleLeagueSelectionChange}
                     isClearable={false}
                   />
                 </div>
-                <div style={{ width: isSmallDevice ? '100%' : '32%' }}>
-                  <Selector data={dataTeams} onItemSelectionChange={handleTeamSelectionChange} isClearable={false} />
-                </div>
-                {!isSmallDevice && (
-                  <div style={{ width: '4%', display: 'flex', justifyContent: 'center' }}>
-                    <div
-                      style={{
-                        backgroundColor: 'white',
-                        border: '1px solid black',
-                        width: '100%',
-                        boxSizing: 'border-box',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                      }}
-                    >
-                      <ThemedText style={{ fontWeight: 'bold', color: 'black' }}>VS</ThemedText>
-                    </div>
+                <div
+                  style={
+                    isSmallDevice
+                      ? { width: '100%' }
+                      : { display: 'flex', flexDirection: 'row', alignItems: 'stretch', width: '100%' }
+                  }
+                >
+                  <div style={{ width: isSmallDevice || !showTeamFilter ? '100%' : '48%' }}>
+                    <Selector data={dataTeams} onItemSelectionChange={handleTeamSelectionChange} isClearable={false} />
                   </div>
-                )}
-                <div style={{ width: isSmallDevice ? '100%' : '32%' }}>
-                  <Selector data={dataTeamsFilter} onItemSelectionChange={handleTeamFilterChange} isClearable={true} />
+                  {!isSmallDevice && showTeamFilter && (
+                    <div style={{ width: '4%', display: 'flex', justifyContent: 'center' }}>
+                      <div
+                        style={{
+                          backgroundColor: 'white',
+                          border: '1px solid #ccc',
+                          borderRadius: 4,
+                          width: '100%',
+                          boxSizing: 'border-box',
+                          display: 'flex',
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          margin: '5px 0',
+                          minHeight: 45,
+                        }}
+                      >
+                        <ThemedText style={{ fontWeight: 'bold', color: 'black' }}>VS</ThemedText>
+                      </div>
+                    </div>
+                  )}
+                  {showTeamFilter && (
+                    <div style={{ width: isSmallDevice ? '100%' : '48%' }}>
+                      <Selector
+                        data={dataTeamsFilter}
+                        onItemSelectionChange={handleTeamFilterChange}
+                        isClearable={true}
+                      />
+                    </div>
+                  )}
                 </div>
+                {!isSmallDevice && <ColumnsHeader columns={columnsData} widthStyle={widthStyle} />}
               </div>
             </ThemedView>
           </div>
-          {displayGamesCards(teamSelected, teamFilter)}
+          {displayContent(columnsData, widthStyle)}
         </ThemedView>
       </div>
     );
   };
 
-  const displayGamesCards = (teamSelectedId: string, teamFilter: string) => {
-    const today = new Date().toISOString().split('T')[0];
-    if (!games || (Object.keys(games).length === 1 && (games[today]?.[0]?.updateDate ?? '')) === '') {
+  const displayContent = (columnsData: ColumnData[], widthStyle: string) => {
+    if (visibleGamesByMonth.length === 0) {
+      const today = new Date().toISOString().split('T')[0];
+      if (!games || (Object.keys(games).length === 1 && (games[today]?.[0]?.updateDate ?? '')) === '') {
+        return (
+          <div>
+            <br />
+            <NoResults />
+          </div>
+        );
+      }
+      if (Object.keys(games).length === 0) {
+        return (
+          <div>
+            <LoadingView />
+          </div>
+        );
+      }
       return (
         <div>
           <br />
           <NoResults />
         </div>
       );
-    } else if (games) {
-      let subFilteredGames = games;
-      if (teamFilter && teamFilter !== '') {
-        const filterNameGame = teamFilter === 'NHL-UTAH' ? 'NHL-UTA' : teamFilter;
-        subFilteredGames = Object.fromEntries(
-          Object.entries(games).filter(
-            ([_, game]) => game[0].homeTeamId === filterNameGame || game[0].awayTeamId === filterNameGame
-          )
-        );
-      }
+    }
 
-      let filteredGamesDates = Object.keys(subFilteredGames).filter((day: string) => {
-        return (
-          Array.isArray(subFilteredGames[day]) && subFilteredGames[day].some((game: GameFormatted) => game.updateDate)
-        );
-      });
+    if (isSmallDevice) {
+      const months = visibleGamesByMonth.map((m) => m.month);
+      const filteredMonths = monthFilter
+        ? visibleGamesByMonth.filter((m) => m.month === monthFilter)
+        : visibleGamesByMonth;
 
-      const months = filteredGamesDates.reduce((acc: { [key: string]: string[] }, day: string) => {
-        const month = new Date(day).toLocaleString('default', { month: 'long' });
-        if (!acc[month]) {
-          acc[month] = [];
-        }
-        acc[month].push(day);
-        return acc;
-      }, {});
-
-      if (Object.keys(months).length) {
-        return Object.entries(months).map(([month, daysInMonth], monthIndex) => {
-          const gamesForThisMonth: GameFormatted[] = daysInMonth.reduce((acc: GameFormatted[], day: string) => {
-            const dayGames = Array.isArray(subFilteredGames[day]) ? subFilteredGames[day] : [];
-            if (teamSelectedId === 'all') {
-              if (dayGames.length) {
-                acc.push(...dayGames);
-              }
-            } else {
-              const gameOnDay = dayGames.find((game: GameFormatted) => game.teamSelectedId === teamSelectedId);
-              if (gameOnDay) {
-                acc.push(gameOnDay);
-              }
-            }
-            return acc;
-          }, []);
-
-          if (gamesForThisMonth.length === 0) {
-            return null;
-          }
-          return (
-            <div key={month} style={{ width: isSmallDevice ? '100%' : '50%', margin: '0 auto' }}>
+      return (
+        <div>
+          {months.length > 1 && (
+            <div style={{ width: '100%', marginBottom: 10 }}>
+              <Selector
+                data={{
+                  i: randomNumber(999999),
+                  items: months,
+                  itemsSelectedIds: [],
+                  itemSelectedId: monthFilter,
+                }}
+                onItemSelectionChange={(id) => setMonthFilter(Array.isArray(id) ? id[0] : id)}
+                isClearable={true}
+              />
+            </div>
+          )}
+          {filteredMonths.map(({ month, games }, i) => (
+            <div key={month} style={{ width: '100%', margin: '0 auto' }}>
               <Accordion
                 filter={month}
-                i={monthIndex}
-                gamesFiltred={gamesForThisMonth}
-                open={teamFilter?.length > 0 || monthIndex === 0}
+                i={i}
+                gamesFiltred={games}
+                open={teamFilter?.length > 0 || i === 0}
                 showDate={true}
                 isCounted={true}
                 gamesSelected={gamesSelected}
               />
             </div>
-          );
-        });
-      }
+          ))}
+        </div>
+      );
     }
-    return Object.keys(games).length ? (
-      <div>
-        <br />
-        <NoResults />
-      </div>
-    ) : (
-      <div>
-        <LoadingView />
-      </div>
-    );
+
+    return <ColumnsContent columns={columnsData} widthStyle={widthStyle} />;
   };
 
   const removeOldGames = (games: FilterGames) => {
