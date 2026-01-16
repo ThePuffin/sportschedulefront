@@ -5,7 +5,7 @@ import { Team } from '@/utils/types';
 import { translateWord } from '@/utils/utils';
 import { Icon } from '@rneui/themed';
 import React, { useEffect, useState } from 'react';
-import { Dimensions, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const maxFavorites = 5;
 
@@ -109,10 +109,23 @@ const FavModal = ({
     setDraggedIndex(null);
   };
 
+  const moveItem = (index: number, direction: -1 | 1) => {
+    const newIndex = index + direction;
+    if (newIndex < 0 || newIndex >= localFavorites.length) return;
+    const newFavorites = [...localFavorites];
+    const item = newFavorites[index];
+    newFavorites.splice(index, 1);
+    newFavorites.splice(newIndex, 0, item);
+    setLocalFavorites(newFavorites);
+  };
+
   return (
     <Modal visible={isOpen} transparent animationType="slide" onRequestClose={onClose}>
       <Pressable style={styles.centeredView} onPress={onClose}>
-        <Pressable style={[styles.modalView, isSmallDevice && { width: '90%' }]} onPress={(e) => e.stopPropagation()}>
+        <Pressable
+          style={[styles.modalView, isSmallDevice && { width: '90%', maxHeight: '90%' }]}
+          onPress={(e) => e.stopPropagation()}
+        >
           <Text style={styles.modalText}>{translateWord('leagueSurveilled')}:</Text>
 
           <View style={{ marginBottom: 15, zIndex: 20, flexDirection: 'row', alignItems: 'center' }}>
@@ -168,7 +181,35 @@ const FavModal = ({
                       }}
                     >
                       <View style={{ marginRight: 5, width: 20, alignItems: 'center' }}>
-                        {isFilled && <Icon name="bars" type="font-awesome" size={14} color="#ccc" />}
+                        {isFilled &&
+                          (isSmallDevice ? (
+                            <View>
+                              {index > 0 && (
+                                <TouchableOpacity onPress={() => moveItem(index, -1)}>
+                                  <Icon
+                                    name="chevron-up"
+                                    type="font-awesome"
+                                    size={14}
+                                    color="#333"
+                                    style={{ marginBottom: 2 }}
+                                  />
+                                </TouchableOpacity>
+                              )}
+                              {index < countFilled - 1 && (
+                                <TouchableOpacity onPress={() => moveItem(index, 1)}>
+                                  <Icon
+                                    name="chevron-down"
+                                    type="font-awesome"
+                                    size={14}
+                                    color="#333"
+                                    style={{ marginTop: 2 }}
+                                  />
+                                </TouchableOpacity>
+                              )}
+                            </View>
+                          ) : (
+                            <Icon name="bars" type="font-awesome" size={14} color="#ccc" />
+                          ))}
                       </View>
                       <View style={{ flex: 1 }}>
                         <Selector
