@@ -69,12 +69,26 @@ export default function Schedule() {
       // try cached teams first
       const cachedTeams = getCache<Team[]>('teams');
       const teamSelectedLS = localStorage.getItem('teamSelected') || '';
-      const selectedTeam = cachedTeams?.find((t) => t.uniqueId === teamSelectedLS) || ({} as Team);
+      const storedLeagues = getCache<string[]>('leaguesSelected') || [];
+      let foundTeam = cachedTeams?.find((t) => t.uniqueId === teamSelectedLS);
+
+      if (!foundTeam || (storedLeagues.length > 0 && !storedLeagues.includes(foundTeam.league))) {
+        const favoriteTeams = getCache<string[]>('favoriteTeams') || [];
+        if (favoriteTeams.length > 0) {
+          const favoriteTeam = cachedTeams?.find((t) => t.uniqueId === favoriteTeams[0]);
+          if (favoriteTeam) {
+            foundTeam = favoriteTeam;
+            localStorage.setItem('teamSelected', foundTeam.uniqueId);
+          }
+        }
+      }
+
+      const selectedTeam = foundTeam || ({} as Team);
 
       try {
         if (cachedTeams) {
-          setTeams([selectedTeam]);
           setLeaguesAvailable([selectedTeam.league]);
+          setTeams([selectedTeam]);
           getSelectedTeams(cachedTeams);
         }
         const teamsData: Team[] = await fetchTeams();
@@ -120,7 +134,7 @@ export default function Schedule() {
       }
       fetchGames();
     }
-  }, [teamSelected]);
+  }, [teamSelected, teams]);
 
   const getSelectedTeams = (allTeams: Team[]) => {
     let selection = localStorage.getItem('teamSelected') || '';

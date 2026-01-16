@@ -131,9 +131,12 @@ const FavModal = ({
     setLocalFavorites(newFavorites);
   };
 
+  const hasFavorites = favoriteTeams.length > 0;
+  const hasSelection = localFavorites.some((t) => !!t);
+
   return (
-    <Modal visible={isOpen} transparent animationType="slide" onRequestClose={onClose}>
-      <Pressable style={styles.centeredView} onPress={onClose}>
+    <Modal visible={isOpen} transparent animationType="slide" onRequestClose={() => hasFavorites && onClose()}>
+      <Pressable style={styles.centeredView} onPress={() => hasFavorites && onClose()}>
         <Pressable
           style={[styles.modalView, isSmallDevice && { width: '90%', maxHeight: '90%' }]}
           onPress={(e) => e.stopPropagation()}
@@ -144,6 +147,7 @@ const FavModal = ({
             <View style={{ marginRight: 5, width: 20 }} />
             <View style={{ flex: 1 }}>
               <Selector
+                key={`league-selector-${isOpen}`}
                 data={{
                   i: 999,
                   items: allLeagues,
@@ -157,6 +161,7 @@ const FavModal = ({
                 allowMultipleSelection={true}
                 isClearable={false}
                 placeholder={translateWord('filterLeagues')}
+                startOpen={!hasFavorites}
               />
             </View>
           </View>
@@ -245,10 +250,15 @@ const FavModal = ({
           </View>
 
           <View style={styles.buttonsContainer}>
-            <Pressable style={[styles.button, styles.buttonClose, styles.buttonCancel]} onPress={onClose}>
-              <Text style={[styles.textStyle, styles.textStyleCancel]}>{translateWord('cancel')}</Text>
-            </Pressable>
-            <Pressable style={[styles.button, styles.buttonClose]} onPress={handleSave}>
+            {hasFavorites && (
+              <Pressable style={[styles.button, styles.buttonClose, styles.buttonCancel]} onPress={onClose}>
+                <Text style={[styles.textStyle, styles.textStyleCancel]}>{translateWord('cancel')}</Text>
+              </Pressable>
+            )}
+            <Pressable
+              style={[styles.button, styles.buttonClose, !hasSelection && { opacity: 0.5 }]}
+              onPress={() => hasSelection && handleSave()}
+            >
               <Text style={styles.textStyle}>{translateWord('register')}</Text>
             </Pressable>
           </View>
