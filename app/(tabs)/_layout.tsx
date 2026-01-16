@@ -1,7 +1,7 @@
 import { translateWord } from '@/utils/utils';
 import { Tabs, usePathname, useRouter } from 'expo-router';
 import React, { useRef } from 'react';
-import { PanResponder, Platform, View } from 'react-native';
+import { Dimensions, PanResponder, Platform, View } from 'react-native';
 
 import { HapticTab } from '@/components/HapticTab';
 import TabBarBackground from '@/components/ui/TabBarBackground';
@@ -15,8 +15,9 @@ export default function TabLayout() {
 
   const panResponder = useRef(
     PanResponder.create({
-      onMoveShouldSetPanResponder: (evt, gestureState) => {
-        if (Platform.OS === 'web') return false;
+      onMoveShouldSetPanResponderCapture: (evt, gestureState) => {
+        const isWebDesktop = Platform.OS === 'web' && Dimensions.get('window').width > 768;
+        if (isWebDesktop) return false;
         return Math.abs(gestureState.dx) > 20 && Math.abs(gestureState.dy) < Math.abs(gestureState.dx);
       },
       onPanResponderRelease: (evt, gestureState) => {
