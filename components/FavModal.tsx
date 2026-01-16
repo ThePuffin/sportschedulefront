@@ -1,4 +1,5 @@
 import Selector from '@/components/Selector';
+import { LeaguesEnum } from '@/constants/Leagues';
 import { TeamsEnum } from '@/constants/Teams';
 import { fetchLeagues, getCache, saveCache } from '@/utils/fetchData';
 import { Team } from '@/utils/types';
@@ -23,7 +24,10 @@ const FavModal = ({
   const [isSmallDevice, setIsSmallDevice] = useState(Dimensions.get('window').width < 768);
   const [localFavorites, setLocalFavorites] = useState<string[]>(favoriteTeams);
   const [localLeagues, setLocalLeagues] = useState<string[]>([]);
-  const [allLeagues, setAllLeagues] = useState<string[]>([]);
+  const [allLeagues, setAllLeagues] = useState<string[]>(() => {
+    const cached = getCache<string[]>('allLeagues');
+    return cached && cached.length > 0 ? cached : Object.values(LeaguesEnum);
+  });
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
   useEffect(() => {
@@ -31,9 +35,17 @@ const FavModal = ({
       const cached = getCache<string[]>('favoriteTeams');
       setLocalFavorites(cached || favoriteTeams);
 
+      const cachedLeagues = getCache<string[]>('leaguesSelected');
+      if (cachedLeagues && cachedLeagues.length > 0) {
+        setLocalLeagues(cachedLeagues);
+      } else {
+        setLocalLeagues(Object.values(LeaguesEnum));
+      }
+
       fetchLeagues((leagues: string[]) => {
         const filtered = leagues.filter((l) => l !== 'ALL');
         setAllLeagues(filtered);
+        saveCache('allLeagues', filtered);
         const cachedLeagues = getCache<string[]>('leaguesSelected');
         // Si pas de cache, on sélectionne tout par défaut
         setLocalLeagues(cachedLeagues && cachedLeagues.length > 0 ? cachedLeagues : filtered);
