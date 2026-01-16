@@ -5,7 +5,7 @@ import { Team } from '@/utils/types';
 import { translateWord } from '@/utils/utils';
 import { Icon } from '@rneui/themed';
 import React, { useEffect, useState } from 'react';
-import { Dimensions, Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Dimensions, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 
 const maxFavorites = 5;
 
@@ -91,20 +91,6 @@ const FavModal = ({
     onClose();
   };
 
-  const moveUp = (index: number) => {
-    if (index <= 0) return;
-    const newFavorites = [...localFavorites];
-    [newFavorites[index - 1], newFavorites[index]] = [newFavorites[index], newFavorites[index - 1]];
-    setLocalFavorites(newFavorites);
-  };
-
-  const moveDown = (index: number) => {
-    if (index >= localFavorites.filter((t) => !!t).length - 1) return;
-    const newFavorites = [...localFavorites];
-    [newFavorites[index + 1], newFavorites[index]] = [newFavorites[index], newFavorites[index + 1]];
-    setLocalFavorites(newFavorites);
-  };
-
   const handleDragStart = (index: number) => {
     setDraggedIndex(index);
   };
@@ -129,22 +115,25 @@ const FavModal = ({
         <Pressable style={[styles.modalView, isSmallDevice && { width: '90%' }]} onPress={(e) => e.stopPropagation()}>
           <Text style={styles.modalText}>{translateWord('leagueSurveilled')}:</Text>
 
-          <View style={{ marginBottom: 15, zIndex: 20 }}>
-            <Selector
-              data={{
-                i: 999,
-                items: allLeagues,
-                itemsSelectedIds: localLeagues,
-                itemSelectedId: '',
-              }}
-              onItemSelectionChange={(ids) => {
-                const newIds = Array.isArray(ids) ? ids : [];
-                if (newIds.length > 0) setLocalLeagues(newIds);
-              }}
-              allowMultipleSelection={true}
-              isClearable={false}
-              placeholder={translateWord('filterLeagues')}
-            />
+          <View style={{ marginBottom: 15, zIndex: 20, flexDirection: 'row', alignItems: 'center' }}>
+            <View style={{ marginRight: 5, width: 20 }} />
+            <View style={{ flex: 1 }}>
+              <Selector
+                data={{
+                  i: 999,
+                  items: allLeagues,
+                  itemsSelectedIds: localLeagues,
+                  itemSelectedId: '',
+                }}
+                onItemSelectionChange={(ids) => {
+                  const newIds = Array.isArray(ids) ? ids : [];
+                  if (newIds.length > 0) setLocalLeagues(newIds);
+                }}
+                allowMultipleSelection={true}
+                isClearable={false}
+                placeholder={translateWord('filterLeagues')}
+              />
+            </View>
           </View>
 
           <Text style={styles.modalText}>{translateWord('yourFav')}:</Text>
@@ -194,22 +183,6 @@ const FavModal = ({
                           isClearable={true}
                           placeholder={translateWord('findTeam')}
                         />
-                      </View>
-                      <View style={{ flexDirection: 'column', marginLeft: 5, width: 20, alignItems: 'center' }}>
-                        {isFilled && (
-                          <>
-                            {index > 0 && (
-                              <TouchableOpacity onPress={() => moveUp(index)} style={{ padding: 2 }}>
-                                <Icon name="chevron-up" type="font-awesome" size={14} color="black" />
-                              </TouchableOpacity>
-                            )}
-                            {index < countFilled - 1 && (
-                              <TouchableOpacity onPress={() => moveDown(index)} style={{ padding: 2 }}>
-                                <Icon name="chevron-down" type="font-awesome" size={14} color="black" />
-                              </TouchableOpacity>
-                            )}
-                          </>
-                        )}
                       </View>
                     </View>
                   </div>
