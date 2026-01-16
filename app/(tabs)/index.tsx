@@ -52,7 +52,9 @@ export default function GameofTheDay() {
   const currentDate = new Date();
   const [games, setGames] = useState<GameFormatted[]>([]);
   const [selectDate, setSelectDate] = useState<Date>(currentDate);
-  const [selectLeagues, setSelectLeagues] = useState<League[]>(LeaguesWithoutAll);
+  const [selectLeagues, setSelectLeagues] = useState<League[]>(
+    getCache<League[]>('leaguesSelected') || LeaguesWithoutAll
+  );
   const [leaguesAvailable, setLeaguesAvailable] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const readonlyRef = useRef(false);
@@ -99,6 +101,29 @@ export default function GameofTheDay() {
   const { width: windowWidth } = useWindowDimensions();
 
   const visibleGamesByHour = useMemo(() => {
+    const favoriteTeams = getCache<string[]>('favoriteTeams') || [];
+
+    const sortGamesByFavorites = (gamesToSort: GameFormatted[]) => {
+      return gamesToSort.sort((a, b) => {
+        const aIsFavorite = favoriteTeams.includes(a.homeTeamId) || favoriteTeams.includes(a.awayTeamId);
+        const bIsFavorite = favoriteTeams.includes(b.homeTeamId) || favoriteTeams.includes(b.awayTeamId);
+
+        if (aIsFavorite && !bIsFavorite) return -1;
+        if (!aIsFavorite && bIsFavorite) return 1;
+
+        if (aIsFavorite && bIsFavorite) {
+          const getFavoriteIndex = (game: GameFormatted) => {
+            const homeIndex = favoriteTeams.indexOf(game.homeTeamId);
+            const awayIndex = favoriteTeams.indexOf(game.awayTeamId);
+            const validIndexes = [homeIndex, awayIndex].filter((i) => i > -1);
+            return Math.min(...validIndexes);
+          };
+          return getFavoriteIndex(a) - getFavoriteIndex(b);
+        }
+
+        return 0;
+      });
+    };
     const now = new Date();
     const relevantGames = games
       .filter(
@@ -135,13 +160,13 @@ export default function GameofTheDay() {
     const groups: { hour: string; games: GameFormatted[] }[] = [];
 
     if (inProgress.length > 0) {
-      groups.push({ hour: translateWord('inProgress'), games: inProgress });
+      groups.push({ hour: translateWord('inProgress'), games: sortGamesByFavorites(inProgress) });
     }
 
     Object.keys(scheduledGrouped)
       .sort()
       .forEach((hour) => {
-        groups.push({ hour, games: scheduledGrouped[hour] });
+        groups.push({ hour, games: sortGamesByFavorites(scheduledGrouped[hour]) });
       });
 
     groups.sort((a, b) => {
@@ -150,7 +175,7 @@ export default function GameofTheDay() {
       return timeA - timeB;
     });
     if (finished.length > 0) {
-      groups.push({ hour: translateWord('ended'), games: finished });
+      groups.push({ hour: translateWord('ended'), games: sortGamesByFavorites(finished) });
     }
 
     return groups;
@@ -218,46 +243,16 @@ export default function GameofTheDay() {
     [getGamesFromApi]
   );
 
-  const handleLeagueSelectionChange = useCallback(
-    (leagueSelectedId: string | string[]) => {
-      setTeamSelectedId('');
-      if (Array.isArray(leagueSelectedId)) {
-        saveCache('leaguesSelected', leagueSelectedId);
-        setSelectLeagues(leagueSelectedId as League[]);
-      }
-    },
-    [setTeamSelectedId, setSelectLeagues]
-  );
-
   const handleTeamSelectionChange = useCallback((teamId: string | string[]) => {
     const finalTeamId = Array.isArray(teamId) ? teamId[0] : teamId;
     setTeamSelectedId(finalTeamId);
   }, []);
 
   const displayFilters = useCallback(() => {
-    const leagues = leaguesAvailable.map((league: string) => {
-      return { label: league, uniqueId: league, value: league };
-    });
-    const leaguesData = {
-      i: 'leagues',
-      items: leagues as any,
-      itemsSelectedIds: selectLeagues,
-      itemSelectedId: '',
-    };
-
     return (
       <ThemedView>
         <div style={windowWidth > 768 ? { display: 'flex', flexDirection: 'row', width: '100%' } : { width: '100%' }}>
-          <div style={{ width: windowWidth > 768 ? '50%' : '100%' }}>
-            <Selector
-              data={leaguesData as any}
-              onItemSelectionChange={handleLeagueSelectionChange}
-              allowMultipleSelection={true}
-              isClearable={false}
-              placeholder={translateWord('filterLeagues')}
-            />
-          </div>
-          <div style={{ width: windowWidth > 768 ? '50%' : '100%' }}>
+          <div style={{ width: '100%' }}>
             <Selector
               data={{
                 i: randomNumber(999999),
@@ -274,15 +269,7 @@ export default function GameofTheDay() {
         </div>
       </ThemedView>
     );
-  }, [
-    leaguesAvailable,
-    selectLeagues,
-    teamsOfTheDay,
-    teamSelectedId,
-    handleLeagueSelectionChange,
-    handleTeamSelectionChange,
-    windowWidth,
-  ]);
+  }, [leaguesAvailable, selectLeagues, teamsOfTheDay, teamSelectedId, handleTeamSelectionChange, windowWidth]);
 
   const displayNoContent = useCallback(() => {
     if (isLoading) {
@@ -421,6 +408,17 @@ export default function GameofTheDay() {
       </ThemedView>
     );
   }, [games, displayNoContent, visibleGamesByHour, teamSelectedId, gamesSelected]);
+
+  useEffect(() => {
+    const updateLeagues = () => {
+      const stored = getCache<League[]>('leaguesSelected');
+      if (stored) setSelectLeagues(stored);
+    };
+    if (globalThis.window !== undefined) {
+      globalThis.window.addEventListener('leaguesUpdated', updateLeagues);
+      return () => globalThis.window.removeEventListener('leaguesUpdated', updateLeagues);
+    }
+  }, []);
 
   useEffect(() => {
     if (hasInitializedRef.current) return;

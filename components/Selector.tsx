@@ -55,10 +55,8 @@ export default function Selector({
         const id = typeof item === 'string' ? item : item.uniqueId;
         const labelRaw = typeof item === 'string' ? item : item.label;
         const league = typeof item === 'string' ? item : item.league || item.value;
-        const isAll = labelRaw === 'All' || id === 'ALL';
 
-        const icon = !isAll && league ? ' ' + (emoticonEnum[league as keyof typeof emoticonEnum] || '') : '';
-        const label = (labelRaw === 'All' ? translateWord('all') : labelRaw) + icon;
+        const label = labelRaw === 'All' ? translateWord('all') : labelRaw;
 
         return {
           id,
@@ -386,9 +384,12 @@ export default function Selector({
                         )}
                         <Text style={[styles.optionText, isSelected && styles.optionTextSelected]}>{item.label}</Text>
                       </View>
-                      {isSelected && (
-                        <Icon name="check" type="font-awesome" size={14} color={isSelected ? 'white' : 'black'} />
-                      )}
+                      {isSelected &&
+                        (item.league && emoticonEnum[item.league as keyof typeof emoticonEnum] ? (
+                          <Text style={{ fontSize: 16 }}>{emoticonEnum[item.league as keyof typeof emoticonEnum]}</Text>
+                        ) : (
+                          <Icon name="check" type="font-awesome" size={14} color={isSelected ? 'white' : 'black'} />
+                        ))}
                     </TouchableOpacity>
                   </View>
                 );

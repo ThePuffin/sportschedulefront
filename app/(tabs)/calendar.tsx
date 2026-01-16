@@ -26,6 +26,19 @@ export default function Calendar() {
   const [maxTeamsNumber, setMaxTeamsNumber] = useState(6);
   const scrollViewRef = useRef<ScrollView>(null);
   const ActionButtonRef = useRef<ActionButtonRef>(null);
+  const [allowedLeagues, setAllowedLeagues] = useState<string[]>([]);
+
+  useEffect(() => {
+    const updateLeagues = () => {
+      const stored = getCache<string[]>('leaguesSelected');
+      setAllowedLeagues(stored || []);
+    };
+    updateLeagues();
+    if (globalThis.window !== undefined) {
+      globalThis.window.addEventListener('leaguesUpdated', updateLeagues);
+      return () => globalThis.window.removeEventListener('leaguesUpdated', updateLeagues);
+    }
+  }, []);
 
   const beginDate = new Date();
   beginDate.setHours(23, 59, 59, 999);
@@ -250,7 +263,9 @@ export default function Calendar() {
   const displaySelectors = () => {
     return teamsSelected.map((teamSelectedId, i) => {
       const teamsAvailable = teams.filter(
-        (team) => !teamsSelected.includes(team.uniqueId) || team.uniqueId === teamSelectedId
+        (team) =>
+          (!teamsSelected.includes(team.uniqueId) || team.uniqueId === teamSelectedId) &&
+          (allowedLeagues.length === 0 || allowedLeagues.includes(team.league))
       );
       const data = { i, items: teamsAvailable, itemsSelectedIds: teamsSelected, itemSelectedId: teamSelectedId };
       return (

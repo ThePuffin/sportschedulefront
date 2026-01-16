@@ -54,6 +54,17 @@ export default function Schedule() {
   } as Team;
 
   useEffect(() => {
+    const updateLeagues = () => {
+      const stored = getCache<string[]>('leaguesSelected');
+      if (stored) setLeaguesAvailable(stored);
+    };
+    if (globalThis.window !== undefined) {
+      globalThis.window.addEventListener('leaguesUpdated', updateLeagues);
+      return () => globalThis.window.removeEventListener('leaguesUpdated', updateLeagues);
+    }
+  }, []);
+
+  useEffect(() => {
     async function fetchTeamsAndRestore() {
       // try cached teams first
       const cachedTeams = getCache<Team[]>('teams');
@@ -84,7 +95,12 @@ export default function Schedule() {
       }
       // optionally fetch leagues
       if (leaguesAvailable.length === 0) {
-        fetchLeagues(setLeaguesAvailable);
+        const storedLeagues = getCache<string[]>('leaguesSelected');
+        if (storedLeagues && storedLeagues.length > 0) {
+          setLeaguesAvailable(storedLeagues);
+        } else {
+          fetchLeagues(setLeaguesAvailable);
+        }
       }
     }
     fetchTeamsAndRestore();
@@ -200,6 +216,26 @@ export default function Schedule() {
     localStorage.setItem('teamSelected', team);
     setTeamSelected(team);
   };
+
+  useEffect(() => {
+    if (leaguesAvailable.length > 0 && leagueOfSelectedTeam && !leaguesAvailable.includes(leagueOfSelectedTeam)) {
+      const favoriteTeams = getCache<string[]>('favoriteTeams') || [];
+      let nextLeague = '';
+
+      for (const favId of favoriteTeams) {
+        const favTeam = teams.find((t) => t.uniqueId === favId);
+        if (favTeam && leaguesAvailable.includes(favTeam.league)) {
+          nextLeague = favTeam.league;
+          break;
+        }
+      }
+
+      if (!nextLeague) {
+        nextLeague = leaguesAvailable[randomNumber(leaguesAvailable.length - 1)];
+      }
+      handleLeagueSelectionChange(nextLeague);
+    }
+  }, [leaguesAvailable, leagueOfSelectedTeam, teams]);
 
   const visibleGamesByMonth = useMemo(() => {
     const today = new Date().toISOString().split('T')[0];
@@ -551,7 +587,12 @@ export default function Schedule() {
           scheduleData = await fetchRemainingGamesByTeam(teamSelected);
         }
         setLeagueTeams(thisLeagueTeams);
-        fetchLeagues(setLeaguesAvailable);
+        const storedLeagues = getCache<string[]>('leaguesSelected');
+        if (storedLeagues && storedLeagues.length > 0) {
+          setLeaguesAvailable(storedLeagues);
+        } else {
+          fetchLeagues(setLeaguesAvailable);
+        }
         if (Object.keys(scheduleData).length === 0) {
           const now = new Date().toISOString().split('T')[0];
           scheduleData[now] = [];
