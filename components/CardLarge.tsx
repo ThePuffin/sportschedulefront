@@ -13,12 +13,13 @@ export default function CardLarge({ data, showDate = false }: Readonly<CardsProp
     homeTeamScore,
     awayTeamScore,
     color,
-    backgroundColor,
     arenaName = '',
     startTimeUTC,
     teamSelectedId,
     homeTeamId,
     awayTeamId,
+    homeTeamRecord,
+    awayTeamRecord,
     status, // Supposons que vous ayez un status pour le mode LIVE
   } = data;
 
@@ -85,7 +86,7 @@ export default function CardLarge({ data, showDate = false }: Readonly<CardsProp
               style={[styles.teamLogo, logoStyle]}
             />
             <Text style={styles.teamName}>{homeTeamShort}</Text>
-            <Text style={styles.recordText}>26-13-9</Text>
+            <Text style={styles.recordText}>{homeTeamRecord}</Text>
           </View>
 
           {/* Center: Score or VS/@ */}
@@ -113,7 +114,7 @@ export default function CardLarge({ data, showDate = false }: Readonly<CardsProp
               style={[styles.teamLogo, logoStyle]}
             />
             <Text style={styles.teamName}>{awayTeamShort}</Text>
-            <Text style={styles.recordText}>26-16-4</Text>
+            <Text style={styles.recordText}>{awayTeamRecord}</Text>
           </View>
         </View>
 
