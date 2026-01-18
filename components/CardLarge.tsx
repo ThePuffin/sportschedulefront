@@ -12,6 +12,8 @@ export default function CardLarge({ data, showDate = false }: Readonly<CardsProp
     awayTeamShort,
     homeTeamLogo,
     awayTeamLogo,
+    homeTeamLogoDark,
+    awayTeamLogoDark,
     homeTeamScore,
     awayTeamScore,
     color,
@@ -23,6 +25,8 @@ export default function CardLarge({ data, showDate = false }: Readonly<CardsProp
     homeTeamRecord,
     awayTeamRecord,
     status, // Supposons que vous ayez un status pour le mode LIVE
+    placeName = '',
+    gameDate: gameDateStr,
   } = data;
 
   const [favoriteTeams, setFavoriteTeams] = useState<string[]>(() => getCache<string[]>('favoriteTeams') || []);
@@ -54,9 +58,41 @@ export default function CardLarge({ data, showDate = false }: Readonly<CardsProp
   const baseColor = '#0f172a';
   const teamColor = color ? (color.startsWith('#') ? color : `#${color}`) : baseColor;
 
+  const getBrightness = (hexColor: string) => {
+    if (!hexColor) return 0;
+    let hex = hexColor.replace('#', '');
+    if (hex.length === 3) {
+      hex = hex
+        .split('')
+        .map((char) => char + char)
+        .join('');
+    }
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+    return (r * 299 + g * 587 + b * 114) / 1000;
+  };
+
   let gradientStyle = { backgroundColor: baseColor } as any;
 
-  if (teamSelectedId && (teamSelectedId === homeTeamId || teamSelectedId === awayTeamId)) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  let isPast = false;
+  if (gameDateStr) {
+    const datePart = gameDateStr.includes('T') ? gameDateStr.split('T')[0] : gameDateStr;
+    const [y, m, d] = datePart.split('-').map(Number);
+    const gameDateLocal = new Date(y, m - 1, d);
+    isPast = !isNaN(gameDateLocal.getTime()) && gameDateLocal < today;
+  } else if (startTimeUTC) {
+    const gameDate = new Date(startTimeUTC);
+    isPast = !isNaN(gameDate.getTime()) && gameDate < today;
+  }
+
+  const isGradientActive =
+    !isPast && teamSelectedId && (teamSelectedId === homeTeamId || teamSelectedId === awayTeamId);
+
+  if (isGradientActive) {
     let gradientColors = [baseColor, baseColor];
     let stops = ['0%', '100%'];
 
@@ -72,6 +108,14 @@ export default function CardLarge({ data, showDate = false }: Readonly<CardsProp
       backgroundImage: `linear-gradient(90deg, ${gradientColors[0]} ${stops[0]}, ${gradientColors[1]} ${stops[1]})`,
     };
   }
+
+  const homeBg = isGradientActive && teamSelectedId === homeTeamId ? teamColor : baseColor;
+  const awayBg = isGradientActive && teamSelectedId === awayTeamId ? teamColor : baseColor;
+
+  const displayHomeLogo = getBrightness(homeBg) < 128 && homeTeamLogoDark ? homeTeamLogoDark : homeTeamLogo;
+  const displayAwayLogo = getBrightness(awayBg) < 128 && awayTeamLogoDark ? awayTeamLogoDark : awayTeamLogo;
+
+  const stadiumSearch = arenaName.replace(/\s+/g, '+') + ',' + placeName.replace(/\s+/g, '+');
 
   return (
     <Card
@@ -96,7 +140,7 @@ export default function CardLarge({ data, showDate = false }: Readonly<CardsProp
           {/* Home Team */}
           <View style={styles.teamColumn}>
             <Image
-              source={homeTeamLogo ? { uri: homeTeamLogo } : require('../assets/images/default_logo.png')}
+              source={displayHomeLogo ? { uri: displayHomeLogo } : require('../assets/images/default_logo.png')}
               style={[styles.teamLogo, logoStyle]}
             />
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -129,7 +173,7 @@ export default function CardLarge({ data, showDate = false }: Readonly<CardsProp
           {/* Away Team */}
           <View style={styles.teamColumn}>
             <Image
-              source={awayTeamLogo ? { uri: awayTeamLogo } : require('../assets/images/default_logo.png')}
+              source={displayAwayLogo ? { uri: displayAwayLogo } : require('../assets/images/default_logo.png')}
               style={[styles.teamLogo, logoStyle]}
             />
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -144,7 +188,28 @@ export default function CardLarge({ data, showDate = false }: Readonly<CardsProp
 
         {/* Footer: Arena */}
         <View style={styles.footer}>
-          <Text style={styles.arenaText}>📍 {arenaName}</Text>
+          {arenaName ? (
+            <a
+              href={`https://maps.google.com/?q=${stadiumSearch}`}
+              style={{
+                cursor: 'pointer',
+                textDecoration: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 5,
+                width: '100%',
+                overflow: 'hidden',
+                justifyContent: 'center',
+              }}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Text style={styles.arenaText}>📍 {arenaName}</Text>
+            </a>
+          ) : (
+            <Text style={styles.arenaText}>📍 {arenaName}</Text>
+          )}
         </View>
       </View>
     </Card>
