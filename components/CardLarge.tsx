@@ -1,7 +1,9 @@
 import { leagueLogos } from '@/constants/enum';
+import { getCache } from '@/utils/fetchData';
 import { CardsProps } from '@/utils/types';
 import { Card } from '@rneui/base';
-import React from 'react';
+import { Icon } from '@rneui/themed';
+import React, { useEffect, useState } from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
 
 export default function CardLarge({ data, showDate = false }: Readonly<CardsProps>) {
@@ -22,6 +24,18 @@ export default function CardLarge({ data, showDate = false }: Readonly<CardsProp
     awayTeamRecord,
     status, // Supposons que vous ayez un status pour le mode LIVE
   } = data;
+
+  const [favoriteTeams, setFavoriteTeams] = useState<string[]>(() => getCache<string[]>('favoriteTeams') || []);
+
+  useEffect(() => {
+    const updateFavorites = () => {
+      setFavoriteTeams(getCache<string[]>('favoriteTeams') || []);
+    };
+    if (globalThis.window !== undefined) {
+      globalThis.window.addEventListener('favoritesUpdated', updateFavorites);
+      return () => globalThis.window.removeEventListener('favoritesUpdated', updateFavorites);
+    }
+  }, []);
 
   const hasScore = homeTeamScore != null && awayTeamScore != null;
   const isLive = status === 'LIVE'; // À adapter selon vos données
@@ -85,8 +99,13 @@ export default function CardLarge({ data, showDate = false }: Readonly<CardsProp
               source={homeTeamLogo ? { uri: homeTeamLogo } : require('../assets/images/default_logo.png')}
               style={[styles.teamLogo, logoStyle]}
             />
-            <Text style={styles.teamName}>{homeTeamShort}</Text>
-            <Text style={styles.recordText}>{homeTeamRecord}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={styles.teamName}>{homeTeamShort}</Text>
+              {favoriteTeams.includes(homeTeamId) && (
+                <Icon name="star" type="font-awesome" size={14} color="#FFD700" style={{ marginLeft: 5 }} />
+              )}
+            </View>
+            <Text style={styles.recordText}>{homeTeamRecord || ''}</Text>
           </View>
 
           {/* Center: Score or VS/@ */}
@@ -113,8 +132,13 @@ export default function CardLarge({ data, showDate = false }: Readonly<CardsProp
               source={awayTeamLogo ? { uri: awayTeamLogo } : require('../assets/images/default_logo.png')}
               style={[styles.teamLogo, logoStyle]}
             />
-            <Text style={styles.teamName}>{awayTeamShort}</Text>
-            <Text style={styles.recordText}>{awayTeamRecord}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={styles.teamName}>{awayTeamShort}</Text>
+              {favoriteTeams.includes(awayTeamId) && (
+                <Icon name="star" type="font-awesome" size={14} color="#FFD700" style={{ marginLeft: 5 }} />
+              )}
+            </View>
+            <Text style={styles.recordText}>{awayTeamRecord || ''}</Text>
           </View>
         </View>
 
