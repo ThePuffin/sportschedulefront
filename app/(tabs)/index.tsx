@@ -205,9 +205,11 @@ export default function GameofTheDay() {
           const combined = [...recentYesterdayGames, ...cachedGames];
           gamesToDisplay = combined.filter((game, index, self) => index === self.findIndex((t) => t._id === game._id));
         }
+        setGames(gamesToDisplay);
+      } else {
+        setGames(gamesToDisplay);
+        return;
       }
-      setGames(gamesToDisplay);
-      return;
     }
 
     // Fetch from API if not in cache
