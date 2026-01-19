@@ -52,8 +52,8 @@ export default function CardLarge({ data, showDate = false }: Readonly<CardsProp
   const leagueLogo = leagueLogos[leagueKey] || leagueLogos.DEFAULT;
 
   // Style pour l'ombre des logos (identique à Cards.tsx pour un fond sombre)
-  const shadowColor = 'rgba(255, 255, 255, 0.5)';
-  const logoStyle = { filter: `brightness(1.1) contrast(1.2) drop-shadow(0 0 2px ${shadowColor})` } as any;
+  const shadowColor = 'rgba(255, 255, 255, 0.24)';
+  const logoStyle = { filter: `brightness(1.1) contrast(1.2) drop-shadow(0 0 1px ${shadowColor})` } as any;
 
   const baseColor = '#0f172a';
   const teamColor = color ? (color.startsWith('#') ? color : `#${color}`) : baseColor;
@@ -231,7 +231,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   leagueBadge: {
-    backgroundColor: '#1e293b',
+    backgroundColor: '#222f44',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
