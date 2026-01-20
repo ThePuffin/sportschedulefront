@@ -1,10 +1,11 @@
 import { leagueLogos } from '@/constants/enum';
 import { getCache } from '@/utils/fetchData';
 import { CardsProps } from '@/utils/types';
+import { translateWord } from '@/utils/utils';
 import { Card } from '@rneui/base';
 import { Icon } from '@rneui/themed';
 import React, { useEffect, useState } from 'react';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function CardLarge({ data, showDate = false }: Readonly<CardsProps>) {
   const {
@@ -30,6 +31,7 @@ export default function CardLarge({ data, showDate = false }: Readonly<CardsProp
   } = data;
 
   const [favoriteTeams, setFavoriteTeams] = useState<string[]>(() => getCache<string[]>('favoriteTeams') || []);
+  const [scoreRevealed, setScoreRevealed] = useState(false);
 
   useEffect(() => {
     const updateFavorites = () => {
@@ -155,12 +157,19 @@ export default function CardLarge({ data, showDate = false }: Readonly<CardsProp
           {/* Center: Score or VS/@ */}
           <View style={styles.centerColumn}>
             {hasScore ? (
-              <View style={styles.scoreRow}>
-                <Text style={styles.scoreNumber}>{homeTeamScore}</Text>
+              (favoriteTeams.includes(homeTeamId) || favoriteTeams.includes(awayTeamId)) && !scoreRevealed ? (
+                <TouchableOpacity style={styles.revealButton} onPress={() => setScoreRevealed(true)}>
+                  <Icon name="eye" type="font-awesome" size={30} color="#94a3b8" />
+                  <Text style={styles.revealText}>{translateWord('score')}</Text>
+                </TouchableOpacity>
+              ) : (
+                <View style={styles.scoreRow}>
+                  <Text style={styles.scoreNumber}>{homeTeamScore}</Text>
 
-                <Text style={styles.scoreDivider}>-</Text>
-                <Text style={styles.scoreNumber}>{awayTeamScore}</Text>
-              </View>
+                  <Text style={styles.scoreDivider}>-</Text>
+                  <Text style={styles.scoreNumber}>{awayTeamScore}</Text>
+                </View>
+              )
             ) : (
               <Text style={styles.vsText}>@</Text>
             )}
@@ -289,6 +298,15 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontStyle: 'italic',
     fontWeight: '900',
+  },
+  revealButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  revealText: {
+    color: '#94a3b8',
+    fontSize: 12,
+    marginTop: 4,
   },
   scoreRow: {
     flexDirection: 'row',

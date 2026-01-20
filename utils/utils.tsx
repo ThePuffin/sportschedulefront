@@ -112,6 +112,7 @@ export const translateWord = (word: string) => {
         filterMonths: 'Filtrer les mois',
         findTeam: 'Trouver une équipe',
         leagueSurveilled: 'Ligue(s) à afficher',
+        score: 'Résultat final',
       };
       break;
     case 'de':
@@ -142,6 +143,7 @@ export const translateWord = (word: string) => {
         filterMonths: 'Monate filtern',
         findTeam: 'Ein Team finden',
         leagueSurveilled: 'Anzuzeigende Liga/Ligen',
+        score: 'Endstand',
       };
       break;
     case 'es':
@@ -172,6 +174,7 @@ export const translateWord = (word: string) => {
         filterMonths: 'Filtrar meses',
         findTeam: 'Encontrar un equipo',
         leagueSurveilled: 'Liga(s) a mostrar',
+        score: 'Marcador final',
       };
       break;
 
@@ -203,6 +206,7 @@ export const translateWord = (word: string) => {
         filterMonths: 'Filtrare mesi',
         findTeam: 'Trova una squadra',
         leagueSurveilled: 'Lega/Leghe da visualizzare',
+        score: 'Punteggio finale',
       };
       break;
     case 'ja':
@@ -233,6 +237,7 @@ export const translateWord = (word: string) => {
         filterMonths: '月をフィルター',
         findTeam: 'チームを探す',
         leagueSurveilled: '表示するリーグ',
+        score: '最終スコア',
       };
       break;
     case 'ko':
@@ -263,6 +268,7 @@ export const translateWord = (word: string) => {
         filterMonths: '월 필터링',
         findTeam: '팀 찾기',
         leagueSurveilled: '표시할 리그',
+        score: '최종 점수',
       };
       break;
     case 'nl':
@@ -293,6 +299,7 @@ export const translateWord = (word: string) => {
         filterMonths: 'Months filteren',
         findTeam: 'Zoek een team',
         leagueSurveilled: 'Weer te geven competitie(s)',
+        score: 'Eindstand',
       };
       break;
     case 'pt':
@@ -323,6 +330,7 @@ export const translateWord = (word: string) => {
         filterMonths: 'Filtrar meses',
         findTeam: 'Encontrar um time',
         leagueSurveilled: 'Liga(s) a exibir',
+        score: 'Placar final',
       };
       break;
     case 'ru':
@@ -353,6 +361,7 @@ export const translateWord = (word: string) => {
         filterMonths: 'Фильтровать месяцы',
         findTeam: 'Найти команду',
         leagueSurveilled: 'Лиги для отображения',
+        score: 'Итоговый счет',
       };
       break;
     case 'zh':
@@ -383,6 +392,7 @@ export const translateWord = (word: string) => {
         filterMonths: '筛选月份',
         findTeam: '查找球队',
         leagueSurveilled: '要显示的联赛',
+        score: '最终得分',
       };
       break;
     default:
@@ -413,6 +423,7 @@ export const translateWord = (word: string) => {
         filterMonths: 'Filter months',
         findTeam: 'Find a Team',
         leagueSurveilled: 'League(s) to display',
+        score: 'Final Score',
       };
       break;
   }
