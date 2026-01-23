@@ -87,8 +87,9 @@ export const getCache = <T>(cacheKey: string): T | null => {
 
 export const fetchGamesByHour = async (date: string): Promise<{ [key: string]: GameFormatted[] }> => {
   const cacheKey = `games_hour_${date}`;
-  // 1 minute cache
-  if (isCacheValid(cacheKey, 1 / 60)) {
+
+  // Vérifie si le cache est valide (moins de 2 minutes)
+  if (isCacheValid(cacheKey, 2 / 60)) {
     const cached = getCache<{ [key: string]: GameFormatted[] }>(cacheKey);
     if (cached) return cached;
   }
@@ -103,9 +104,11 @@ export const fetchGamesByHour = async (date: string): Promise<{ [key: string]: G
     return data;
   } catch (error) {
     console.error(error);
-    // Fallback to stale cache if available
-    const staleCache = getCache<{ [key: string]: GameFormatted[] }>(cacheKey);
-    if (staleCache) return staleCache;
+    const cached = getCache<{ [key: string]: GameFormatted[] }>(cacheKey);
+    if (cached) {
+      console.warn(`Échec de la récupération API pour ${cacheKey}. Utilisation des données en cache.`);
+      return cached;
+    }
     return {};
   }
 };
