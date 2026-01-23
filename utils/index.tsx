@@ -50,7 +50,6 @@ const getNextGamesFromApi = async (date: Date): Promise<{ [key: string]: GameFor
 
 const pruneOldGamesCache = (cache: { [key: string]: GameFormatted[] }) => {
   const limitDate = new Date();
-  limitDate.setDate(limitDate.getDate() - 10);
   const limitDateStr = limitDate.toISOString().split('T')[0];
   const prunedEntries = Object.entries(cache).filter(([date]) => date >= limitDateStr);
   return Object.fromEntries(prunedEntries);
