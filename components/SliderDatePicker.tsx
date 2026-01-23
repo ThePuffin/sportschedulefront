@@ -107,12 +107,12 @@ export default function SliderDatePicker({ selectDate, onDateChange }: SliderDat
 
   const onMonthSelect = (date: Date) => {
     const newDate = new Date(selectDate);
+    const targetDay = selectDate.getDate();
+    newDate.setDate(1); // Avoid overflow when changing month
     newDate.setFullYear(date.getFullYear());
     newDate.setMonth(date.getMonth());
     const daysInMonth = new Date(newDate.getFullYear(), newDate.getMonth() + 1, 0).getDate();
-    if (newDate.getDate() > daysInMonth) {
-      newDate.setDate(daysInMonth);
-    }
+    newDate.setDate(Math.min(targetDay, daysInMonth));
     onDateChange(newDate);
   };
 
