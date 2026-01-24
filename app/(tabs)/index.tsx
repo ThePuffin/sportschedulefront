@@ -4,6 +4,7 @@ import Selector from '@/components/Selector';
 import SliderDatePicker from '@/components/SliderDatePicker';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { getGamesStatus } from '@/utils/date';
 import { useFocusEffect } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ScrollView, useWindowDimensions } from 'react-native';
@@ -11,7 +12,7 @@ import Accordion from '../../components/Accordion';
 import { ActionButton, ActionButtonRef } from '../../components/ActionButton';
 import CardLarge from '../../components/CardLarge';
 import LoadingView from '../../components/LoadingView';
-import { League, timeDurationEnum } from '../../constants/enum';
+import { GameStatus, League } from '../../constants/enum';
 import { fetchGamesByHour, fetchLeagues, getCache, saveCache } from '../../utils/fetchData';
 import { GameFormatted } from '../../utils/types';
 import { randomNumber, translateWord } from '../../utils/utils';
@@ -88,25 +89,21 @@ export default function GameofTheDay() {
 
     games.forEach((game) => {
       if (selectLeagues.includes(game.league as League)) {
-        if (favoriteTeams.includes(game.homeTeamId)) {
-          teamsMap.set(game.homeTeamId, {
-            label: game.homeTeam,
-            uniqueId: game.homeTeamId,
-            league: game.league,
-          });
-        }
-        if (favoriteTeams.includes(game.awayTeamId)) {
-          teamsMap.set(game.awayTeamId, {
-            label: game.awayTeam,
-            uniqueId: game.awayTeamId,
-            league: game.league,
-          });
-        }
+        teamsMap.set(game.homeTeamId, {
+          label: game.homeTeam,
+          uniqueId: game.homeTeamId,
+          league: game.league,
+        });
+        teamsMap.set(game.awayTeamId, {
+          label: game.awayTeam,
+          uniqueId: game.awayTeamId,
+          league: game.league,
+        });
       }
     });
 
     return Array.from(teamsMap.values()).sort((a, b) => a.label.localeCompare(b.label));
-  }, [games, selectLeagues, favoriteTeams]);
+  }, [games, selectLeagues]);
 
   const [teamSelectedId, setTeamSelectedId] = useState<string>('');
   const gamesDayCache = useRef<{ [key: string]: GameFormatted[] }>({});
@@ -147,7 +144,6 @@ export default function GameofTheDay() {
         return 0;
       });
     };
-    const now = new Date();
     const relevantGames = games
       .filter(
         (game) =>
@@ -166,15 +162,11 @@ export default function GameofTheDay() {
     const scheduled: GameFormatted[] = [];
 
     relevantGames.forEach((game) => {
-      const startTime = new Date(game.startTimeUTC);
-      const duration = timeDurationEnum[game.league as keyof typeof timeDurationEnum] ?? 3;
-      const endTime = new Date(startTime);
-      endTime.setHours(endTime.getHours() + duration);
-
-      if (now > endTime) {
-        finished.push(game);
-      } else if (now >= startTime && now <= endTime) {
+      const status = getGamesStatus(game);
+      if (status === GameStatus.IN_PROGRESS && (!game.homeTeamScore || game.homeTeamScore === null)) {
         inProgress.push(game);
+      } else if (status === GameStatus.FINAL || game.homeTeamScore != null) {
+        finished.push(game);
       } else {
         scheduled.push(game);
       }

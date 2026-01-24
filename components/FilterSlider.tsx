@@ -1,4 +1,5 @@
 import { League } from '@/constants/enum';
+import { translateWord } from '@/utils/utils';
 import { Icon } from '@rneui/themed';
 import React, { useRef } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -24,8 +25,8 @@ export default function FilterSlider({
   const selectedTextColor = '#FFFFFF';
 
   const items = [
-    { label: 'ALL', value: 'ALL' },
-    { label: 'FAVORITES', value: 'FAVORITES', icon: 'star' },
+    { label: translateWord('all'), value: 'ALL' },
+    { label: translateWord('favorites'), value: 'FAVORITES', icon: 'star' },
     ...(availableLeagues || Object.values(League).filter((l) => l !== League.ALL)).map((l) => ({ label: l, value: l })),
   ];
 

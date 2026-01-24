@@ -113,6 +113,7 @@ export const translateWord = (word: string) => {
         findTeam: 'Trouver une équipe',
         leagueSurveilled: 'Ligue(s) à afficher',
         score: 'Résultat final',
+        favorites: 'FAVORIS',
       };
       break;
     case 'de':
@@ -144,6 +145,7 @@ export const translateWord = (word: string) => {
         findTeam: 'Ein Team finden',
         leagueSurveilled: 'Anzuzeigende Liga/Ligen',
         score: 'Endstand',
+        favorites: 'FAVORITEN',
       };
       break;
     case 'es':
@@ -175,6 +177,7 @@ export const translateWord = (word: string) => {
         findTeam: 'Encontrar un equipo',
         leagueSurveilled: 'Liga(s) a mostrar',
         score: 'Marcador final',
+        favorites: 'FAVORITOS',
       };
       break;
 
@@ -207,6 +210,7 @@ export const translateWord = (word: string) => {
         findTeam: 'Trova una squadra',
         leagueSurveilled: 'Lega/Leghe da visualizzare',
         score: 'Punteggio finale',
+        favorites: 'PREFERITI',
       };
       break;
     case 'ja':
@@ -238,6 +242,7 @@ export const translateWord = (word: string) => {
         findTeam: 'チームを探す',
         leagueSurveilled: '表示するリーグ',
         score: '最終スコア',
+        favorites: 'お気に入り',
       };
       break;
     case 'ko':
@@ -269,6 +274,7 @@ export const translateWord = (word: string) => {
         findTeam: '팀 찾기',
         leagueSurveilled: '표시할 리그',
         score: '최종 점수',
+        favorites: '즐겨찾기',
       };
       break;
     case 'nl':
@@ -300,6 +306,7 @@ export const translateWord = (word: string) => {
         findTeam: 'Zoek een team',
         leagueSurveilled: 'Weer te geven competitie(s)',
         score: 'Eindstand',
+        favorites: 'FAVORIETEN',
       };
       break;
     case 'pt':
@@ -331,6 +338,7 @@ export const translateWord = (word: string) => {
         findTeam: 'Encontrar um time',
         leagueSurveilled: 'Liga(s) a exibir',
         score: 'Placar final',
+        favorites: 'FAVORITOS',
       };
       break;
     case 'ru':
@@ -362,6 +370,7 @@ export const translateWord = (word: string) => {
         findTeam: 'Найти команду',
         leagueSurveilled: 'Лиги для отображения',
         score: 'Итоговый счет',
+        favorites: 'ИЗБРАННОЕ',
       };
       break;
     case 'zh':
@@ -393,6 +402,7 @@ export const translateWord = (word: string) => {
         findTeam: '查找球队',
         leagueSurveilled: '要显示的联赛',
         score: '最终得分',
+        favorites: '收藏',
       };
       break;
     default:
@@ -424,6 +434,7 @@ export const translateWord = (word: string) => {
         findTeam: 'Find a Team',
         leagueSurveilled: 'League(s) to display',
         score: 'Final Score',
+        favorites: 'FAVORITES',
       };
       break;
   }
