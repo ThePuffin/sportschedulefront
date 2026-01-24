@@ -27,6 +27,8 @@ export default function CardLarge({ data, showDate = false }: Readonly<CardsProp
     awayTeamRecord,
     awayTeamColor,
     homeTeamColor,
+    awayTeamBackgroundColor,
+    homeTeamBackgroundColor,
     placeName = '',
     gameDate: gameDateStr,
     urlLive,
@@ -116,14 +118,22 @@ export default function CardLarge({ data, showDate = false }: Readonly<CardsProp
       if (!c) return baseColor;
       return c.startsWith('#') ? c : `#${c}`;
     };
-    const awayColorHex = formatColor(awayTeamColor);
-    const homeColorHex = formatColor(homeTeamColor);
+
+    const getLighterColor = (c1: string | undefined, c2: string | undefined) => {
+      const color1 = formatColor(c1);
+      const color2 = formatColor(c2);
+      return getBrightness(color1) > getBrightness(color2) ? color1 : color2;
+    };
+
+    const awayColorHex = getLighterColor(awayTeamColor, awayTeamBackgroundColor);
+    const homeColorHex = getLighterColor(homeTeamColor, homeTeamBackgroundColor);
+
     gradientStyle = {
       backgroundColor: baseColor,
-      backgroundImage: `linear-gradient(90deg, ${homeColorHex} 0%, ${baseColor} 10%, ${baseColor} 90%, ${awayColorHex} 100%)`,
+      backgroundImage: `linear-gradient(90deg, ${awayColorHex} 0%, ${baseColor} 5%, ${baseColor} 95%, ${homeColorHex} 100%)`,
     };
-    homeBg = awayColorHex;
-    awayBg = homeColorHex;
+    homeBg = homeColorHex;
+    awayBg = awayColorHex;
   }
 
   const displayHomeLogo = getBrightness(homeBg) < 128 && homeTeamLogoDark ? homeTeamLogoDark : homeTeamLogo;
@@ -159,19 +169,19 @@ export default function CardLarge({ data, showDate = false }: Readonly<CardsProp
 
         {/* Main Content: Teams & Score/Time */}
         <View style={styles.mainRow}>
-          {/* Home Team */}
+          {/* away Team */}
           <View style={styles.teamColumn}>
             <Image
-              source={displayHomeLogo ? { uri: displayHomeLogo } : require('../assets/images/default_logo.png')}
+              source={displayAwayLogo ? { uri: displayAwayLogo } : require('../assets/images/default_logo.png')}
               style={[styles.teamLogo, logoStyle]}
             />
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Text style={styles.teamName}>{homeTeamShort}</Text>
-              {favoriteTeams.includes(homeTeamId) && (
+              <Text style={styles.teamName}>{awayTeamShort}</Text>
+              {favoriteTeams.includes(awayTeamId) && (
                 <Icon name="star" type="font-awesome" size={14} color="#FFD700" style={{ marginLeft: 5 }} />
               )}
             </View>
-            <Text style={styles.recordText}>{homeTeamRecord || ''}</Text>
+            <Text style={styles.recordText}>{awayTeamRecord || ''}</Text>
           </View>
 
           {/* Center: Score or VS/@ */}
@@ -184,10 +194,9 @@ export default function CardLarge({ data, showDate = false }: Readonly<CardsProp
                 </TouchableOpacity>
               ) : (
                 <View style={styles.scoreRow}>
-                  <Text style={styles.scoreNumber}>{homeTeamScore}</Text>
-
-                  <Text style={styles.scoreDivider}>-</Text>
                   <Text style={styles.scoreNumber}>{awayTeamScore}</Text>
+                  <Text style={styles.scoreDivider}>-</Text>
+                  <Text style={styles.scoreNumber}>{homeTeamScore}</Text>
                 </View>
               )
             ) : (
@@ -195,7 +204,7 @@ export default function CardLarge({ data, showDate = false }: Readonly<CardsProp
             )}
 
             <View style={styles.timeContainer}>
-              {isLive && urlLive ? (
+              {urlLive ? (
                 <a
                   href={urlLive}
                   target="_blank"
@@ -211,19 +220,19 @@ export default function CardLarge({ data, showDate = false }: Readonly<CardsProp
             </View>
           </View>
 
-          {/* Away Team */}
+          {/* home Team */}
           <View style={styles.teamColumn}>
             <Image
-              source={displayAwayLogo ? { uri: displayAwayLogo } : require('../assets/images/default_logo.png')}
+              source={displayHomeLogo ? { uri: displayHomeLogo } : require('../assets/images/default_logo.png')}
               style={[styles.teamLogo, logoStyle]}
             />
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Text style={styles.teamName}>{awayTeamShort}</Text>
-              {favoriteTeams.includes(awayTeamId) && (
+              <Text style={styles.teamName}>{homeTeamShort}</Text>
+              {favoriteTeams.includes(homeTeamId) && (
                 <Icon name="star" type="font-awesome" size={14} color="#FFD700" style={{ marginLeft: 5 }} />
               )}
             </View>
-            <Text style={styles.recordText}>{awayTeamRecord || ''}</Text>
+            <Text style={styles.recordText}>{homeTeamRecord || ''}</Text>
           </View>
         </View>
 
@@ -346,6 +355,7 @@ const styles = StyleSheet.create({
   scoreDivider: {
     color: '#334155',
     fontSize: 24,
+    fontWeight: 'bold',
     marginHorizontal: 10,
   },
   timeContainer: {
