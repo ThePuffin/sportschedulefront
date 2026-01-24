@@ -48,10 +48,10 @@ const getNextGamesFromApi = async (date: Date): Promise<{ [key: string]: GameFor
   return newFetch;
 };
 
-const pruneOldGamesCache = (cache: { [key: string]: GameFormatted[] }) => {
+const pruneOldOrEmptyGamesCache = (cache: { [key: string]: GameFormatted[] }) => {
   const limitDate = new Date();
   const limitDateStr = limitDate.toISOString().split('T')[0];
-  const prunedEntries = Object.entries(cache).filter(([date]) => date >= limitDateStr);
+  const prunedEntries = Object.entries(cache).filter(([date, games]) => date >= limitDateStr && games.length > 0);
   return Object.fromEntries(prunedEntries);
 };
 
@@ -188,10 +188,10 @@ export default function GameofTheDay() {
 
   const getGamesFromApi = useCallback(async (dateToFetch: Date) => {
     const YYYYMMDD = new Date(dateToFetch).toISOString().split('T')[0];
+    const today = new Date().toISOString().split('T')[0];
 
     const cachedGames = gamesDayCache.current[YYYYMMDD];
-    if (cachedGames) {
-      const today = new Date().toISOString().split('T')[0];
+    if (cachedGames && YYYYMMDD >= today) {
       let gamesToDisplay = cachedGames;
 
       if (YYYYMMDD === today) {
@@ -218,14 +218,14 @@ export default function GameofTheDay() {
       const gamesOfTheDay = Object.values(gamesByHourData).flat();
       gamesDayCache.current[YYYYMMDD] = gamesOfTheDay;
       // prune old entries and persist
-      const pruned = pruneOldGamesCache({ ...(gamesDayCache.current || {}) });
+      const pruned = pruneOldOrEmptyGamesCache({ ...(gamesDayCache.current || {}) });
       gamesDayCache.current = pruned;
       saveCache('gamesDay', pruned);
       setGames(gamesOfTheDay);
     } catch (error) {
       console.error(error);
       gamesDayCache.current[YYYYMMDD] = [];
-      const prunedEmpty = pruneOldGamesCache({ ...(gamesDayCache.current || {}) });
+      const prunedEmpty = pruneOldOrEmptyGamesCache({ ...(gamesDayCache.current || {}) });
       gamesDayCache.current = prunedEmpty;
       saveCache('gamesDay', prunedEmpty);
       setGames([]);
@@ -492,7 +492,7 @@ export default function GameofTheDay() {
       // restore persisted games cache (current day + next 10 days)
       const localStorageGamesDay = getCache<{ [key: string]: GameFormatted[] }>('gamesDay');
       if (localStorageGamesDay) {
-        gamesDayCache.current = localStorageGamesDay;
+        gamesDayCache.current = pruneOldOrEmptyGamesCache(localStorageGamesDay);
       }
       const storedLeagues = getCache<string[]>('leagues');
       const storedLeaguesSelected = getCache<League[]>('leaguesSelected');
@@ -518,7 +518,7 @@ export default function GameofTheDay() {
         const nextFetch = await getNextGamesFromApi(selectDate);
         // merge, prune and persist fetched next days
         const merged = { ...(gamesDayCache.current || {}), ...(nextFetch || {}) };
-        const mergedPruned = pruneOldGamesCache(merged);
+        const mergedPruned = pruneOldOrEmptyGamesCache(merged);
         gamesDayCache.current = mergedPruned;
         saveCache('gamesDay', mergedPruned);
       } finally {
