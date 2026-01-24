@@ -29,6 +29,7 @@ export default function CardLarge({ data, showDate = false }: Readonly<CardsProp
     homeTeamColor,
     placeName = '',
     gameDate: gameDateStr,
+    urlLive,
   } = data;
 
   const [favoriteTeams, setFavoriteTeams] = useState<string[]>(() => getCache<string[]>('favoriteTeams') || []);
@@ -74,7 +75,7 @@ export default function CardLarge({ data, showDate = false }: Readonly<CardsProp
   if (status === 'FINAL') {
     timeText = translateWord('ended');
   } else if (status === 'IN_PROGRESS') {
-    timeText = 'live';
+    timeText = translateWord('followLive');
   } else if (startTimeUTC) {
     timeText = new Date(startTimeUTC).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
   }
@@ -194,7 +195,19 @@ export default function CardLarge({ data, showDate = false }: Readonly<CardsProp
             )}
 
             <View style={styles.timeContainer}>
-              <Text style={isLive ? styles.liveTimeText : styles.timeText}>{timeText}</Text>
+              {isLive && urlLive ? (
+                <a
+                  href={urlLive}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ textDecoration: 'none', cursor: 'pointer' }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Text style={styles.liveTimeText}>{timeText}</Text>
+                </a>
+              ) : (
+                <Text style={isLive ? styles.liveTimeText : styles.timeText}>{timeText}</Text>
+              )}
             </View>
           </View>
 
