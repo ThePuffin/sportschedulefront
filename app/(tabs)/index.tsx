@@ -1,4 +1,3 @@
-import Cards from '@/components/Cards';
 import FilterSlider from '@/components/FilterSlider';
 import NoResults from '@/components/NoResults';
 import Selector from '@/components/Selector';
@@ -51,7 +50,6 @@ const getNextGamesFromApi = async (date: Date): Promise<{ [key: string]: GameFor
 
 const pruneOldGamesCache = (cache: { [key: string]: GameFormatted[] }) => {
   const limitDate = new Date();
-  limitDate.setDate(limitDate.getDate() - 10);
   const limitDateStr = limitDate.toISOString().split('T')[0];
   const prunedEntries = Object.entries(cache).filter(([date]) => date >= limitDateStr);
   return Object.fromEntries(prunedEntries);
@@ -281,9 +279,6 @@ export default function GameofTheDay() {
         setSelectLeagues(userLeagues);
         setTeamSelectedId('');
       } else if (filter === 'FAVORITES') {
-        // For favorites, we keep leagues but we might want to trigger specific favorite logic.
-        // The existing code sorts by favorites. We might need to filter by them.
-        // For now, let's just set all leagues so we can search favorites across all.
         setSelectLeagues(LeaguesWithoutAll);
         setTeamSelectedId('');
       } else {
@@ -479,7 +474,7 @@ export default function GameofTheDay() {
                         game.homeTeamId === gameSelect.homeTeamId && game.startTimeUTC === gameSelect.startTimeUTC,
                     );
                     return (
-                      <Cards
+                      <CardLarge
                         key={gameId}
                         data={game}
                         numberSelected={1}

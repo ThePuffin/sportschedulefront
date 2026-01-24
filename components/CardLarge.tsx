@@ -25,6 +25,8 @@ export default function CardLarge({ data, showDate = false }: Readonly<CardsProp
     awayTeamId,
     homeTeamRecord,
     awayTeamRecord,
+    awayTeamColor,
+    homeTeamColor,
     status, // Supposons que vous ayez un status pour le mode LIVE
     placeName = '',
     gameDate: gameDateStr,
@@ -91,28 +93,29 @@ export default function CardLarge({ data, showDate = false }: Readonly<CardsProp
     isPast = !isNaN(gameDate.getTime()) && gameDate < today;
   }
 
-  const isGradientActive =
-    !isPast && teamSelectedId && (teamSelectedId === homeTeamId || teamSelectedId === awayTeamId);
+  const isGradientActive = teamSelectedId && (teamSelectedId === homeTeamId || teamSelectedId === awayTeamId);
+
+  let homeBg = baseColor;
+  let awayBg = baseColor;
 
   if (isGradientActive) {
-    let gradientColors = [baseColor, baseColor];
-    let stops = ['0%', '100%'];
-
-    if (teamSelectedId === awayTeamId) {
-      gradientColors = [baseColor, teamColor];
-      stops = ['67%', '100%'];
-    } else if (teamSelectedId === homeTeamId) {
-      gradientColors = [teamColor, baseColor];
-      stops = ['0%', '33%'];
-    }
+    const awayColorHex = awayTeamColor
+      ? awayTeamColor.startsWith('#')
+        ? awayTeamColor
+        : `#${awayTeamColor}`
+      : baseColor;
+    const homeColorHex = homeTeamColor
+      ? homeTeamColor.startsWith('#')
+        ? homeTeamColor
+        : `#${homeTeamColor}`
+      : baseColor;
     gradientStyle = {
-      backgroundColor: gradientColors[0],
-      backgroundImage: `linear-gradient(90deg, ${gradientColors[0]} ${stops[0]}, ${gradientColors[1]} ${stops[1]})`,
+      backgroundColor: baseColor,
+      backgroundImage: `linear-gradient(90deg, ${homeColorHex} 0%, ${baseColor} 25%, ${baseColor} 75%, ${awayColorHex} 100%)`,
     };
+    homeBg = awayColorHex;
+    awayBg = homeColorHex;
   }
-
-  const homeBg = isGradientActive && teamSelectedId === homeTeamId ? teamColor : baseColor;
-  const awayBg = isGradientActive && teamSelectedId === awayTeamId ? teamColor : baseColor;
 
   const displayHomeLogo = getBrightness(homeBg) < 128 && homeTeamLogoDark ? homeTeamLogoDark : homeTeamLogo;
   const displayAwayLogo = getBrightness(awayBg) < 128 && awayTeamLogoDark ? awayTeamLogoDark : awayTeamLogo;
