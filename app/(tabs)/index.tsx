@@ -1,5 +1,7 @@
+import AppLogo from '@/components/AppLogo';
 import FilterSlider from '@/components/FilterSlider';
 import NoResults from '@/components/NoResults';
+import ScoreToggle from '@/components/ScoreToggle';
 import Selector from '@/components/Selector';
 import SliderDatePicker from '@/components/SliderDatePicker';
 import { ThemedText } from '@/components/ThemedText';
@@ -8,7 +10,7 @@ import { getGamesStatus } from '@/utils/date';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ScrollView, Switch, useWindowDimensions, View } from 'react-native';
+import { ScrollView, useWindowDimensions, View } from 'react-native';
 import Accordion from '../../components/Accordion';
 import { ActionButton, ActionButtonRef } from '../../components/ActionButton';
 import CardLarge from '../../components/CardLarge';
@@ -119,6 +121,18 @@ export default function GameofTheDay() {
     if (globalThis.window !== undefined) {
       globalThis.window.addEventListener('favoritesUpdated', updateFavorites);
       return () => globalThis.window.removeEventListener('favoritesUpdated', updateFavorites);
+    }
+  }, []);
+
+  useEffect(() => {
+    const updateScores = () => {
+      const cached = getCache<boolean>('showScores');
+      setShowScores(cached ?? false);
+    };
+    updateScores();
+    if (globalThis.window !== undefined) {
+      globalThis.window.addEventListener('scoresUpdated', updateScores);
+      return () => globalThis.window.removeEventListener('scoresUpdated', updateScores);
     }
   }, []);
 
@@ -313,6 +327,10 @@ export default function GameofTheDay() {
     }
   }, [activeFilter, hasFavorites, isLoading, userLeagues]);
 
+  const handleScoreToggle = useCallback((value: boolean) => {
+    setShowScores(value);
+  }, []);
+
   const displayScoreToggle = useCallback(() => {
     return (
       <div
@@ -323,34 +341,11 @@ export default function GameofTheDay() {
           padding: '5px 15px 0 15px',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Ionicons name="calendar" size={30} color="#2f95dc" />
-          <ThemedText
-            type="subtitle"
-            style={{
-              fontSize: 30,
-              fontWeight: '900',
-              fontStyle: 'italic',
-              letterSpacing: 1,
-              fontFamily: 'Impact, sans-serif-condensed, sans-serif',
-            }}
-          >
-            SkedAll
-          </ThemedText>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <Ionicons name="eye-off-outline" size={20} color="gray" />
-          <Switch
-            value={showScores}
-            onValueChange={setShowScores}
-            trackColor={{ false: '#767577', true: '#81b0ff' }}
-            thumbColor={showScores ? '#f5dd4b' : '#f4f3f4'}
-          />
-          <Ionicons name="eye-outline" size={20} color="gray" />
-        </div>
+        <AppLogo />
+        <ScoreToggle value={showScores} onValueChange={handleScoreToggle} />
       </div>
     );
-  }, [showScores]);
+  }, [showScores, handleScoreToggle]);
 
   const displayFilters = useCallback(() => {
     const selectedTeamLabel = teamsOfTheDay.find((t) => t.uniqueId === teamSelectedId)?.label || 'ALL';
