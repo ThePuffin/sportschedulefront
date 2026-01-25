@@ -370,7 +370,8 @@ export default function GameofTheDay() {
             width: '100%',
             alignItems: 'center',
             paddingLeft: 15,
-            backgroundColor: 'black',
+            backgroundImage: 'linear-gradient(90deg, transparent 0%, #000000 5%, #000000 95%, transparent 100%)',
+            backgroundColor: 'transparent',
             boxSizing: 'border-box',
           }}
         >
@@ -506,7 +507,7 @@ export default function GameofTheDay() {
           style={{
             display: 'flex',
             flexWrap: 'wrap',
-            justifyContent: allGames.length > 2 ? 'flex-start' : 'center',
+            justifyContent: allGames.length < 3 ? 'center' : 'flex-start',
             gap: 15,
             padding: 10,
             width: '75%',

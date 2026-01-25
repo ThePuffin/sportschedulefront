@@ -85,7 +85,16 @@ export default function FilterSlider({
   ];
 
   return (
-    <View style={styles.container}>
+    <View
+      style={[
+        styles.container,
+        Platform.OS === 'web' &&
+          ({
+            backgroundImage: 'linear-gradient(90deg, transparent 0%, #000000 5%, #000000 95%, transparent 100%)',
+            backgroundColor: 'transparent',
+          } as any),
+      ]}
+    >
       <ScrollView
         ref={scrollViewRef}
         horizontal
@@ -135,7 +144,7 @@ export default function FilterSlider({
 const styles = StyleSheet.create({
   container: {
     paddingVertical: 10,
-    backgroundColor: '#000000', // Black background for the strip area as per screenshot seems dark
+    backgroundColor: '#000000',
   },
   scrollContent: {
     alignItems: 'center',
@@ -148,7 +157,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 20,
     marginHorizontal: 4,
-    backgroundColor: 'transparent', // Unselected has no bg in screenshot, just text
+    backgroundColor: 'transparent',
   },
   itemText: {
     fontSize: 14,

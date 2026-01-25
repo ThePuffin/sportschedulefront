@@ -170,7 +170,17 @@ export default function SliderDatePicker({ selectDate, onDateChange }: SliderDat
   useDragScroll(monthScrollViewRef);
 
   return (
-    <View style={[styles.container, { backgroundColor }]}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor },
+        Platform.OS === 'web' &&
+          ({
+            maskImage: 'linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%)',
+            WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%)',
+          } as any),
+      ]}
+    >
       <View style={styles.monthContainer}>
         <ScrollView
           ref={monthScrollViewRef}
