@@ -8,7 +8,7 @@ import { getGamesStatus } from '@/utils/date';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ScrollView, Switch, useWindowDimensions } from 'react-native';
+import { ScrollView, Switch, useWindowDimensions, View } from 'react-native';
 import Accordion from '../../components/Accordion';
 import { ActionButton, ActionButtonRef } from '../../components/ActionButton';
 import CardLarge from '../../components/CardLarge';
@@ -305,6 +305,14 @@ export default function GameofTheDay() {
     return games.some((game) => favoriteTeams.includes(game.homeTeamId) || favoriteTeams.includes(game.awayTeamId));
   }, [games, favoriteTeams]);
 
+  useEffect(() => {
+    if (activeFilter === 'FAVORITES' && !hasFavorites && !isLoading) {
+      setActiveFilter('ALL');
+      setSelectLeagues(userLeagues);
+      setTeamSelectedId('');
+    }
+  }, [activeFilter, hasFavorites, isLoading, userLeagues]);
+
   const displayScoreToggle = useCallback(() => {
     return (
       <div
@@ -345,33 +353,86 @@ export default function GameofTheDay() {
   }, [showScores]);
 
   const displayFilters = useCallback(() => {
+    const selectedTeamLabel = teamsOfTheDay.find((t) => t.uniqueId === teamSelectedId)?.label || 'ALL';
+    const teamLabels = teamsOfTheDay.map((t) => t.label);
+
+    const handleTeamFilterChange = (label: string) => {
+      if (label === 'ALL') {
+        handleTeamSelectionChange('');
+      } else {
+        const team = teamsOfTheDay.find((t) => t.label === label);
+        if (team) {
+          handleTeamSelectionChange(team.uniqueId);
+        }
+      }
+    };
+
     return (
       <ThemedView>
         <div
-          style={
-            windowWidth > 768
-              ? { display: 'flex', flexDirection: 'row', width: '100%', alignItems: 'center' }
-              : { width: '100%' }
-          }
+          style={{
+            display: 'flex',
+            flexDirection: 'row',
+            width: '100%',
+            alignItems: 'center',
+            paddingLeft: 15,
+            backgroundColor: 'black',
+          }}
         >
-          <div style={{ width: '100%' }}>
-            <Selector
-              data={{
-                i: randomNumber(999999),
-                items: teamsOfTheDay as any,
-                itemSelectedId: teamSelectedId,
-                itemsSelectedIds: [],
+          <div
+            style={{
+              position: 'relative',
+              width: 40,
+              height: 40,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginRight: 10,
+              backgroundColor: 'black',
+              border: '1px solid white',
+              borderRadius: '50%',
+            }}
+          >
+            <Ionicons name="search" size={24} color="white" />
+            <div
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                opacity: 0,
+                overflow: 'hidden',
+                zIndex: 10,
               }}
-              onItemSelectionChange={handleTeamSelectionChange}
-              allowMultipleSelection={false}
-              isClearable={true}
-              placeholder={translateWord('filterTeams')}
-            />
+            >
+              <Selector
+                data={{
+                  i: randomNumber(999999),
+                  items: teamsOfTheDay as any,
+                  itemSelectedId: teamSelectedId,
+                  itemsSelectedIds: [],
+                }}
+                onItemSelectionChange={handleTeamSelectionChange}
+                allowMultipleSelection={false}
+                isClearable={true}
+                placeholder={translateWord('filterTeams')}
+              />
+            </div>
           </div>
+          <View style={{ flex: 1 }}>
+            <FilterSlider
+              selectedFilter={selectedTeamLabel}
+              onFilterChange={handleTeamFilterChange}
+              hasFavorites={false}
+              showFavorites={false}
+              availableLeagues={teamLabels as any}
+            />
+          </View>
         </div>
       </ThemedView>
     );
-  }, [leaguesAvailable, selectLeagues, teamsOfTheDay, teamSelectedId, handleTeamSelectionChange, windowWidth]);
+  }, [leaguesAvailable, selectLeagues, teamsOfTheDay, teamSelectedId, handleTeamSelectionChange]);
 
   const displayNoContent = useCallback(() => {
     if (isLoading) {
