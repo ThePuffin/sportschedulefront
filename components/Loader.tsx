@@ -1,21 +1,57 @@
 import { ThemedText } from '@/components/ThemedText';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import Stories from '../constants/Stories.json';
 
-const Loader = () => {
+interface LoaderProps {
+  isLoading: boolean;
+}
+
+const Loader = ({ isLoading }: LoaderProps) => {
+  const [isVisible, setIsVisible] = useState(false);
   const [story, setStory] = useState<{ league?: string; categorie: string; anecdote: string } | null>(null);
+  const startTimeRef = useRef<number | null>(null);
+  const timeoutRef = useRef<any>(null);
 
   useEffect(() => {
-    const isFrench = typeof navigator !== 'undefined' && navigator.language?.startsWith('fr');
-    const lang: 'fr' | 'en' = isFrench ? 'fr' : 'en';
-    const storiesList = Stories[lang];
+    if (isLoading) {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
 
-    if (storiesList && storiesList.length > 0) {
-      const randomStory = storiesList[Math.floor(Math.random() * storiesList.length)];
-      setStory(randomStory);
+      setIsVisible(true);
+      startTimeRef.current = Date.now();
+
+      const isFrench = typeof navigator !== 'undefined' && navigator.language?.startsWith('fr');
+      const lang: 'fr' | 'en' = isFrench ? 'fr' : 'en';
+      const storiesList = Stories[lang];
+
+      if (storiesList && storiesList.length > 0) {
+        const randomStory = storiesList[Math.floor(Math.random() * storiesList.length)];
+        setStory(randomStory);
+      }
+    } else {
+      if (startTimeRef.current) {
+        const elapsed = Date.now() - startTimeRef.current;
+
+        if (elapsed > 5000 && elapsed < 15000) {
+          const remaining = 15000 - elapsed;
+          timeoutRef.current = setTimeout(() => {
+            setIsVisible(false);
+            startTimeRef.current = null;
+          }, remaining);
+        } else {
+          setIsVisible(false);
+          startTimeRef.current = null;
+        }
+      } else {
+        setIsVisible(false);
+      }
     }
-  }, []);
+  }, [isLoading]);
+
+  if (!isVisible) return null;
 
   return (
     <View style={styles.container}>

@@ -8,7 +8,11 @@ import { Icon } from '@rneui/themed';
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-export default function CardLarge({ data, showDate = false }: Readonly<CardsProps>) {
+export default function CardLarge({
+  data,
+  showDate = false,
+  showScores = true,
+}: Readonly<CardsProps & { showScores?: boolean }>) {
   const {
     homeTeamShort,
     awayTeamShort,
@@ -47,6 +51,12 @@ export default function CardLarge({ data, showDate = false }: Readonly<CardsProp
       return () => globalThis.window.removeEventListener('favoritesUpdated', updateFavorites);
     }
   }, []);
+
+  useEffect(() => {
+    if (!showScores) {
+      setScoreRevealed(false);
+    }
+  }, [showScores]);
 
   const hasScore = homeTeamScore != null && awayTeamScore != null;
   const status = getGamesStatus(data);
@@ -141,6 +151,8 @@ export default function CardLarge({ data, showDate = false }: Readonly<CardsProp
 
   const stadiumSearch = arenaName.replace(/\s+/g, '+') + ',' + placeName.replace(/\s+/g, '+');
 
+  const isFavorite = favoriteTeams.includes(homeTeamId) || favoriteTeams.includes(awayTeamId);
+
   return (
     <Card
       containerStyle={[styles.cardContainer, { padding: 0, backgroundColor: 'transparent' }]}
@@ -187,7 +199,7 @@ export default function CardLarge({ data, showDate = false }: Readonly<CardsProp
           {/* Center: Score or VS/@ */}
           <View style={styles.centerColumn}>
             {hasScore ? (
-              (favoriteTeams.includes(homeTeamId) || favoriteTeams.includes(awayTeamId)) && !scoreRevealed ? (
+              (isFavorite || !showScores) && !scoreRevealed ? (
                 <TouchableOpacity style={styles.revealButton} onPress={() => setScoreRevealed(true)}>
                   <Icon name="eye" type="font-awesome" size={30} color="#94a3b8" />
                   <Text style={styles.revealText}>{translateWord('score')}</Text>
