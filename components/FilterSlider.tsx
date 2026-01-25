@@ -1,8 +1,8 @@
 import { League } from '@/constants/enum';
 import { translateWord } from '@/utils/utils';
 import { Icon } from '@rneui/themed';
-import React, { useRef } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 interface FilterSliderProps {
   selectedFilter: string;
@@ -25,6 +25,58 @@ export default function FilterSlider({
   const selectedBackgroundColor = '#3b82f6';
   const unselectedTextColor = '#8E8E93';
   const selectedTextColor = '#FFFFFF';
+
+  const useDragScroll = (ref: React.RefObject<ScrollView>) => {
+    useEffect(() => {
+      if (Platform.OS === 'web' && ref.current) {
+        // @ts-ignore
+        const element = ref.current.getScrollableNode ? ref.current.getScrollableNode() : ref.current;
+        if (element) {
+          let isDown = false;
+          let startX = 0;
+          let scrollLeft = 0;
+
+          const onMouseDown = (e: MouseEvent) => {
+            isDown = true;
+            element.style.cursor = 'grabbing';
+            startX = e.pageX - element.offsetLeft;
+            scrollLeft = element.scrollLeft;
+          };
+          const onMouseLeave = () => {
+            isDown = false;
+            element.style.cursor = 'grab';
+          };
+          const onMouseUp = () => {
+            isDown = false;
+            element.style.cursor = 'grab';
+          };
+          const onMouseMove = (e: MouseEvent) => {
+            if (!isDown) return;
+            e.preventDefault();
+            const x = e.pageX - element.offsetLeft;
+            const walk = (x - startX) * 2;
+            element.scrollLeft = scrollLeft - walk;
+          };
+
+          element.addEventListener('mousedown', onMouseDown);
+          element.addEventListener('mouseleave', onMouseLeave);
+          element.addEventListener('mouseup', onMouseUp);
+          element.addEventListener('mousemove', onMouseMove);
+          element.style.cursor = 'grab';
+
+          return () => {
+            element.removeEventListener('mousedown', onMouseDown);
+            element.removeEventListener('mouseleave', onMouseLeave);
+            element.removeEventListener('mouseup', onMouseUp);
+            element.removeEventListener('mousemove', onMouseMove);
+            element.style.cursor = 'default';
+          };
+        }
+      }
+    }, [ref]);
+  };
+
+  useDragScroll(scrollViewRef);
 
   const items = [
     { label: translateWord('all'), value: 'ALL' },
