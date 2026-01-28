@@ -199,7 +199,7 @@ export default function CardLarge({
                 <Icon name="star" type="font-awesome" size={14} color="#FFD700" style={{ marginLeft: 5 }} />
               )}
             </View>
-            <Text style={styles.recordText}>{awayTeamRecord || ''}</Text>
+            <Text style={styles.recordText}>{(showScores && scoreRevealed ? awayTeamRecord : '') || ''}</Text>
           </View>
 
           {/* Center: Score or VS/@ */}
@@ -250,7 +250,7 @@ export default function CardLarge({
                 <Icon name="star" type="font-awesome" size={14} color="#FFD700" style={{ marginLeft: 5 }} />
               )}
             </View>
-            <Text style={styles.recordText}>{homeTeamRecord || ''}</Text>
+            <Text style={styles.recordText}>{(showScores && scoreRevealed ? homeTeamRecord : '') || ''}</Text>
           </View>
         </View>
 
