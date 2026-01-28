@@ -8,7 +8,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ScrollView, useWindowDimensions } from 'react-native';
 import Accordion from '../../components/Accordion'; // Added import
 import { ActionButton, ActionButtonRef } from '../../components/ActionButton';
-import Cards from '../../components/Cards';
+import CardLarge from '../../components/CardLarge';
 import { ColumnData, ColumnsContent, ColumnsHeader } from '../../components/ColumnsLayout';
 import LoadingView from '../../components/LoadingView';
 import {
@@ -36,7 +36,7 @@ export default function Schedule() {
   const scrollViewRef = useRef<ScrollView>(null);
   const ActionButtonRef = useRef<ActionButtonRef>(null);
   const [gamesSelected, setGamesSelected] = useState<GameFormatted[]>(
-    () => getCache<GameFormatted[]>('gameSelected') || []
+    () => getCache<GameFormatted[]>('gameSelected') || [],
   );
 
   const allOption = {
@@ -124,7 +124,7 @@ export default function Schedule() {
     useCallback(() => {
       scrollViewRef.current?.scrollTo({ y: 0, animated: false });
       setGamesSelected(getCache<GameFormatted[]>('gameSelected') || []);
-    }, [])
+    }, []),
   );
 
   useEffect(() => {
@@ -169,7 +169,7 @@ export default function Schedule() {
         const filteredGames = Object.fromEntries(
           Object.entries(storedGames)
             .filter(([date]) => date >= today)
-            .map(([date, games]) => [date, games as GameFormatted[]])
+            .map(([date, games]) => [date, games as GameFormatted[]]),
         ) as FilterGames;
         setGames(filteredGames);
       }
@@ -262,8 +262,8 @@ export default function Schedule() {
       const filterNameGame = teamFilter === 'NHL-UTAH' ? 'NHL-UTA' : teamFilter;
       subFilteredGames = Object.fromEntries(
         Object.entries(games).filter(
-          ([_, game]) => game[0].homeTeamId === filterNameGame || game[0].awayTeamId === filterNameGame
-        )
+          ([_, game]) => game[0].homeTeamId === filterNameGame || game[0].awayTeamId === filterNameGame,
+        ),
       );
     }
 
@@ -395,10 +395,10 @@ export default function Schedule() {
       content: games.map((game) => {
         const gameId = game._id ?? randomNumber(999999);
         const isSelected = gamesSelected.some(
-          (gameSelect) => game.homeTeamId === gameSelect.homeTeamId && game.startTimeUTC === gameSelect.startTimeUTC
+          (gameSelect) => game.homeTeamId === gameSelect.homeTeamId && game.startTimeUTC === gameSelect.startTimeUTC,
         );
         return (
-          <Cards
+          <CardLarge
             key={gameId}
             data={game}
             numberSelected={1}
