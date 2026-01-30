@@ -109,8 +109,8 @@ export default function CardLarge({
   const isFavoriteHomeTeam = favoriteTeams.includes(homeTeamId);
   const isFavorite = favoriteTeams.includes(homeTeamId) || favoriteTeams.includes(awayTeamId);
   const isSelectedTeam = teamSelectedId === homeTeamId;
-  const baseColor = isSelectedTeam && showScores ? '#1e293b' : '#0f172a';
-  const revertColor = isSelectedTeam && showScores ? '#0f172a' : '#1e293b';
+  const baseColor = isSelectedTeam ? '#0f172a' : '#1e293b';
+  const revertColor = isSelectedTeam ? '#1e293b' : '#0f172a';
 
   const getBrightness = (hexColor: string) => {
     if (!hexColor) return 0;

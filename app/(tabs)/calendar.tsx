@@ -1,3 +1,4 @@
+import AppLogo from '@/components/AppLogo';
 import DateRangePicker from '@/components/DatePicker';
 import { ThemedView } from '@/components/ThemedView';
 import { fetchTeams, getCache, saveCache } from '@/utils/fetchData';
@@ -386,6 +387,16 @@ export default function Calendar() {
 
   return (
     <ThemedView style={{ flex: 1 }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          padding: '5px 15px 0 15px',
+        }}
+      >
+        <AppLogo />
+      </div>
       <ScrollView
         ref={scrollViewRef}
         onScroll={(event) => ActionButtonRef.current?.handleScroll(event)}
