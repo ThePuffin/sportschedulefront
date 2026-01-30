@@ -501,6 +501,10 @@ export default function GameofTheDay() {
 
     const allGames = visibleGamesByHour.flatMap((group) => group.games);
 
+    const isMedium = windowWidth < 1200;
+    const containerWidth = isMedium ? '95%' : '75%';
+    const minCardWidth = isMedium ? 260 : 300;
+
     return (
       <ThemedView>
         <div
@@ -510,7 +514,7 @@ export default function GameofTheDay() {
             justifyContent: allGames.length < 3 ? 'center' : 'flex-start',
             gap: 15,
             padding: 10,
-            width: '75%',
+            width: containerWidth,
             margin: 'auto',
           }}
         >
@@ -518,7 +522,7 @@ export default function GameofTheDay() {
             const gameId = game._id ?? randomNumber(999999);
             if (isPast) {
               return (
-                <div key={gameId} style={{ width: 'calc((100% - 30px) / 3)', minWidth: 300 }}>
+                <div key={gameId} style={{ width: 'calc((100% - 30px) / 3)', minWidth: minCardWidth }}>
                   <CardLarge
                     data={teamSelectedId ? { ...game, teamSelectedId } : game}
                     showDate={false}
@@ -533,7 +537,7 @@ export default function GameofTheDay() {
                 game.homeTeamId === gameSelect.homeTeamId && game.startTimeUTC === gameSelect.startTimeUTC,
             );
             return (
-              <div key={gameId} style={{ width: 'calc((100% - 30px) / 3)', minWidth: 300 }}>
+              <div key={gameId} style={{ width: 'calc((100% - 30px) / 3)', minWidth: minCardWidth }}>
                 <CardLarge
                   data={game}
                   numberSelected={1}
@@ -550,7 +554,7 @@ export default function GameofTheDay() {
         </div>
       </ThemedView>
     );
-  }, [games, displayNoContent, visibleGamesByHour, teamSelectedId, gamesSelected, selectDate, showScores]);
+  }, [games, displayNoContent, visibleGamesByHour, teamSelectedId, gamesSelected, selectDate, showScores, windowWidth]);
 
   useEffect(() => {
     const updateLeagues = () => {
@@ -625,7 +629,7 @@ export default function GameofTheDay() {
                 style={
                   windowWidth > 768
                     ? {
-                        width: '75%',
+                        width: windowWidth < 1200 ? '95%' : '75%',
                         margin: '0 auto',
                         padding: 10,
                         boxSizing: 'border-box',

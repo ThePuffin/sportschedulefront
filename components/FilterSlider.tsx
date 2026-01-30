@@ -1,4 +1,5 @@
 import { League } from '@/constants/enum';
+import { useFavoriteColor } from '@/hooks/useFavoriteColor';
 import { translateWord } from '@/utils/utils';
 import { Icon } from '@rneui/themed';
 import React, { useEffect, useRef } from 'react';
@@ -26,9 +27,8 @@ export default function FilterSlider({
   const scrollViewRef = useRef<ScrollView>(null);
 
   // Custom colors matching the dark theme screenshot
-  const selectedBackgroundColor = '#3b82f6';
+  const { backgroundColor: selectedBackgroundColor, textColor: selectedTextColor } = useFavoriteColor('#3b82f6');
   const unselectedTextColor = '#8E8E93';
-  const selectedTextColor = '#FFFFFF';
 
   const useDragScroll = (ref: React.RefObject<ScrollView>) => {
     useEffect(() => {

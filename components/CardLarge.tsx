@@ -39,6 +39,7 @@ export default function CardLarge({
   } = data;
 
   const { width } = useWindowDimensions();
+  const isMedium = width >= 768 && width < 1200;
   const [favoriteTeams, setFavoriteTeams] = useState<string[]>(() => getCache<string[]>('favoriteTeams') || []);
   const [scoreRevealed, setScoreRevealed] = useState(false);
   const pulseAnim = useRef(new Animated.Value(1)).current;
@@ -105,7 +106,11 @@ export default function CardLarge({
   const shadowColor = 'rgba(255, 255, 255, 0.24)';
   const logoStyle = { filter: `brightness(1.1) contrast(1.2) drop-shadow(0 0 1px ${shadowColor})` } as any;
 
-  const baseColor = '#0f172a';
+  const isFavoriteHomeTeam = favoriteTeams.includes(homeTeamId);
+  const isFavorite = favoriteTeams.includes(homeTeamId) || favoriteTeams.includes(awayTeamId);
+  const isSelectedTeam = teamSelectedId === homeTeamId;
+  const baseColor = isSelectedTeam && showScores ? '#1e293b' : '#0f172a';
+  const revertColor = isSelectedTeam && showScores ? '#0f172a' : '#1e293b';
 
   const getBrightness = (hexColor: string) => {
     if (!hexColor) return 0;
@@ -122,42 +127,31 @@ export default function CardLarge({
     return (r * 299 + g * 587 + b * 114) / 1000;
   };
 
-  let gradientStyle = { backgroundColor: baseColor } as any;
+  const formatColor = (c: string | undefined) => {
+    if (!c) return baseColor;
+    return c.startsWith('#') ? c : `#${c}`;
+  };
 
-  const isGradientActive = favoriteTeams.includes(homeTeamId);
+  const getLighterColor = (c1: string | undefined, c2: string | undefined) => {
+    const color1 = formatColor(c1);
+    const color2 = formatColor(c2);
+    return getBrightness(color1) > getBrightness(color2) ? color1 : color2;
+  };
 
-  let homeBg = baseColor;
-  let awayBg = baseColor;
+  const awayColorHex = getLighterColor(awayTeamColor, awayTeamBackgroundColor);
+  const homeColorHex = getLighterColor(homeTeamColor, homeTeamBackgroundColor);
 
-  if (isGradientActive) {
-    const formatColor = (c: string | undefined) => {
-      if (!c) return baseColor;
-      return c.startsWith('#') ? c : `#${c}`;
-    };
-
-    const getLighterColor = (c1: string | undefined, c2: string | undefined) => {
-      const color1 = formatColor(c1);
-      const color2 = formatColor(c2);
-      return getBrightness(color1) > getBrightness(color2) ? color1 : color2;
-    };
-
-    const awayColorHex = getLighterColor(awayTeamColor, awayTeamBackgroundColor);
-    const homeColorHex = getLighterColor(homeTeamColor, homeTeamBackgroundColor);
-
-    gradientStyle = {
-      backgroundColor: baseColor,
-      backgroundImage: `linear-gradient(90deg, ${awayColorHex} 0%, ${baseColor} 5%, ${baseColor} 95%, ${homeColorHex} 100%)`,
-    };
-    homeBg = homeColorHex;
-    awayBg = awayColorHex;
-  }
+  let gradientStyle = {
+    backgroundColor: baseColor,
+    backgroundImage: `linear-gradient(90deg, ${awayColorHex} 0%, ${baseColor} 5%, ${baseColor} 95%, ${homeColorHex} 100%)`,
+  };
+  let homeBg = homeColorHex;
+  let awayBg = awayColorHex;
 
   const displayHomeLogo = getBrightness(homeBg) < 128 && homeTeamLogoDark ? homeTeamLogoDark : homeTeamLogo;
   const displayAwayLogo = getBrightness(awayBg) < 128 && awayTeamLogoDark ? awayTeamLogoDark : awayTeamLogo;
 
   const stadiumSearch = arenaName.replace(/\s+/g, '+') + ',' + placeName.replace(/\s+/g, '+');
-
-  const isFavorite = favoriteTeams.includes(homeTeamId) || favoriteTeams.includes(awayTeamId);
 
   return (
     <Card
@@ -191,15 +185,17 @@ export default function CardLarge({
           <View style={styles.teamColumn}>
             <Image
               source={displayAwayLogo ? { uri: displayAwayLogo } : require('../assets/images/default_logo.png')}
-              style={[styles.teamLogo, logoStyle]}
+              style={[styles.teamLogo, logoStyle, isMedium && { width: 45, height: 45, marginBottom: 4 }]}
             />
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Text style={styles.teamName}>{awayTeamShort}</Text>
+              <Text style={[styles.teamName, isMedium && { fontSize: 14 }]}>{awayTeamShort}</Text>
               {favoriteTeams.includes(awayTeamId) && (
                 <Icon name="star" type="font-awesome" size={14} color="#FFD700" style={{ marginLeft: 5 }} />
               )}
             </View>
-            <Text style={styles.recordText}>{(showScores && scoreRevealed ? awayTeamRecord : '') || ''}</Text>
+            <Text style={styles.recordText}>
+              {((showScores && !isFavorite) || scoreRevealed ? awayTeamRecord : '') || ''}
+            </Text>
           </View>
 
           {/* Center: Score or VS/@ */}
@@ -212,16 +208,16 @@ export default function CardLarge({
                 </TouchableOpacity>
               ) : (
                 <View style={styles.scoreRow}>
-                  <Text style={styles.scoreNumber}>{awayTeamScore}</Text>
-                  <Text style={styles.scoreDivider}>-</Text>
-                  <Text style={styles.scoreNumber}>{homeTeamScore}</Text>
+                  <Text style={[styles.scoreNumber, isMedium && { fontSize: 28 }]}>{awayTeamScore}</Text>
+                  <Text style={[styles.scoreDivider, isMedium && { fontSize: 18, marginHorizontal: 5 }]}>-</Text>
+                  <Text style={[styles.scoreNumber, isMedium && { fontSize: 28 }]}>{homeTeamScore}</Text>
                 </View>
               )
             ) : (
-              <Text style={styles.vsText}>@</Text>
+              <Text style={[styles.vsText, isMedium && { fontSize: 24 }]}>@</Text>
             )}
 
-            <View style={styles.timeContainer}>
+            <View style={[styles.timeContainer, { backgroundColor: revertColor }]}>
               {urlLive ? (
                 <a
                   href={urlLive}
@@ -242,20 +238,22 @@ export default function CardLarge({
           <View style={styles.teamColumn}>
             <Image
               source={displayHomeLogo ? { uri: displayHomeLogo } : require('../assets/images/default_logo.png')}
-              style={[styles.teamLogo, logoStyle]}
+              style={[styles.teamLogo, logoStyle, isMedium && { width: 45, height: 45, marginBottom: 4 }]}
             />
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Text style={styles.teamName}>{homeTeamShort}</Text>
+              <Text style={[styles.teamName, isMedium && { fontSize: 14 }]}>{homeTeamShort}</Text>
               {favoriteTeams.includes(homeTeamId) && (
                 <Icon name="star" type="font-awesome" size={14} color="#FFD700" style={{ marginLeft: 5 }} />
               )}
             </View>
-            <Text style={styles.recordText}>{(showScores && scoreRevealed ? homeTeamRecord : '') || ''}</Text>
+            <Text style={styles.recordText}>
+              {((showScores && !isFavorite) || scoreRevealed ? homeTeamRecord : '') || ''}
+            </Text>
           </View>
         </View>
 
         {/* Footer: Arena */}
-        <View style={styles.footer}>
+        <View style={[styles.footer, { borderTopColor: revertColor }]}>
           {arenaName ? (
             <a
               href={`https://maps.google.com/?q=${stadiumSearch}`}
@@ -395,7 +393,6 @@ const styles = StyleSheet.create({
   },
   footer: {
     borderTopWidth: 1,
-    borderTopColor: '#1e293b',
     marginTop: 15,
     paddingTop: 10,
     alignItems: 'center',

@@ -1,3 +1,4 @@
+import { useFavoriteColor } from '@/hooks/useFavoriteColor';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import React, { useEffect, useRef, useState } from 'react';
 import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
@@ -17,10 +18,9 @@ export default function SliderDatePicker({ selectDate, onDateChange }: SliderDat
   const textColor = useThemeColor({}, 'text');
 
   // Custom colors to match the screenshot
-  const selectedBackgroundColor = '#3b82f6'; // Bright Blue
+  const { backgroundColor: selectedBackgroundColor, textColor: selectedTextColor } = useFavoriteColor('#3b82f6');
   const unselectedBackgroundColor = 'rgba(120, 120, 120, 0.1)'; // Subtle dark grey for unselected
   const unselectedTextColor = '#8E8E93';
-  const selectedTextColor = '#FFFFFF';
 
   const ITEM_WIDTH = 55;
   const ITEM_SPACING = 8;
