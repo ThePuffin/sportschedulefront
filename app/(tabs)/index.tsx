@@ -277,9 +277,6 @@ export default function GameofTheDay() {
       readonlyRef.current = true;
       setSelectDate(startDate);
       const YYYYMMDD = new Date(startDate).toISOString().split('T')[0];
-      if (!gamesDayCache.current[YYYYMMDD]) {
-        setGames([]);
-      }
       setIsLoading(true);
 
       getGamesFromApi(startDate).finally(() => {
@@ -447,12 +444,17 @@ export default function GameofTheDay() {
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const selected = new Date(selectDate);
-    selected.setHours(0, 0, 0, 0);
-    const isPast = selected < today;
+
+    // Use the date from the first game if available to avoid layout jump during transition
+    let gameDate = new Date(selectDate);
+    if (games.length > 0 && games[0].startTimeUTC) {
+      gameDate = new Date(games[0].startTimeUTC);
+    }
+    gameDate.setHours(0, 0, 0, 0);
+    const isPast = gameDate < today;
 
     return (
-      <ThemedView>
+      <ThemedView style={{ opacity: isLoading ? 0.5 : 1, transition: 'opacity 0.3s' } as any}>
         {visibleGamesByHour.map(({ hour, games }, i) => {
           if (isPast) {
             return (
@@ -495,9 +497,14 @@ export default function GameofTheDay() {
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const selected = new Date(selectDate);
-    selected.setHours(0, 0, 0, 0);
-    const isPast = selected < today;
+
+    // Use the date from the first game if available
+    let gameDate = new Date(selectDate);
+    if (games.length > 0 && games[0].startTimeUTC) {
+      gameDate = new Date(games[0].startTimeUTC);
+    }
+    gameDate.setHours(0, 0, 0, 0);
+    const isPast = gameDate < today;
 
     const allGames = visibleGamesByHour.flatMap((group) => group.games);
 
@@ -506,7 +513,7 @@ export default function GameofTheDay() {
     const minCardWidth = isMedium ? 260 : 300;
 
     return (
-      <ThemedView>
+      <ThemedView style={{ opacity: isLoading ? 0.5 : 1, transition: 'opacity 0.3s' } as any}>
         <div
           style={{
             display: 'flex',

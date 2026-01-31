@@ -29,6 +29,7 @@ export default function Schedule() {
   const [games, setGames] = useState<FilterGames>({});
   const [teams, setTeams] = useState<Team[]>([]);
   const [teamSelected, setTeamSelected] = useState<string>('');
+  const [gamesTeamId, setGamesTeamId] = useState<string>('');
   const [teamFilter, setTeamFilter] = useState<string>('');
   const [monthFilter, setMonthFilter] = useState<string[]>([]);
   const [leagueTeams, setLeagueTeams] = useState<Team[]>([]);
@@ -37,6 +38,7 @@ export default function Schedule() {
   const isSmallDevice = width <= 768;
   const [leaguesAvailable, setLeaguesAvailable] = useState<string[]>([]);
   const [leagueOfSelectedTeam, setleagueOfSelectedTeam] = useState<string>('');
+  const [isLoading, setIsLoading] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
   const ActionButtonRef = useRef<ActionButtonRef>(null);
   const [gamesSelected, setGamesSelected] = useState<GameFormatted[]>(
@@ -190,6 +192,7 @@ export default function Schedule() {
             .map(([date, games]) => [date, games as GameFormatted[]]),
         ) as FilterGames;
         setGames(filteredGames);
+        setGamesTeamId(teamSelection);
       }
     } else {
       setTeamSelected(teamSelection);
@@ -304,12 +307,12 @@ export default function Schedule() {
       .map(([month, daysInMonth]) => {
         const gamesForThisMonth: GameFormatted[] = daysInMonth.reduce((acc: GameFormatted[], day: string) => {
           const dayGames = Array.isArray(subFilteredGames[day]) ? subFilteredGames[day] : [];
-          if (teamSelected === 'all') {
+          if (gamesTeamId === 'all') {
             if (dayGames.length) {
               acc.push(...dayGames);
             }
           } else {
-            const gameOnDay = dayGames.find((game: GameFormatted) => game.teamSelectedId === teamSelected);
+            const gameOnDay = dayGames.find((game: GameFormatted) => game.teamSelectedId === gamesTeamId);
             if (gameOnDay) {
               acc.push(gameOnDay);
             }
@@ -319,7 +322,7 @@ export default function Schedule() {
         return { month, games: gamesForThisMonth };
       })
       .filter((item) => item.games.length > 0);
-  }, [games, teamFilter, teamSelected]);
+  }, [games, teamFilter, gamesTeamId]);
 
   const display = () => {
     const leagues = leaguesAvailable || [];
@@ -423,7 +426,7 @@ export default function Schedule() {
     }));
 
     return (
-      <div key={`${teamSelected}-${teamSelected.length}`}>
+      <div>
         <ThemedView>
           <div
             style={{
@@ -566,25 +569,26 @@ export default function Schedule() {
   };
 
   const displayContent = (columnsData: ColumnData[], widthStyle: string) => {
+    if (Object.keys(games).length === 0) {
+      return (
+        <div>
+          <LoadingView />
+        </div>
+      );
+    }
+
     if (visibleGamesByMonth.length === 0) {
       const today = new Date().toISOString().split('T')[0];
       if (!games || (Object.keys(games).length === 1 && (games[today]?.[0]?.updateDate ?? '')) === '') {
         return (
-          <div>
+          <div style={{ opacity: isLoading ? 0.5 : 1, transition: 'opacity 0.3s' }}>
             <br />
             <NoResults />
           </div>
         );
       }
-      if (Object.keys(games).length === 0) {
-        return (
-          <div>
-            <LoadingView />
-          </div>
-        );
-      }
       return (
-        <div>
+        <div style={{ opacity: isLoading ? 0.5 : 1, transition: 'opacity 0.3s' }}>
           <br />
           <NoResults />
         </div>
@@ -597,7 +601,7 @@ export default function Schedule() {
         monthFilter.length > 0 ? visibleGamesByMonth.filter((m) => monthFilter.includes(m.month)) : visibleGamesByMonth;
 
       return (
-        <div>
+        <div style={{ opacity: isLoading ? 0.5 : 1, transition: 'opacity 0.3s' }}>
           {months.length > 1 && (
             <div style={{ width: '100%', marginBottom: 10 }}>
               <FilterSlider
@@ -627,7 +631,11 @@ export default function Schedule() {
       );
     }
 
-    return <ColumnsContent columns={columnsData} widthStyle={widthStyle} />;
+    return (
+      <div style={{ opacity: isLoading ? 0.5 : 1, transition: 'opacity 0.3s' }}>
+        <ColumnsContent columns={columnsData} widthStyle={widthStyle} />
+      </div>
+    );
   };
 
   const removeOldGames = (games: FilterGames) => {
@@ -643,6 +651,7 @@ export default function Schedule() {
 
   const getGamesFromApi = async (): Promise<void> => {
     if (teamSelected && teamSelected.length !== 0) {
+      setIsLoading(true);
       try {
         let scheduleData: FilterGames;
         const scheduleDataStored = getCache<FilterGames>('scheduleData') || {};
@@ -654,8 +663,7 @@ export default function Schedule() {
           const teamSelected = localStorage.getItem('teamSelected') || '';
           if (scheduleTeam === teamSelected || (teamSelected === 'all' && scheduleLeague === leagueOfSelectedTeam)) {
             setGames(removeOldGames(scheduleDataStored));
-          } else {
-            setGames({});
+            setGamesTeamId(teamSelected);
           }
           setLeagueTeams([]);
         }
@@ -665,6 +673,7 @@ export default function Schedule() {
           const smallScheduleData = await smallFetchRemainingGamesByLeague(selectionLeague);
           saveCache('scheduleData', smallScheduleData);
           setGames(removeOldGames(smallScheduleData));
+          setGamesTeamId(teamSelected);
           setleagueOfSelectedTeam(selectionLeague);
           scheduleData = await fetchRemainingGamesByLeague(selectionLeague);
         } else {
@@ -685,10 +694,16 @@ export default function Schedule() {
         saveCache('scheduleData', scheduleData);
 
         setGames(removeOldGames(scheduleData));
+        setGamesTeamId(teamSelected);
       } catch (error) {
         console.error('fetch games failed, using cached schedule if available', error);
         const scheduleData = getCache<FilterGames>('scheduleData');
-        if (scheduleData) setGames(scheduleData);
+        if (scheduleData) {
+          setGames(scheduleData);
+          setGamesTeamId(teamSelected);
+        }
+      } finally {
+        setIsLoading(false);
       }
     } else {
       // if no team selected yet, try to restore cached schedule so UI can show something
