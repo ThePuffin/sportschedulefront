@@ -347,19 +347,18 @@ export default function GameofTheDay() {
   }, [showScores, handleScoreToggle]);
 
   const displayFilters = useCallback(() => {
-    const selectedTeamLabel = teamsOfTheDay.find((t) => t.uniqueId === teamSelectedId)?.label || 'ALL';
-    const teamLabels = teamsOfTheDay.map((t) => t.label);
-
-    const handleTeamFilterChange = (label: string) => {
-      if (label === 'ALL') {
+    const handleTeamFilterChange = (val: string) => {
+      if (val === 'ALL') {
         handleTeamSelectionChange('');
       } else {
-        const team = teamsOfTheDay.find((t) => t.label === label);
-        if (team) {
-          handleTeamSelectionChange(team.uniqueId);
-        }
+        handleTeamSelectionChange(val);
       }
     };
+
+    const teamFilterData = [
+      { label: translateWord('all'), value: 'ALL' },
+      ...teamsOfTheDay.map((t) => ({ label: t.label, value: t.uniqueId })),
+    ];
 
     return (
       <ThemedView>
@@ -418,17 +417,18 @@ export default function GameofTheDay() {
           </div>
           <View style={{ flex: 1 }}>
             <FilterSlider
-              selectedFilter={selectedTeamLabel}
+              selectedFilter={teamSelectedId || 'ALL'}
               onFilterChange={handleTeamFilterChange}
               hasFavorites={false}
               showFavorites={false}
-              availableLeagues={teamLabels as any}
+              data={teamFilterData}
+              favoriteValues={favoriteTeams}
             />
           </View>
         </div>
       </ThemedView>
     );
-  }, [leaguesAvailable, selectLeagues, teamsOfTheDay, teamSelectedId, handleTeamSelectionChange]);
+  }, [leaguesAvailable, selectLeagues, teamsOfTheDay, teamSelectedId, handleTeamSelectionChange, favoriteTeams]);
 
   const displayNoContent = useCallback(() => {
     if (isLoading) {
@@ -637,7 +637,6 @@ export default function GameofTheDay() {
                     : {}
                 }
               >
-                <SliderDatePicker onDateChange={(date) => handleDateChange(date, date)} selectDate={selectDate} />
                 <FilterSlider
                   selectedFilter={activeFilter}
                   onFilterChange={handleFilterChange}
@@ -645,6 +644,7 @@ export default function GameofTheDay() {
                   availableLeagues={userLeagues}
                 />
                 {displayFilters()}
+                <SliderDatePicker onDateChange={(date) => handleDateChange(date, date)} selectDate={selectDate} />
               </div>
             </div>
           </ThemedView>

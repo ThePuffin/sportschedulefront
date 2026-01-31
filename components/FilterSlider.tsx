@@ -2,7 +2,7 @@ import { League } from '@/constants/enum';
 import { useFavoriteColor } from '@/hooks/useFavoriteColor';
 import { translateWord } from '@/utils/utils';
 import { Icon } from '@rneui/themed';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 interface FilterSliderProps {
@@ -13,6 +13,7 @@ interface FilterSliderProps {
   showFavorites?: boolean;
   showAll?: boolean;
   data?: { label: string; value: string; icon?: string }[];
+  favoriteValues?: string[];
 }
 
 export default function FilterSlider({
@@ -23,6 +24,7 @@ export default function FilterSlider({
   showFavorites = true,
   showAll = true,
   data,
+  favoriteValues = [],
 }: FilterSliderProps) {
   const scrollViewRef = useRef<ScrollView>(null);
 
@@ -82,16 +84,63 @@ export default function FilterSlider({
 
   useDragScroll(scrollViewRef);
 
-  const items = data
-    ? data
-    : [
-        ...(showAll ? [{ label: translateWord('all'), value: 'ALL' }] : []),
-        ...(showFavorites ? [{ label: translateWord('favorites'), value: 'FAVORITES', icon: 'star' }] : []),
-        ...(availableLeagues || Object.values(League).filter((l) => l !== League.ALL)).map((l) => ({
-          label: l,
-          value: l,
-        })),
-      ];
+  const rawItems = useMemo(
+    () =>
+      data
+        ? data
+        : [
+            ...(showAll ? [{ label: translateWord('all'), value: 'ALL' }] : []),
+            ...(showFavorites ? [{ label: translateWord('favorites'), value: 'FAVORITES', icon: 'star' }] : []),
+            ...(availableLeagues || Object.values(League).filter((l) => l !== League.ALL)).map((l) => ({
+              label: l,
+              value: l,
+            })),
+          ],
+    [data, showAll, showFavorites, availableLeagues],
+  );
+
+  const items = useMemo(() => {
+    const specialValues = ['ALL', 'all'];
+    const result: typeof rawItems = [];
+    const seenValues = new Set<string>();
+
+    const addItem = (item: (typeof rawItems)[0] | undefined) => {
+      if (item && !seenValues.has(item.value)) {
+        seenValues.add(item.value);
+        result.push(item);
+      }
+    };
+
+    // 1. Add Selected item
+    const selectedItem = rawItems.find((i) => i.value === selectedFilter);
+    addItem(selectedItem);
+
+    // 2. Add Special items (ALL)
+    rawItems.forEach((item) => {
+      if (specialValues.includes(item.value)) {
+        addItem(item);
+      }
+    });
+
+    // 3. Add FAVORITES item
+    const favoritesItem = rawItems.find((i) => i.value === 'FAVORITES');
+    addItem(favoritesItem);
+
+    // 4. Add Favorites
+    if (favoriteValues.length > 0) {
+      favoriteValues.forEach((fav) => {
+        const favItem = rawItems.find((i) => i.value === fav);
+        addItem(favItem);
+      });
+    }
+
+    // 5. Add remaining items
+    rawItems.forEach((item) => {
+      addItem(item);
+    });
+
+    return result;
+  }, [rawItems, selectedFilter, favoriteValues]);
 
   return (
     <View
@@ -114,35 +163,41 @@ export default function FilterSlider({
           const selected = item.value === selectedFilter;
           const disabled = item.value === 'FAVORITES' && !hasFavorites;
           return (
-            <TouchableOpacity
-              key={item.value}
-              style={[
-                styles.item,
-                selected && { backgroundColor: selectedBackgroundColor },
-                disabled && { opacity: 0.5 },
-              ]}
-              onPress={() => onFilterChange(item.value)}
-              disabled={disabled}
-            >
-              {item.icon && (
-                <Icon
-                  name={item.icon}
-                  type="font-awesome"
-                  size={14}
-                  color={selected ? selectedTextColor : '#fbbf24'} // Gold star if unselected? Screenshot shows grey text but maybe star is colored
-                  style={{ marginRight: 4 }}
-                />
-              )}
-              <Text
+            <React.Fragment key={item.value}>
+              <TouchableOpacity
                 style={[
-                  styles.itemText,
-                  { color: selected ? selectedTextColor : unselectedTextColor },
-                  selected && styles.selectedText,
+                  styles.item,
+                  selected && { backgroundColor: selectedBackgroundColor },
+                  disabled && { opacity: 0.5 },
                 ]}
+                onPress={() => onFilterChange(item.value)}
+                disabled={disabled}
               >
-                {item.label}
-              </Text>
-            </TouchableOpacity>
+                {item.icon && (
+                  <Icon
+                    name={item.icon}
+                    type="font-awesome"
+                    size={14}
+                    color={selected ? selectedTextColor : '#fbbf24'} // Gold star if unselected? Screenshot shows grey text but maybe star is colored
+                    style={{ marginRight: 4 }}
+                  />
+                )}
+                <Text
+                  style={[
+                    styles.itemText,
+                    { color: selected ? selectedTextColor : unselectedTextColor },
+                    selected && styles.selectedText,
+                  ]}
+                >
+                  {item.label}
+                </Text>
+              </TouchableOpacity>
+              {index === 0 && items.length > 1 && (
+                <View style={styles.separator}>
+                  <Text style={styles.separatorText}>|</Text>
+                </View>
+              )}
+            </React.Fragment>
           );
         })}
       </ScrollView>
@@ -174,5 +229,14 @@ const styles = StyleSheet.create({
   },
   selectedText: {
     fontWeight: '700',
+  },
+  separator: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+  },
+  separatorText: {
+    color: '#8E8E93',
+    fontSize: 14,
   },
 });

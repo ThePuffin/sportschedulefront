@@ -44,28 +44,8 @@ export default function Schedule() {
   );
 
   const teamsForSelector = useMemo(() => {
-    const teamsList = [...leagueTeams];
-    let nextIndex = 1;
-    if (teamSelected && teamSelected !== 'all') {
-      const index = teamsList.findIndex((t) => t.uniqueId === teamSelected);
-      if (index > 1) {
-        const [selected] = teamsList.splice(index, 1);
-        teamsList.splice(1, 0, selected);
-      }
-      nextIndex = 2;
-    }
-    if (favoriteTeams.length > 0) {
-      const favId = favoriteTeams[0];
-      if (favId && favId !== teamSelected) {
-        const index = teamsList.findIndex((t) => t.uniqueId === favId);
-        if (index >= nextIndex) {
-          const [fav] = teamsList.splice(index, 1);
-          teamsList.splice(nextIndex, 0, fav);
-        }
-      }
-    }
-    return teamsList;
-  }, [leagueTeams, teamSelected, favoriteTeams]);
+    return [...leagueTeams];
+  }, [leagueTeams]);
 
   const allOption = {
     uniqueId: 'all',
@@ -533,6 +513,7 @@ export default function Schedule() {
                           showFavorites={false}
                           hasFavorites={false}
                           showAll={false}
+                          favoriteValues={favoriteTeams}
                         />
                       </div>
                     </div>
@@ -569,6 +550,7 @@ export default function Schedule() {
                         showFavorites={false}
                         hasFavorites={false}
                         showAll={false}
+                        favoriteValues={favoriteTeams}
                       />
                     </div>
                   )}
