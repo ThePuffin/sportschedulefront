@@ -636,7 +636,7 @@ export default function GameofTheDay() {
                 style={
                   windowWidth > 768
                     ? {
-                        width: windowWidth < 1200 ? '95%' : '75%',
+                        width: windowWidth < 1200 ? '95%' : '100%',
                         margin: '0 auto',
                         padding: 10,
                         boxSizing: 'border-box',

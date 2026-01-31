@@ -116,6 +116,8 @@ export const translateWord = (word: string) => {
         favorites: 'FAVORIS',
         followLive: ' Suivre le direct',
         scoreView: 'Afficher les scores',
+        localizeArena: "Localiser l'arène",
+        downloadICS: 'Fichier .ics',
       };
       break;
     case 'de':
@@ -150,6 +152,8 @@ export const translateWord = (word: string) => {
         favorites: 'FAVORITEN',
         followLive: 'Live verfolgen',
         scoreView: 'Spielstände anzeigen',
+        localizeArena: 'Arena lokalisieren',
+        downloadICS: 'ICS-Datei',
       };
       break;
     case 'es':
@@ -184,6 +188,8 @@ export const translateWord = (word: string) => {
         favorites: 'FAVORITOS',
         followLive: 'Seguir en vivo',
         scoreView: 'Mostrar marcadores',
+        localizeArena: 'Localizar arena',
+        downloadICS: 'Archivo .ics',
       };
       break;
 
@@ -219,6 +225,8 @@ export const translateWord = (word: string) => {
         favorites: 'PREFERITI',
         followLive: 'Segui in diretta',
         scoreView: 'Mostra punteggi',
+        localizeArena: "Localizza l'arena",
+        downloadICS: 'File .ics',
       };
       break;
     case 'ja':
@@ -253,6 +261,8 @@ export const translateWord = (word: string) => {
         favorites: 'お気に入り',
         followLive: 'ライブをフォロー',
         scoreView: 'スコアを表示',
+        localizeArena: 'アリーナの位置を特定',
+        downloadICS: 'ICSファイル',
       };
       break;
     case 'ko':
@@ -287,6 +297,8 @@ export const translateWord = (word: string) => {
         favorites: '즐겨찾기',
         followLive: '라이브 팔로우',
         scoreView: '점수 보기',
+        localizeArena: '아레나 위치 지정',
+        downloadICS: 'ICS 파일',
       };
       break;
     case 'nl':
@@ -321,6 +333,8 @@ export const translateWord = (word: string) => {
         favorites: 'FAVORIETEN',
         followLive: 'Volg live',
         scoreView: 'Scores weergeven',
+        localizeArena: 'Arena lokaliseren',
+        downloadICS: 'ICS-bestand',
       };
       break;
     case 'pt':
@@ -355,6 +369,8 @@ export const translateWord = (word: string) => {
         favorites: 'FAVORITOS',
         followLive: 'Seguir ao vivo',
         scoreView: 'Mostrar placares',
+        localizeArena: 'Localizar estádio',
+        downloadICS: 'Arquivo .ics',
       };
       break;
     case 'ru':
@@ -389,6 +405,8 @@ export const translateWord = (word: string) => {
         favorites: 'ИЗБРАННОЕ',
         followLive: 'Следить в прямом эфире',
         scoreView: 'Показать результаты',
+        localizeArena: 'Локализовать стадион',
+        downloadICS: 'Файл .ics',
       };
       break;
     case 'zh':
@@ -423,6 +441,8 @@ export const translateWord = (word: string) => {
         favorites: '收藏',
         followLive: '关注直播',
         scoreView: '显示比分',
+        localizeArena: '本地化球馆',  
+        downloadICS: 'ICS文件',
       };
       break;
     default:
@@ -457,6 +477,8 @@ export const translateWord = (word: string) => {
         favorites: 'FAVORITES',
         followLive: 'Follow Live',
         scoreView: 'Show scores',
+        localizeArena: 'Localize Arena',
+        downloadICS: 'ICS File',
       };
       break;
   }

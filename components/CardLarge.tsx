@@ -22,7 +22,7 @@ import GameModal from './GameModal';
 export default function CardLarge({
   data,
   showDate = false,
-  showScores = true,
+  showScores: propShowScores,
   isSelected = false,
 }: Readonly<CardsProps & { showScores?: boolean }>) {
   const {
@@ -53,6 +53,30 @@ export default function CardLarge({
   const { width } = useWindowDimensions();
   const isMedium = width >= 768 && width < 1200;
   const [favoriteTeams, setFavoriteTeams] = useState<string[]>(() => getCache<string[]>('favoriteTeams') || []);
+  const [showScores, setShowScores] = useState<boolean>(() => {
+    if (propShowScores !== undefined) return propShowScores;
+    const cached = getCache<boolean>('showScores');
+    return cached ?? true;
+  });
+
+  useEffect(() => {
+    if (propShowScores !== undefined) {
+      setShowScores(propShowScores);
+    }
+  }, [propShowScores]);
+
+  useEffect(() => {
+    if (propShowScores !== undefined) return;
+
+    const updateScores = () => {
+      setShowScores(getCache<boolean>('showScores') ?? true);
+    };
+    if (globalThis.window !== undefined) {
+      globalThis.window.addEventListener('scoresUpdated', updateScores);
+      return () => globalThis.window.removeEventListener('scoresUpdated', updateScores);
+    }
+  }, [propShowScores]);
+
   const [modalVisible, setModalVisible] = useState(false);
   const [scoreRevealed, setScoreRevealed] = useState(false);
   const { backgroundColor: selectedBackgroundColor, textColor: selectedColor } = useFavoriteColor('#3b82f6');
@@ -183,7 +207,9 @@ export default function CardLarge({
       >
         <Pressable
           onPress={() => {
-            setModalVisible(true);
+            if (status === GameStatus.SCHEDULED) {
+              setModalVisible(true);
+            }
             setScoreRevealed(true);
           }}
         >
@@ -264,7 +290,10 @@ export default function CardLarge({
                       target="_blank"
                       rel="noopener noreferrer"
                       style={{ textDecoration: 'none', cursor: 'pointer' }}
-                      onClick={(e) => e.stopPropagation()}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setScoreRevealed(true);
+                      }}
                     >
                       <Text style={styles.liveTimeText}>{timeText}</Text>
                     </a>

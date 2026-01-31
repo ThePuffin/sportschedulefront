@@ -430,16 +430,6 @@ export default function Schedule() {
         <ThemedView>
           <div
             style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              padding: '5px 15px 0 15px',
-            }}
-          >
-            <AppLogo />
-          </div>
-          <div
-            style={{
               width: '100%',
               margin: '0 auto',
               alignContent: 'center',
@@ -449,7 +439,17 @@ export default function Schedule() {
             }}
           >
             <ThemedView>
-              <div style={{ width: '100%' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  padding: '5px 15px 0 15px',
+                }}
+              >
+                <AppLogo />
+              </div>
+              <div style={{ width: '100%', padding: isSmallDevice ? 0 : 10, boxSizing: 'border-box' }}>
                 <div style={{ width: '100%' }}>
                   <FilterSlider
                     selectedFilter={leagueOfSelectedTeam}

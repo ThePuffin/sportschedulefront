@@ -1,5 +1,5 @@
 import { GameFormatted } from '@/utils/types';
-import { generateICSFile } from '@/utils/utils';
+import { generateICSFile, translateWord } from '@/utils/utils';
 import { Icon } from '@rneui/themed';
 import React from 'react';
 import { Image, Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -88,7 +88,7 @@ export default function GameModal({ visible, onClose, data, gradientStyle }: Gam
                       color="white"
                       style={{ marginRight: 10 }}
                     />
-                    <Text style={styles.actionButtonText}>ICS</Text>
+                    <Text style={styles.actionButtonText}>{translateWord('downloadICS')}</Text>
                   </TouchableOpacity>
 
                   {arenaName && (
@@ -107,7 +107,7 @@ export default function GameModal({ visible, onClose, data, gradientStyle }: Gam
                           color="white"
                           style={{ marginRight: 10 }}
                         />
-                        <Text style={styles.actionButtonText}>Maps</Text>
+                        <Text style={styles.actionButtonText}>{translateWord('localizeArena')}</Text>
                       </View>
                     </a>
                   )}
