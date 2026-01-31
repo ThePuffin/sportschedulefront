@@ -1,4 +1,5 @@
-import { leagueLogos } from '@/constants/enum';
+import { GameStatus, leagueLogos } from '@/constants/enum';
+import { useFavoriteColor } from '@/hooks/useFavoriteColor';
 import { getGamesStatus } from '@/utils/date';
 import { getCache } from '@/utils/fetchData';
 import { CardsProps } from '@/utils/types';
@@ -12,6 +13,7 @@ export default function CardLarge({
   data,
   showDate = false,
   showScores = true,
+  isSelected = false,
 }: Readonly<CardsProps & { showScores?: boolean }>) {
   const {
     homeTeamShort,
@@ -42,6 +44,7 @@ export default function CardLarge({
   const isMedium = width >= 768 && width < 1200;
   const [favoriteTeams, setFavoriteTeams] = useState<string[]>(() => getCache<string[]>('favoriteTeams') || []);
   const [scoreRevealed, setScoreRevealed] = useState(false);
+  const { backgroundColor: selectedBackgroundColor, textColor: selectedColor } = useFavoriteColor('#3b82f6');
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
@@ -62,7 +65,7 @@ export default function CardLarge({
 
   const hasScore = homeTeamScore != null && awayTeamScore != null;
   const status = getGamesStatus(data);
-  const isLive = status === 'IN_PROGRESS';
+  const isLive = status === GameStatus.IN_PROGRESS;
 
   useEffect(() => {
     if (isLive) {
@@ -86,9 +89,9 @@ export default function CardLarge({
   }, [isLive, pulseAnim]);
 
   let timeText = '';
-  if (status === 'FINAL') {
+  if (status === GameStatus.FINAL) {
     timeText = translateWord('ended');
-  } else if (status === 'IN_PROGRESS') {
+  } else if (status === GameStatus.IN_PROGRESS) {
     timeText = translateWord('followLive');
   } else if (startTimeUTC) {
     timeText = showDate
@@ -102,9 +105,8 @@ export default function CardLarge({
   const leagueKey = (data.league || 'DEFAULT') as keyof typeof leagueLogos;
   const leagueLogo = leagueLogos[leagueKey] || leagueLogos.DEFAULT;
 
-  // Style pour l'ombre des logos (identique à Cards.tsx pour un fond sombre)
-  const shadowColor = 'rgba(255, 255, 255, 0.24)';
-  const logoStyle = { filter: `brightness(1.1) contrast(1.2) drop-shadow(0 0 1px ${shadowColor})` } as any;
+  const logoStyle = { filter: `brightness(1.1) contrast(1.2) )` } as any;
+  const leagueLogoStyle = leagueKey === 'PWHL' ? ({ filter: 'brightness(0) invert(1)' } as any) : logoStyle;
 
   const isFavoriteHomeTeam = favoriteTeams.includes(homeTeamId);
   const isFavorite = favoriteTeams.includes(homeTeamId) || favoriteTeams.includes(awayTeamId);
@@ -162,7 +164,7 @@ export default function CardLarge({
         {/* Header: League Logo & Live Badge */}
         <View style={styles.headerRow}>
           <View style={styles.leagueBadge}>
-            <Image source={leagueLogo} style={[styles.leagueIcon, logoStyle]} resizeMode="contain" />
+            <Image source={leagueLogo} style={[styles.leagueIcon, leagueLogoStyle]} resizeMode="contain" />
           </View>
           {isLive && (
             <View style={styles.liveBadge}>
@@ -175,6 +177,11 @@ export default function CardLarge({
                   opacity: pulseAnim,
                 }}
               />
+            </View>
+          )}
+          {status === GameStatus.SCHEDULED && isSelected && (
+            <View style={[styles.bookmarkBadge, { backgroundColor: selectedBackgroundColor }]}>
+              <Icon name="bookmark" type="font-awesome" size={14} color={selectedColor} />
             </View>
           )}
         </View>
@@ -345,7 +352,7 @@ const styles = StyleSheet.create({
     flex: 1.2,
   },
   vsText: {
-    color: '#334155',
+    color: '#CBD5E1',
     fontSize: 32,
     fontStyle: 'italic',
     fontWeight: '900',
@@ -369,7 +376,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   scoreDivider: {
-    color: '#334155',
+    color: '#CBD5E1',
     fontSize: 24,
     fontWeight: 'bold',
     marginHorizontal: 10,
@@ -398,7 +405,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   arenaText: {
-    color: '#64748b',
+    color: '#CBD5E1',
     fontSize: 12,
+  },
+  bookmarkBadge: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    borderRadius: 20,
+    padding: 6,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
 });

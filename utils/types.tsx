@@ -128,4 +128,5 @@ export interface CardsProps {
   selected: boolean;
   showButtons?: boolean;
   numberSelected?: number;
+  isSelected?: boolean;
 }
