@@ -338,7 +338,12 @@ export default function Calendar() {
             return (
               <div key={gameId} style={{ display: 'inline-block', width: '100%' }}>
                 <ThemedView>
-                  <CardLarge data={game} showDate={true} onSelection={handleGamesSelection} isSelected={isSelected} />
+                  <CardLarge
+                    data={game}
+                    showDate={true}
+                    onSelection={handleGamesSelection}
+                    isSelected={isSelected}
+                  />
                 </ThemedView>
               </div>
             );

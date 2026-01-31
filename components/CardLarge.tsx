@@ -24,7 +24,6 @@ export default function CardLarge({
   showDate = false,
   showScores: propShowScores,
   isSelected = false,
-  selected = false,
   onSelection,
 }: Readonly<CardsProps & { showScores?: boolean }>) {
   const {
@@ -222,12 +221,10 @@ export default function CardLarge({
           onPress={() => {
             if (onSelection) {
               onSelection(data);
-              return;
-            }
-            if (status === GameStatus.SCHEDULED) {
+            } else {
               setModalVisible(true);
+              setScoreRevealed(true);
             }
-            setScoreRevealed(true);
           }}
         >
           <View style={[{ padding: 15, borderRadius: 20 }, gradientStyle]}>

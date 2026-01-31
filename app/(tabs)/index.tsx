@@ -533,7 +533,7 @@ export default function GameofTheDay() {
                   <CardLarge
                     data={teamSelectedId ? { ...game, teamSelectedId } : game}
                     showDate={false}
-                    selected={false}
+                    isSelected={false}
                     showScores={showScores}
                   />
                 </div>
@@ -550,9 +550,7 @@ export default function GameofTheDay() {
                   numberSelected={1}
                   showButtons={true}
                   showDate={false}
-                  onSelection={() => {}}
-                  selected={isSelected}
-                  disableSelection={true}
+                  isSelected={isSelected}
                   showScores={showScores}
                 />
               </div>

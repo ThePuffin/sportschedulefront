@@ -27,7 +27,7 @@ export default function GamesSelected({ data = [], onAction, teamNumber = 1 }: R
             <ThemedView>
               <CardLarge
                 data={gameSelected}
-                selected={false}
+                isSelected={false}
                 showDate={true}
                 onSelection={() => onAction(gameSelected)}
               />

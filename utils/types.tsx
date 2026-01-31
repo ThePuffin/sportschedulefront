@@ -125,8 +125,7 @@ export interface CardsProps {
   data: GameFormatted;
   showDate: boolean;
   onSelection?: (game: GameFormatted) => void;
-  selected: boolean;
+  isSelected: boolean;
   showButtons?: boolean;
   numberSelected?: number;
-  isSelected?: boolean;
 }

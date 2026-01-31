@@ -417,9 +417,7 @@ export default function Schedule() {
             numberSelected={1}
             showButtons={true}
             showDate={true}
-            onSelection={() => {}}
-            selected={isSelected}
-            disableSelection={true}
+            isSelected={isSelected}
           />
         );
       }),

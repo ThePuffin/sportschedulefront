@@ -32,18 +32,14 @@ export default function Accordion({
         const isSelected = gamesSelected.some(
           (gameSelect) => game.homeTeamId === gameSelect.homeTeamId && game.startTimeUTC === gameSelect.startTimeUTC,
         );
-          return (
+        return (
           <CardLarge
-            onSelection={() => {
-              return;
-            }}
             key={`${game.homeTeamId}-${game.startTimeUTC}`}
             data={game}
             numberSelected={1}
             showDate={showDate}
             showButtons={true}
             selected={isSelected}
-            disableSelection={true}
           />
         );
       });
