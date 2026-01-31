@@ -221,9 +221,8 @@ export default function CardLarge({
           onPress={() => {
             if (onSelection) {
               onSelection(data);
-            } else {
+            } else if (status === GameStatus.SCHEDULED) {
               setModalVisible(true);
-              setScoreRevealed(true);
             }
           }}
         >
