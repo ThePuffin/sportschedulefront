@@ -5,16 +5,16 @@ import { fetchTeams, getCache, saveCache } from '@/utils/fetchData';
 import { useFocusEffect } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Dimensions, ScrollView, useWindowDimensions } from 'react-native';
-import { ActionButton, ActionButtonRef } from '../../components/ActionButton';
-import Buttons from '../../components/Buttons';
-import CardLarge from '../../components/CardLarge';
-import GamesSelected from '../../components/GamesSelected';
-import LoadingView from '../../components/LoadingView';
-import Selector from '../../components/Selector';
-import { ButtonsKind } from '../../constants/enum';
-import { addDays, readableDate } from '../../utils/date';
-import { FilterGames, GameFormatted, Team } from '../../utils/types';
-import { addNewTeamId, randomNumber, removeLastTeamId, translateWord } from '../../utils/utils';
+import { ActionButton, ActionButtonRef } from '../components/ActionButton';
+import Buttons from '../components/Buttons';
+import Cards from '../components/Cards';
+import GamesSelected from '../components/GamesSelected';
+import LoadingView from '../components/LoadingView';
+import Selector from '../components/Selector';
+import { ButtonsKind } from '../constants/enum';
+import { addDays, readableDate } from '../utils/date';
+import { FilterGames, GameFormatted, Team } from '../utils/types';
+import { addNewTeamId, randomNumber, removeLastTeamId, translateWord } from '../utils/utils';
 const EXPO_PUBLIC_API_BASE_URL =
   process.env.EXPO_PUBLIC_API_BASE_URL ?? 'https://sportschedule2025backend.onrender.com';
 
@@ -338,7 +338,13 @@ export default function Calendar() {
             return (
               <div key={gameId} style={{ display: 'inline-block', width: '100%' }}>
                 <ThemedView>
-                  <CardLarge data={game} showDate={true} onSelection={handleGamesSelection} isSelected={isSelected} />
+                  <Cards
+                    data={game}
+                    numberSelected={teamsSelected.length}
+                    showDate={true}
+                    onSelection={handleGamesSelection}
+                    selected={isSelected}
+                  />
                 </ThemedView>
               </div>
             );
@@ -377,7 +383,7 @@ export default function Calendar() {
     }
   }, [teamsSelected, teams]);
 
-  const widthStyle = filteredTeamsSelected.length === 1 && !isSmallDevice ? '33%' : '100%';
+  const widthStyle = filteredTeamsSelected.length === 1 && !isSmallDevice ? '50%' : '100%';
 
   return (
     <ThemedView style={{ flex: 1 }}>

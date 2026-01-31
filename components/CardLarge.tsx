@@ -52,6 +52,7 @@ export default function CardLarge({
     urlLive,
   } = data;
 
+  const emptyCard = !homeTeamShort && !awayTeamShort;
   const { width } = useWindowDimensions();
   const isMedium = width >= 768 && width < 1200;
   const [favoriteTeams, setFavoriteTeams] = useState<string[]>(() => getCache<string[]>('favoriteTeams') || []);
@@ -159,7 +160,6 @@ export default function CardLarge({
   const isSelectedTeam = teamSelectedId === homeTeamId;
   const baseColor = isSelectedTeam ? '#0f172a' : '#1e293b';
   const revertColor = isSelectedTeam ? '#1e293b' : '#0f172a';
-  const isCardSelected = isSelected || selected;
 
   const getBrightness = (hexColor: string) => {
     if (!hexColor) return 0;
@@ -194,6 +194,16 @@ export default function CardLarge({
     backgroundColor: baseColor,
     backgroundImage: `linear-gradient(90deg, ${awayColorHex} 0%, ${baseColor} 5%, ${baseColor} 95%, ${homeColorHex} 100%)`,
   };
+
+  if (emptyCard) {
+    gradientStyle = {
+      backgroundColor: '#0f172a',
+      borderWidth: 1,
+      borderColor: '#131c33',
+      cursor: 'default',
+    };
+  }
+
   let homeBg = homeColorHex;
   let awayBg = awayColorHex;
 
@@ -221,138 +231,150 @@ export default function CardLarge({
           }}
         >
           <View style={[{ padding: 15, borderRadius: 20 }, gradientStyle]}>
-            {/* Header: League Logo & Live Badge */}
-            <View style={styles.headerRow}>
-              <View style={styles.leagueBadge}>
-                <Image source={leagueLogo} style={[styles.leagueIcon, leagueLogoStyle]} resizeMode="contain" />
-              </View>
-              {isLive && (
-                <View style={styles.liveBadge}>
-                  <Animated.View
-                    style={{
-                      width: 10,
-                      height: 10,
-                      borderRadius: 4,
-                      backgroundColor: '#ef4444',
-                      opacity: pulseAnim,
-                    }}
-                  />
+            <div style={emptyCard ? styles.invisible : {}}>
+              {/* Header: League Logo & Live Badge */}
+              <View style={styles.headerRow}>
+                <View style={styles.leagueBadge}>
+                  <Image source={leagueLogo} style={[styles.leagueIcon, leagueLogoStyle]} resizeMode="contain" />
                 </View>
-              )}
-              {status === GameStatus.SCHEDULED && isSelected && (
-                <View style={[styles.bookmarkBadge, { backgroundColor: selectedBackgroundColor }]}>
-                  <Icon name="bookmark" type="font-awesome" size={14} color={selectedColor} />
-                </View>
-              )}
-            </View>
-
-            {/* Main Content: Teams & Score/Time */}
-            <View style={styles.mainRow}>
-              {/* away Team */}
-              <View style={styles.teamColumn}>
-                <Image
-                  source={displayAwayLogo ? { uri: displayAwayLogo } : require('../assets/images/default_logo.png')}
-                  style={[styles.teamLogo, logoStyle, isMedium && { width: 45, height: 45, marginBottom: 4 }]}
-                />
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <Text style={[styles.teamName, isMedium && { fontSize: 14 }]}>{awayTeamShort}</Text>
-                  {favoriteTeams.includes(awayTeamId) && (
-                    <Icon name="star" type="font-awesome" size={14} color="#FFD700" style={{ marginLeft: 5 }} />
-                  )}
-                </View>
-                <Text style={styles.recordText}>
-                  {((showScores && !isFavorite) || scoreRevealed ? awayTeamRecord : '') || ''}
-                </Text>
-              </View>
-
-              {/* Center: Score or VS/@ */}
-              <View style={styles.centerColumn}>
-                {hasScore ? (
-                  (isFavorite || !showScores) && !scoreRevealed ? (
-                    <TouchableOpacity
-                      style={styles.revealButton}
-                      onPress={(e) => {
-                        e.stopPropagation();
-                        setScoreRevealed(true);
+                {isLive && (
+                  <View style={styles.liveBadge}>
+                    <Animated.View
+                      style={{
+                        width: 10,
+                        height: 10,
+                        borderRadius: 4,
+                        backgroundColor: '#ef4444',
+                        opacity: pulseAnim,
                       }}
-                    >
-                      <Icon name="eye" type="font-awesome" size={30} color="#94a3b8" />
-                      <Text style={styles.revealText}>{translateWord('score')}</Text>
-                    </TouchableOpacity>
-                  ) : (
-                    <View style={styles.scoreRow}>
-                      <Text style={[styles.scoreNumber, isMedium && { fontSize: 28 }]}>{awayTeamScore}</Text>
-                      <Text style={[styles.scoreDivider, isMedium && { fontSize: 18, marginHorizontal: 5 }]}>-</Text>
-                      <Text style={[styles.scoreNumber, isMedium && { fontSize: 28 }]}>{homeTeamScore}</Text>
-                    </View>
-                  )
-                ) : (
-                  <Text style={[styles.vsText, isMedium && { fontSize: 24 }]}>@</Text>
+                    />
+                  </View>
                 )}
+                {status === GameStatus.SCHEDULED && isSelected && (
+                  <View style={[styles.bookmarkBadge, { backgroundColor: selectedBackgroundColor }]}>
+                    <Icon name="bookmark" type="font-awesome" size={14} color={selectedColor} />
+                  </View>
+                )}
+              </View>
 
-                <View style={[styles.timeContainer, { backgroundColor: revertColor }]}>
-                  {urlLive ? (
-                    <a
-                      href={urlLive}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{ textDecoration: 'none', cursor: 'pointer' }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setScoreRevealed(true);
-                      }}
-                    >
-                      <Text style={styles.liveTimeText}>{timeText}</Text>
-                    </a>
+              {/* Main Content: Teams & Score/Time */}
+              <View style={styles.mainRow}>
+                {/* away Team */}
+                {/* Away Team */}
+                <View style={[styles.teamColumn]}>
+                  <View style={[styles.logoPlaceholder]}>
+                    <Image
+                      source={displayAwayLogo ? { uri: displayAwayLogo } : require('../assets/images/default_logo.png')}
+                      style={[styles.teamLogo, logoStyle, isMedium && { width: 45, height: 45, marginBottom: 4 }]}
+                    />
+                  </View>
+                  <View style={styles.nameContainer}>
+                    {/* On utilise \u00A0 (espace insécable) pour garantir que le texte occupe toujours une ligne */}
+                    <Text style={[styles.teamName, isMedium && { fontSize: 14 }]} numberOfLines={1}>
+                      {awayTeamShort || '\u00A0'}
+                    </Text>
+                    {favoriteTeams.includes(awayTeamId) && (
+                      <Icon name="star" type="font-awesome" size={14} color="#FFD700" style={{ marginLeft: 5 }} />
+                    )}
+                  </View>
+                  <Text style={styles.recordText}>
+                    {((showScores && !isFavorite) || scoreRevealed ? awayTeamRecord : '\u00A0') || '\u00A0'}
+                  </Text>
+                </View>
+
+                {/* Center: Score or VS/@ */}
+                <View style={styles.centerColumn}>
+                  {hasScore ? (
+                    (isFavorite || !showScores) && !scoreRevealed ? (
+                      <TouchableOpacity
+                        style={styles.revealButton}
+                        onPress={(e) => {
+                          e.stopPropagation();
+                          setScoreRevealed(true);
+                        }}
+                      >
+                        <Icon name="eye" type="font-awesome" size={30} color="#94a3b8" />
+                        <Text style={styles.revealText}>{translateWord('score')}</Text>
+                      </TouchableOpacity>
+                    ) : (
+                      <View style={styles.scoreRow}>
+                        <Text style={[styles.scoreNumber, isMedium && { fontSize: 28 }]}>{awayTeamScore}</Text>
+                        <Text style={[styles.scoreDivider, isMedium && { fontSize: 18, marginHorizontal: 5 }]}>-</Text>
+                        <Text style={[styles.scoreNumber, isMedium && { fontSize: 28 }]}>{homeTeamScore}</Text>
+                      </View>
+                    )
                   ) : (
-                    <Text style={isLive ? styles.liveTimeText : styles.timeText}>{timeText}</Text>
+                    <Text style={[styles.vsText, isMedium && { fontSize: 24 }]}>@</Text>
                   )}
+
+                  <View style={[styles.timeContainer, { backgroundColor: revertColor }]}>
+                    {urlLive ? (
+                      <a
+                        href={urlLive}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ textDecoration: 'none', cursor: 'pointer' }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setScoreRevealed(true);
+                        }}
+                      >
+                        <Text style={styles.liveTimeText}>{timeText}</Text>
+                      </a>
+                    ) : (
+                      <Text style={isLive ? styles.liveTimeText : styles.timeText}>{timeText}</Text>
+                    )}
+                  </View>
+                </View>
+
+                {/* home Team */}
+                <View style={[styles.teamColumn]}>
+                  <View style={styles.logoPlaceholder}>
+                    <Image
+                      source={displayHomeLogo ? { uri: displayHomeLogo } : require('../assets/images/default_logo.png')}
+                      style={[styles.teamLogo, logoStyle, isMedium && { width: 45, height: 45, marginBottom: 4 }]}
+                    />
+                  </View>
+                  <View style={styles.nameContainer}>
+                    <Text style={[styles.teamName, isMedium && { fontSize: 14 }]} numberOfLines={1}>
+                      {homeTeamShort || '\u00A0'}
+                    </Text>
+                    {favoriteTeams.includes(homeTeamId) && (
+                      <Icon name="star" type="font-awesome" size={14} color="#FFD700" style={{ marginLeft: 5 }} />
+                    )}
+                  </View>
+                  <Text style={styles.recordText}>
+                    {((showScores && !isFavorite) || scoreRevealed ? homeTeamRecord : '\u00A0') || '\u00A0'}
+                  </Text>
                 </View>
               </View>
 
-              {/* home Team */}
-              <View style={styles.teamColumn}>
-                <Image
-                  source={displayHomeLogo ? { uri: displayHomeLogo } : require('../assets/images/default_logo.png')}
-                  style={[styles.teamLogo, logoStyle, isMedium && { width: 45, height: 45, marginBottom: 4 }]}
-                />
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <Text style={[styles.teamName, isMedium && { fontSize: 14 }]}>{homeTeamShort}</Text>
-                  {favoriteTeams.includes(homeTeamId) && (
-                    <Icon name="star" type="font-awesome" size={14} color="#FFD700" style={{ marginLeft: 5 }} />
-                  )}
-                </View>
-                <Text style={styles.recordText}>
-                  {((showScores && !isFavorite) || scoreRevealed ? homeTeamRecord : '') || ''}
-                </Text>
-              </View>
-            </View>
-
-            {/* Footer: Arena */}
-            <View style={[styles.footer, { borderTopColor: revertColor }]}>
-              {arenaName ? (
-                <a
-                  href={`https://maps.google.com/?q=${stadiumSearch}`}
-                  style={{
-                    cursor: 'pointer',
-                    textDecoration: 'none',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 5,
-                    width: '100%',
-                    overflow: 'hidden',
-                    justifyContent: 'center',
-                  }}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
-                >
+              {/* Footer: Arena */}
+              <View style={[styles.footer, { borderTopColor: revertColor }]}>
+                {arenaName ? (
+                  <a
+                    href={`https://maps.google.com/?q=${stadiumSearch}`}
+                    style={{
+                      cursor: 'pointer',
+                      textDecoration: 'none',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 5,
+                      width: '100%',
+                      overflow: 'hidden',
+                      justifyContent: 'center',
+                    }}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Text style={styles.arenaText}>📍 {arenaName}</Text>
+                  </a>
+                ) : (
                   <Text style={styles.arenaText}>📍 {arenaName}</Text>
-                </a>
-              ) : (
-                <Text style={styles.arenaText}>📍 {arenaName}</Text>
-              )}
-            </View>
+                )}
+              </View>
+            </div>
           </View>
         </Pressable>
       </Card>
@@ -403,10 +425,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 10,
   },
-  teamColumn: {
-    alignItems: 'center',
-    flex: 1,
-  },
+
   teamLogo: {
     width: 70,
     height: 70,
@@ -417,11 +436,13 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 18,
     fontWeight: '800',
+    textAlign: 'center',
   },
   recordText: {
     color: '#64748b',
     fontSize: 11,
     marginTop: 2,
+    height: 14,
   },
   centerColumn: {
     alignItems: 'center',
@@ -480,6 +501,7 @@ const styles = StyleSheet.create({
     marginTop: 15,
     paddingTop: 10,
     alignItems: 'center',
+    height: 40,
   },
   arenaText: {
     color: '#CBD5E1',
@@ -495,5 +517,26 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
+  },
+  teamColumn: {
+    alignItems: 'center',
+    flex: 1,
+    minHeight: 120,
+    justifyContent: 'flex-start',
+  },
+  logoPlaceholder: {
+    width: 70,
+    height: 70,
+    marginBottom: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  nameContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 24,
+  },
+  invisible: {
+    visibility: 'hidden',
   },
 });

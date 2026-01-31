@@ -7,7 +7,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Dimensions, ScrollView, useWindowDimensions } from 'react-native';
 import { ActionButton, ActionButtonRef } from '../../components/ActionButton';
 import Buttons from '../../components/Buttons';
-import Cards from '../../components/Cards';
+import CardLarge from '../../components/CardLarge';
 import GamesSelected from '../../components/GamesSelected';
 import LoadingView from '../../components/LoadingView';
 import Selector from '../../components/Selector';
@@ -338,13 +338,7 @@ export default function Calendar() {
             return (
               <div key={gameId} style={{ display: 'inline-block', width: '100%' }}>
                 <ThemedView>
-                  <Cards
-                    data={game}
-                    numberSelected={teamsSelected.length}
-                    showDate={true}
-                    onSelection={handleGamesSelection}
-                    selected={isSelected}
-                  />
+                  <CardLarge data={game} showDate={true} onSelection={handleGamesSelection} isSelected={isSelected} />
                 </ThemedView>
               </div>
             );
@@ -383,7 +377,7 @@ export default function Calendar() {
     }
   }, [teamsSelected, teams]);
 
-  const widthStyle = filteredTeamsSelected.length === 1 && !isSmallDevice ? '50%' : '100%';
+  const widthStyle = filteredTeamsSelected.length === 1 && !isSmallDevice ? '33%' : '100%';
 
   return (
     <ThemedView style={{ flex: 1 }}>
