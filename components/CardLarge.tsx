@@ -24,6 +24,8 @@ export default function CardLarge({
   showDate = false,
   showScores: propShowScores,
   isSelected = false,
+  selected = false,
+  onSelection,
 }: Readonly<CardsProps & { showScores?: boolean }>) {
   const {
     homeTeamShort,
@@ -157,6 +159,7 @@ export default function CardLarge({
   const isSelectedTeam = teamSelectedId === homeTeamId;
   const baseColor = isSelectedTeam ? '#0f172a' : '#1e293b';
   const revertColor = isSelectedTeam ? '#1e293b' : '#0f172a';
+  const isCardSelected = isSelected || selected;
 
   const getBrightness = (hexColor: string) => {
     if (!hexColor) return 0;
@@ -207,6 +210,10 @@ export default function CardLarge({
       >
         <Pressable
           onPress={() => {
+            if (onSelection) {
+              onSelection(data);
+              return;
+            }
             if (status === GameStatus.SCHEDULED) {
               setModalVisible(true);
             }
@@ -479,9 +486,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   bookmarkBadge: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
     borderRadius: 20,
     padding: 6,
     justifyContent: 'center',
