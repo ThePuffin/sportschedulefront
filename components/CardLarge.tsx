@@ -45,6 +45,7 @@ export default function CardLarge({
   const [favoriteTeams, setFavoriteTeams] = useState<string[]>(() => getCache<string[]>('favoriteTeams') || []);
   const [scoreRevealed, setScoreRevealed] = useState(false);
   const { backgroundColor: selectedBackgroundColor, textColor: selectedColor } = useFavoriteColor('#3b82f6');
+  const fadeAnim = useRef(new Animated.Value(0)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
@@ -56,6 +57,14 @@ export default function CardLarge({
       return () => globalThis.window.removeEventListener('favoritesUpdated', updateFavorites);
     }
   }, []);
+
+  useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 400,
+      useNativeDriver: true,
+    }).start();
+  }, [fadeAnim]);
 
   useEffect(() => {
     if (!showScores) {
@@ -156,136 +165,138 @@ export default function CardLarge({
   const stadiumSearch = arenaName.replace(/\s+/g, '+') + ',' + placeName.replace(/\s+/g, '+');
 
   return (
-    <Card
-      containerStyle={[styles.cardContainer, { padding: 0, backgroundColor: 'transparent' }]}
-      wrapperStyle={{ padding: 0 }}
-    >
-      <View style={[{ padding: 15, borderRadius: 20 }, gradientStyle]}>
-        {/* Header: League Logo & Live Badge */}
-        <View style={styles.headerRow}>
-          <View style={styles.leagueBadge}>
-            <Image source={leagueLogo} style={[styles.leagueIcon, leagueLogoStyle]} resizeMode="contain" />
-          </View>
-          {isLive && (
-            <View style={styles.liveBadge}>
-              <Animated.View
-                style={{
-                  width: 10,
-                  height: 10,
-                  borderRadius: 4,
-                  backgroundColor: '#ef4444',
-                  opacity: pulseAnim,
-                }}
-              />
+    <Animated.View style={{ opacity: fadeAnim }}>
+      <Card
+        containerStyle={[styles.cardContainer, { padding: 0, backgroundColor: 'transparent' }]}
+        wrapperStyle={{ padding: 0 }}
+      >
+        <View style={[{ padding: 15, borderRadius: 20 }, gradientStyle]}>
+          {/* Header: League Logo & Live Badge */}
+          <View style={styles.headerRow}>
+            <View style={styles.leagueBadge}>
+              <Image source={leagueLogo} style={[styles.leagueIcon, leagueLogoStyle]} resizeMode="contain" />
             </View>
-          )}
-          {status === GameStatus.SCHEDULED && isSelected && (
-            <View style={[styles.bookmarkBadge, { backgroundColor: selectedBackgroundColor }]}>
-              <Icon name="bookmark" type="font-awesome" size={14} color={selectedColor} />
-            </View>
-          )}
-        </View>
-
-        {/* Main Content: Teams & Score/Time */}
-        <View style={styles.mainRow}>
-          {/* away Team */}
-          <View style={styles.teamColumn}>
-            <Image
-              source={displayAwayLogo ? { uri: displayAwayLogo } : require('../assets/images/default_logo.png')}
-              style={[styles.teamLogo, logoStyle, isMedium && { width: 45, height: 45, marginBottom: 4 }]}
-            />
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Text style={[styles.teamName, isMedium && { fontSize: 14 }]}>{awayTeamShort}</Text>
-              {favoriteTeams.includes(awayTeamId) && (
-                <Icon name="star" type="font-awesome" size={14} color="#FFD700" style={{ marginLeft: 5 }} />
-              )}
-            </View>
-            <Text style={styles.recordText}>
-              {((showScores && !isFavorite) || scoreRevealed ? awayTeamRecord : '') || ''}
-            </Text>
-          </View>
-
-          {/* Center: Score or VS/@ */}
-          <View style={styles.centerColumn}>
-            {hasScore ? (
-              (isFavorite || !showScores) && !scoreRevealed ? (
-                <TouchableOpacity style={styles.revealButton} onPress={() => setScoreRevealed(true)}>
-                  <Icon name="eye" type="font-awesome" size={30} color="#94a3b8" />
-                  <Text style={styles.revealText}>{translateWord('score')}</Text>
-                </TouchableOpacity>
-              ) : (
-                <View style={styles.scoreRow}>
-                  <Text style={[styles.scoreNumber, isMedium && { fontSize: 28 }]}>{awayTeamScore}</Text>
-                  <Text style={[styles.scoreDivider, isMedium && { fontSize: 18, marginHorizontal: 5 }]}>-</Text>
-                  <Text style={[styles.scoreNumber, isMedium && { fontSize: 28 }]}>{homeTeamScore}</Text>
-                </View>
-              )
-            ) : (
-              <Text style={[styles.vsText, isMedium && { fontSize: 24 }]}>@</Text>
+            {isLive && (
+              <View style={styles.liveBadge}>
+                <Animated.View
+                  style={{
+                    width: 10,
+                    height: 10,
+                    borderRadius: 4,
+                    backgroundColor: '#ef4444',
+                    opacity: pulseAnim,
+                  }}
+                />
+              </View>
             )}
+            {status === GameStatus.SCHEDULED && isSelected && (
+              <View style={[styles.bookmarkBadge, { backgroundColor: selectedBackgroundColor }]}>
+                <Icon name="bookmark" type="font-awesome" size={14} color={selectedColor} />
+              </View>
+            )}
+          </View>
 
-            <View style={[styles.timeContainer, { backgroundColor: revertColor }]}>
-              {urlLive ? (
-                <a
-                  href={urlLive}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ textDecoration: 'none', cursor: 'pointer' }}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <Text style={styles.liveTimeText}>{timeText}</Text>
-                </a>
+          {/* Main Content: Teams & Score/Time */}
+          <View style={styles.mainRow}>
+            {/* away Team */}
+            <View style={styles.teamColumn}>
+              <Image
+                source={displayAwayLogo ? { uri: displayAwayLogo } : require('../assets/images/default_logo.png')}
+                style={[styles.teamLogo, logoStyle, isMedium && { width: 45, height: 45, marginBottom: 4 }]}
+              />
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Text style={[styles.teamName, isMedium && { fontSize: 14 }]}>{awayTeamShort}</Text>
+                {favoriteTeams.includes(awayTeamId) && (
+                  <Icon name="star" type="font-awesome" size={14} color="#FFD700" style={{ marginLeft: 5 }} />
+                )}
+              </View>
+              <Text style={styles.recordText}>
+                {((showScores && !isFavorite) || scoreRevealed ? awayTeamRecord : '') || ''}
+              </Text>
+            </View>
+
+            {/* Center: Score or VS/@ */}
+            <View style={styles.centerColumn}>
+              {hasScore ? (
+                (isFavorite || !showScores) && !scoreRevealed ? (
+                  <TouchableOpacity style={styles.revealButton} onPress={() => setScoreRevealed(true)}>
+                    <Icon name="eye" type="font-awesome" size={30} color="#94a3b8" />
+                    <Text style={styles.revealText}>{translateWord('score')}</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <View style={styles.scoreRow}>
+                    <Text style={[styles.scoreNumber, isMedium && { fontSize: 28 }]}>{awayTeamScore}</Text>
+                    <Text style={[styles.scoreDivider, isMedium && { fontSize: 18, marginHorizontal: 5 }]}>-</Text>
+                    <Text style={[styles.scoreNumber, isMedium && { fontSize: 28 }]}>{homeTeamScore}</Text>
+                  </View>
+                )
               ) : (
-                <Text style={isLive ? styles.liveTimeText : styles.timeText}>{timeText}</Text>
+                <Text style={[styles.vsText, isMedium && { fontSize: 24 }]}>@</Text>
               )}
+
+              <View style={[styles.timeContainer, { backgroundColor: revertColor }]}>
+                {urlLive ? (
+                  <a
+                    href={urlLive}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ textDecoration: 'none', cursor: 'pointer' }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Text style={styles.liveTimeText}>{timeText}</Text>
+                  </a>
+                ) : (
+                  <Text style={isLive ? styles.liveTimeText : styles.timeText}>{timeText}</Text>
+                )}
+              </View>
+            </View>
+
+            {/* home Team */}
+            <View style={styles.teamColumn}>
+              <Image
+                source={displayHomeLogo ? { uri: displayHomeLogo } : require('../assets/images/default_logo.png')}
+                style={[styles.teamLogo, logoStyle, isMedium && { width: 45, height: 45, marginBottom: 4 }]}
+              />
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Text style={[styles.teamName, isMedium && { fontSize: 14 }]}>{homeTeamShort}</Text>
+                {favoriteTeams.includes(homeTeamId) && (
+                  <Icon name="star" type="font-awesome" size={14} color="#FFD700" style={{ marginLeft: 5 }} />
+                )}
+              </View>
+              <Text style={styles.recordText}>
+                {((showScores && !isFavorite) || scoreRevealed ? homeTeamRecord : '') || ''}
+              </Text>
             </View>
           </View>
 
-          {/* home Team */}
-          <View style={styles.teamColumn}>
-            <Image
-              source={displayHomeLogo ? { uri: displayHomeLogo } : require('../assets/images/default_logo.png')}
-              style={[styles.teamLogo, logoStyle, isMedium && { width: 45, height: 45, marginBottom: 4 }]}
-            />
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Text style={[styles.teamName, isMedium && { fontSize: 14 }]}>{homeTeamShort}</Text>
-              {favoriteTeams.includes(homeTeamId) && (
-                <Icon name="star" type="font-awesome" size={14} color="#FFD700" style={{ marginLeft: 5 }} />
-              )}
-            </View>
-            <Text style={styles.recordText}>
-              {((showScores && !isFavorite) || scoreRevealed ? homeTeamRecord : '') || ''}
-            </Text>
-          </View>
-        </View>
-
-        {/* Footer: Arena */}
-        <View style={[styles.footer, { borderTopColor: revertColor }]}>
-          {arenaName ? (
-            <a
-              href={`https://maps.google.com/?q=${stadiumSearch}`}
-              style={{
-                cursor: 'pointer',
-                textDecoration: 'none',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 5,
-                width: '100%',
-                overflow: 'hidden',
-                justifyContent: 'center',
-              }}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()}
-            >
+          {/* Footer: Arena */}
+          <View style={[styles.footer, { borderTopColor: revertColor }]}>
+            {arenaName ? (
+              <a
+                href={`https://maps.google.com/?q=${stadiumSearch}`}
+                style={{
+                  cursor: 'pointer',
+                  textDecoration: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 5,
+                  width: '100%',
+                  overflow: 'hidden',
+                  justifyContent: 'center',
+                }}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Text style={styles.arenaText}>📍 {arenaName}</Text>
+              </a>
+            ) : (
               <Text style={styles.arenaText}>📍 {arenaName}</Text>
-            </a>
-          ) : (
-            <Text style={styles.arenaText}>📍 {arenaName}</Text>
-          )}
+            )}
+          </View>
         </View>
-      </View>
-    </Card>
+      </Card>
+    </Animated.View>
   );
 }
 
