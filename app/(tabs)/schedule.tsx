@@ -41,9 +41,6 @@ export default function Schedule() {
   const [isLoading, setIsLoading] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
   const ActionButtonRef = useRef<ActionButtonRef>(null);
-  const [gamesSelected, setGamesSelected] = useState<GameFormatted[]>(
-    () => getCache<GameFormatted[]>('gameSelected') || [],
-  );
 
   const teamsForSelector = useMemo(() => {
     return [...leagueTeams];
@@ -143,7 +140,6 @@ export default function Schedule() {
   useFocusEffect(
     useCallback(() => {
       scrollViewRef.current?.scrollTo({ y: 0, animated: false });
-      setGamesSelected(getCache<GameFormatted[]>('gameSelected') || []);
     }, []),
   );
 
@@ -407,19 +403,7 @@ export default function Schedule() {
       key: month,
       content: games.map((game) => {
         const gameId = game._id ?? randomNumber(999999);
-        const isSelected = gamesSelected.some(
-          (gameSelect) => game.homeTeamId === gameSelect.homeTeamId && game.startTimeUTC === gameSelect.startTimeUTC,
-        );
-        return (
-          <CardLarge
-            key={gameId}
-            data={game}
-            numberSelected={1}
-            showButtons={true}
-            showDate={true}
-            isSelected={isSelected}
-          />
-        );
+        return <CardLarge key={gameId} data={game} numberSelected={1} showButtons={true} showDate={true} />;
       }),
     }));
 
@@ -621,7 +605,6 @@ export default function Schedule() {
                 open={teamFilter?.length > 0 || i === 0}
                 showDate={true}
                 isCounted={true}
-                gamesSelected={gamesSelected}
               />
             </div>
           ))}

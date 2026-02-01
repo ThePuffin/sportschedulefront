@@ -2,7 +2,7 @@ import { GameStatus, leagueLogos } from '@/constants/enum';
 import { useFavoriteColor } from '@/hooks/useFavoriteColor';
 import { getGamesStatus } from '@/utils/date';
 import { getCache } from '@/utils/fetchData';
-import { CardsProps } from '@/utils/types';
+import { CardsProps, GameFormatted } from '@/utils/types';
 import { translateWord } from '@/utils/utils';
 import { Card } from '@rneui/base';
 import { Icon } from '@rneui/themed';
@@ -23,7 +23,6 @@ export default function CardLarge({
   data,
   showDate = false,
   showScores: propShowScores,
-  isSelected = false,
   onSelection,
 }: Readonly<CardsProps & { showScores?: boolean }>) {
   const {
@@ -47,7 +46,6 @@ export default function CardLarge({
     awayTeamBackgroundColor,
     homeTeamBackgroundColor,
     placeName = '',
-    gameDate: gameDateStr,
     urlLive,
   } = data;
 
@@ -55,6 +53,9 @@ export default function CardLarge({
   const { width } = useWindowDimensions();
   const isMedium = width >= 768 && width < 1200;
   const [favoriteTeams, setFavoriteTeams] = useState<string[]>(() => getCache<string[]>('favoriteTeams') || []);
+  const [gamesSelected, setGamesSelected] = useState<GameFormatted[]>(
+    () => getCache<GameFormatted[]>('gameSelected') || [],
+  );
   const [showScores, setShowScores] = useState<boolean>(() => {
     if (propShowScores !== undefined) return propShowScores;
     const cached = getCache<boolean>('showScores');
@@ -92,6 +93,16 @@ export default function CardLarge({
     if (globalThis.window !== undefined) {
       globalThis.window.addEventListener('favoritesUpdated', updateFavorites);
       return () => globalThis.window.removeEventListener('favoritesUpdated', updateFavorites);
+    }
+  }, []);
+
+  useEffect(() => {
+    const updateSelected = () => {
+      setGamesSelected(getCache<GameFormatted[]>('gameSelected') || []);
+    };
+    if (globalThis.window !== undefined) {
+      globalThis.window.addEventListener('gamesSelectedUpdated', updateSelected);
+      return () => globalThis.window.removeEventListener('gamesSelectedUpdated', updateSelected);
     }
   }, []);
 
@@ -160,6 +171,9 @@ export default function CardLarge({
 
   const isFavoriteHomeTeam = favoriteTeams.includes(homeTeamId);
   const isFavorite = favoriteTeams.includes(homeTeamId) || favoriteTeams.includes(awayTeamId);
+  const isSelected = gamesSelected.some(
+    (g) => g.homeTeamId === data.homeTeamId && g.startTimeUTC === data.startTimeUTC,
+  );
   const isSelectedTeam = teamSelectedId === homeTeamId;
   const baseColor = isSelectedTeam ? '#0f172a' : '#1e293b';
   const revertColor = isSelectedTeam ? '#1e293b' : '#0f172a';
@@ -201,8 +215,9 @@ export default function CardLarge({
   if (emptyCard) {
     gradientStyle = {
       backgroundColor: '#0f172a',
-      borderWidth: 1,
-      borderColor: '#131c33',
+      borderLeftWidth: 3,
+      borderRightWidth: 3,
+      borderColor: '#1e293b',
       cursor: 'default',
     };
   }
@@ -253,8 +268,18 @@ export default function CardLarge({
                   </View>
                 )}
                 {status === GameStatus.SCHEDULED && isSelected && (
-                  <View style={[styles.bookmarkBadge, { backgroundColor: selectedBackgroundColor }]}>
-                    <Icon name="bookmark" type="font-awesome" size={14} color={selectedColor} />
+                  <View style={{ justifyContent: 'center', alignItems: 'center' }}>
+                    <Icon
+                      name="bookmark"
+                      type="font-awesome"
+                      size={20}
+                      color="white"
+                      style={{
+                        textShadowColor: homeColorHex,
+                        textShadowOffset: { width: 0, height: 0 },
+                        textShadowRadius: 3,
+                      }}
+                    />
                   </View>
                 )}
               </View>

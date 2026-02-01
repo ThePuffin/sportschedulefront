@@ -13,7 +13,6 @@ export default function Accordion({
   isCounted = false,
   showDate = false,
   disableToggle = false,
-  gamesSelected = [],
   onRetry,
 }: Readonly<AccordionProps & { onRetry?: () => void }>) {
   const [expanded, setExpanded] = useState(disableToggle ? true : (open ?? i === 0));
@@ -29,9 +28,6 @@ export default function Accordion({
     }
     if (gamesFiltred.length) {
       return gamesFiltred.map((game) => {
-        const isSelected = gamesSelected.some(
-          (gameSelect) => game.homeTeamId === gameSelect.homeTeamId && game.startTimeUTC === gameSelect.startTimeUTC,
-        );
         return (
           <CardLarge
             key={`${game.homeTeamId}-${game.startTimeUTC}`}
@@ -39,7 +35,6 @@ export default function Accordion({
             numberSelected={1}
             showDate={showDate}
             showButtons={true}
-            selected={isSelected}
           />
         );
       });
