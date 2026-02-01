@@ -151,8 +151,12 @@ export default function CardLarge({
   const leagueKey = (data.league || 'DEFAULT') as keyof typeof leagueLogos;
   const leagueLogo = leagueLogos[leagueKey] || leagueLogos.DEFAULT;
 
-  const logoStyle = { filter: `brightness(1.1) contrast(1.2) )` } as any;
-  const leagueLogoStyle = leagueKey === 'PWHL' ? ({ filter: 'brightness(0) invert(1)' } as any) : logoStyle;
+  const shadowColor = 'rgba(255, 255, 255, 0.5)';
+  const logoStyle = { filter: `brightness(1.1) contrast(1.2) drop-shadow(0 0 1px ${shadowColor})` } as any;
+  const leagueLogoStyle =
+    leagueKey === 'PWHL'
+      ? ({ filter: 'brightness(0) invert(1)' } as any)
+      : ({ filter: `brightness(1.1) contrast(1.2)` } as any);
 
   const isFavoriteHomeTeam = favoriteTeams.includes(homeTeamId);
   const isFavorite = favoriteTeams.includes(homeTeamId) || favoriteTeams.includes(awayTeamId);
@@ -220,7 +224,9 @@ export default function CardLarge({
         <Pressable
           onPress={() => {
             if (onSelection) {
-              onSelection(data);
+              if (data.homeTeamShort && data.awayTeamShort) {
+                onSelection(data);
+              }
             } else if (status === GameStatus.SCHEDULED) {
               setModalVisible(true);
             }
