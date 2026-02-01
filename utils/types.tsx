@@ -130,4 +130,6 @@ export interface CardsProps {
   animateExit?: boolean;
   animateEntry?: boolean;
   isSelected?: boolean;
+  verticalMode?: boolean;
+  showTime?: boolean;
 }

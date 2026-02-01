@@ -27,9 +27,9 @@ export default function CardLarge({
   isSelected: propIsSelected,
   animateExit = false,
   animateEntry = false,
-}: Readonly<
-  CardsProps & { showScores?: boolean; isSelected?: boolean; animateExit?: boolean; animateEntry?: boolean }
->) {
+  verticalMode = false,
+  showTime = false,
+}: Readonly<CardsProps & { showTime?: boolean }>) {
   const {
     homeTeamShort,
     awayTeamShort,
@@ -91,6 +91,8 @@ export default function CardLarge({
   const fadeAnim = useRef(new Animated.Value(animateEntry ? 0 : 1)).current;
   const scaleAnim = useRef(new Animated.Value(animateEntry ? 0.95 : 1)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
+  const [cardWidth, setCardWidth] = useState(0);
+  const isSmallCard = cardWidth > 0 && cardWidth < 190;
 
   useEffect(() => {
     const updateFavorites = () => {
@@ -168,12 +170,20 @@ export default function CardLarge({
     timeText = translateWord('followLive');
   } else if (startTimeUTC) {
     timeText = showDate
-      ? new Date(startTimeUTC).toLocaleDateString(undefined, {
-          day: 'numeric',
-          month: width > 1008 ? 'short' : 'numeric',
-        })
+      ? showTime
+        ? new Date(startTimeUTC).toLocaleString(undefined, {
+            day: 'numeric',
+            month: width > 1008 ? 'short' : 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+          })
+        : new Date(startTimeUTC).toLocaleDateString(undefined, {
+            day: 'numeric',
+            month: width > 1008 ? 'short' : 'numeric',
+          })
       : new Date(startTimeUTC).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
   }
+  if (!timeText) timeText = '\u00A0';
 
   const leagueKey = (data.league || 'DEFAULT') as keyof typeof leagueLogos;
   const leagueLogo = leagueLogos[leagueKey] || leagueLogos.DEFAULT;
@@ -233,6 +243,8 @@ export default function CardLarge({
       backgroundColor: '#0f172a',
       borderLeftWidth: 2,
       borderRightWidth: 2,
+      borderTopWidth: 0,
+      borderBottomWidth: 0,
       borderColor: '#1e293b',
       cursor: 'default',
     };
@@ -246,8 +258,99 @@ export default function CardLarge({
 
   const stadiumSearch = arenaName.replace(/\s+/g, '+') + ',' + placeName.replace(/\s+/g, '+');
 
+  const centerContent = (
+    <>
+      <View style={{ minHeight: 40, justifyContent: 'center', alignItems: 'center' }}>
+        {hasScore ? (
+          (isFavorite || !showScores) && !scoreRevealed ? (
+            <TouchableOpacity
+              style={styles.revealButton}
+              onPress={(e) => {
+                e.stopPropagation();
+                setScoreRevealed(true);
+              }}
+            >
+              <Icon name="eye" type="font-awesome" size={verticalMode ? 20 : 30} color="#94a3b8" />
+              <Text style={styles.revealText}>{translateWord('score')}</Text>
+            </TouchableOpacity>
+          ) : (
+            <View style={styles.scoreRow}>
+              <Text style={[styles.scoreNumber, (isMedium || verticalMode) && { fontSize: 28 }]}>{awayTeamScore}</Text>
+              <Text style={[styles.scoreDivider, (isMedium || verticalMode) && { fontSize: 18, marginHorizontal: 5 }]}>
+                -
+              </Text>
+              <Text style={[styles.scoreNumber, (isMedium || verticalMode) && { fontSize: 28 }]}>{homeTeamScore}</Text>
+            </View>
+          )
+        ) : (
+          <Text style={[styles.vsText, (isMedium || verticalMode) && { fontSize: 20 }]}>@</Text>
+        )}
+      </View>
+
+      <View
+        style={[
+          styles.timeContainer,
+          { backgroundColor: revertColor },
+          isSmallCard && { paddingHorizontal: 2, paddingVertical: 2, marginTop: 2 },
+        ]}
+      >
+        {urlLive ? (
+          <a
+            href={urlLive}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              textDecoration: 'none',
+              cursor: 'pointer',
+              width: '100%',
+              display: 'flex',
+              justifyContent: 'center',
+            }}
+            onClick={(e) => {
+              e.stopPropagation();
+              setScoreRevealed(true);
+            }}
+          >
+            <Text style={[styles.liveTimeText, isSmallCard && { fontSize: 10 }]}>{timeText}</Text>
+          </a>
+        ) : (
+          <Text style={[isLive ? styles.liveTimeText : styles.timeText, isSmallCard && { fontSize: 10 }]}>
+            {timeText}
+          </Text>
+        )}
+      </View>
+    </>
+  );
+
+  const bookmarkElement =
+    status === GameStatus.SCHEDULED && isSelected ? (
+      <View
+        style={{
+          justifyContent: 'center',
+          alignItems: 'center',
+          paddingHorizontal: isSmallCard ? 0 : 8,
+          paddingVertical: 4,
+        }}
+      >
+        <Icon
+          name="bookmark"
+          type="font-awesome"
+          size={20}
+          color="white"
+          style={{
+            textShadowColor: homeColorHex,
+            textShadowOffset: { width: 0, height: 0 },
+            textShadowRadius: 3,
+          }}
+        />
+      </View>
+    ) : null;
+
   return (
-    <Animated.View style={{ opacity: fadeAnim, transform: [{ scale: scaleAnim }] }}>
+    <Animated.View
+      style={{ opacity: fadeAnim, transform: [{ scale: scaleAnim }] }}
+      onLayout={(event) => setCardWidth(event.nativeEvent.layout.width)}
+    >
       <Card
         containerStyle={[styles.cardContainer, { padding: 0, backgroundColor: 'transparent' }]}
         wrapperStyle={{ padding: 0 }}
@@ -278,132 +381,145 @@ export default function CardLarge({
             }
           }}
         >
-          <View style={[{ padding: 15, borderRadius: 20 }, gradientStyle]}>
+          <View style={[{ padding: isSmallCard ? 5 : 15, borderRadius: 20 }, gradientStyle]}>
             <div style={emptyCard ? styles.invisible : {}}>
               {/* Header: League Logo & Live Badge */}
-              <View style={styles.headerRow}>
-                <View style={styles.leagueBadge}>
-                  <Image source={leagueLogo} style={[styles.leagueIcon, leagueLogoStyle]} resizeMode="contain" />
+              <View style={[styles.headerRow, isSmallCard && { justifyContent: 'flex-end' }]}>
+                {!isSmallCard && (
+                  <View style={[styles.leagueBadge, isSmallCard && { paddingHorizontal: 0 }]}>
+                    <Image source={leagueLogo} style={[styles.leagueIcon, leagueLogoStyle]} resizeMode="contain" />
+                  </View>
+                )}
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  {isLive && (
+                    <View style={[styles.liveBadge, isSmallCard && { paddingHorizontal: 0 }]}>
+                      <Animated.View
+                        style={{
+                          width: 10,
+                          height: 10,
+                          borderRadius: 4,
+                          backgroundColor: '#ef4444',
+                          opacity: pulseAnim,
+                        }}
+                      />
+                    </View>
+                  )}
+                  {bookmarkElement}
                 </View>
-                {isLive && (
-                  <View style={styles.liveBadge}>
-                    <Animated.View
-                      style={{
-                        width: 10,
-                        height: 10,
-                        borderRadius: 4,
-                        backgroundColor: '#ef4444',
-                        opacity: pulseAnim,
-                      }}
-                    />
-                  </View>
-                )}
-                {status === GameStatus.SCHEDULED && isSelected && (
-                  <View style={{ justifyContent: 'center', alignItems: 'center' }}>
-                    <Icon
-                      name="bookmark"
-                      type="font-awesome"
-                      size={20}
-                      color="white"
-                      style={{
-                        textShadowColor: homeColorHex,
-                        textShadowOffset: { width: 0, height: 0 },
-                        textShadowRadius: 3,
-                      }}
-                    />
-                  </View>
-                )}
               </View>
 
               {/* Main Content: Teams & Score/Time */}
-              <View style={styles.mainRow}>
+              <View style={[styles.mainRow, verticalMode && { flexDirection: 'column' }]}>
                 {/* away Team */}
-                {/* Away Team */}
-                <View style={[styles.teamColumn]}>
-                  <View style={[styles.logoPlaceholder]}>
+                <View
+                  style={[
+                    styles.teamColumn,
+                    verticalMode && {
+                      flexDirection: 'row',
+                      minHeight: 40,
+                      justifyContent: isSmallCard ? 'center' : 'flex-start',
+                      width: '100%',
+                      paddingLeft: isSmallCard ? 0 : 20,
+                      alignItems: 'center',
+                    },
+                  ]}
+                >
+                  <View
+                    style={[
+                      styles.logoPlaceholder,
+                      verticalMode && {
+                        width: 40,
+                        height: 40,
+                        marginBottom: 0,
+                        marginRight: isSmallCard ? 0 : 10,
+                        alignSelf: 'center',
+                      },
+                    ]}
+                  >
                     <Image
                       source={displayAwayLogo ? { uri: displayAwayLogo } : require('../assets/images/default_logo.png')}
-                      style={[styles.teamLogo, logoStyle, isMedium && { width: 45, height: 45, marginBottom: 4 }]}
+                      style={[
+                        styles.teamLogo,
+                        logoStyle,
+                        isMedium && { width: 45, height: 45, marginBottom: 4 },
+                        verticalMode && { width: 35, height: 35, marginBottom: 0 },
+                      ]}
                     />
                   </View>
-                  <View style={styles.nameContainer}>
-                    {/* On utilise \u00A0 (espace insécable) pour garantir que le texte occupe toujours une ligne */}
-                    <Text style={[styles.teamName, isMedium && { fontSize: 14 }]} numberOfLines={1}>
-                      {awayTeamShort || '\u00A0'}
+                  {!isSmallCard && (
+                    <View style={styles.nameContainer}>
+                      {/* On utilise \u00A0 (espace insécable) pour garantir que le texte occupe toujours une ligne */}
+                      <Text style={[styles.teamName, isMedium && { fontSize: 14 }]} numberOfLines={1}>
+                        {awayTeamShort || '\u00A0'}
+                      </Text>
+                      {favoriteTeams.includes(awayTeamId) && (
+                        <Icon name="star" type="font-awesome" size={14} color="#FFD700" style={{ marginLeft: 5 }} />
+                      )}
+                    </View>
+                  )}
+                  {!isSmallCard && (
+                    <Text style={[styles.recordText, verticalMode && { marginLeft: 10, marginTop: 0, height: 'auto' }]}>
+                      {((showScores && !isFavorite) || scoreRevealed ? awayTeamRecord : '\u00A0') || '\u00A0'}
                     </Text>
-                    {favoriteTeams.includes(awayTeamId) && (
-                      <Icon name="star" type="font-awesome" size={14} color="#FFD700" style={{ marginLeft: 5 }} />
-                    )}
-                  </View>
-                  <Text style={styles.recordText}>
-                    {((showScores && !isFavorite) || scoreRevealed ? awayTeamRecord : '\u00A0') || '\u00A0'}
-                  </Text>
+                  )}
                 </View>
 
                 {/* Center: Score or VS/@ */}
-                <View style={styles.centerColumn}>
-                  {hasScore ? (
-                    (isFavorite || !showScores) && !scoreRevealed ? (
-                      <TouchableOpacity
-                        style={styles.revealButton}
-                        onPress={(e) => {
-                          e.stopPropagation();
-                          setScoreRevealed(true);
-                        }}
-                      >
-                        <Icon name="eye" type="font-awesome" size={30} color="#94a3b8" />
-                        <Text style={styles.revealText}>{translateWord('score')}</Text>
-                      </TouchableOpacity>
-                    ) : (
-                      <View style={styles.scoreRow}>
-                        <Text style={[styles.scoreNumber, isMedium && { fontSize: 28 }]}>{awayTeamScore}</Text>
-                        <Text style={[styles.scoreDivider, isMedium && { fontSize: 18, marginHorizontal: 5 }]}>-</Text>
-                        <Text style={[styles.scoreNumber, isMedium && { fontSize: 28 }]}>{homeTeamScore}</Text>
-                      </View>
-                    )
-                  ) : (
-                    <Text style={[styles.vsText, isMedium && { fontSize: 24 }]}>@</Text>
-                  )}
-
-                  <View style={[styles.timeContainer, { backgroundColor: revertColor }]}>
-                    {urlLive ? (
-                      <a
-                        href={urlLive}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{ textDecoration: 'none', cursor: 'pointer' }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setScoreRevealed(true);
-                        }}
-                      >
-                        <Text style={styles.liveTimeText}>{timeText}</Text>
-                      </a>
-                    ) : (
-                      <Text style={isLive ? styles.liveTimeText : styles.timeText}>{timeText}</Text>
-                    )}
-                  </View>
+                <View style={[styles.centerColumn, verticalMode && { flex: 0, marginVertical: 5, width: '100%' }]}>
+                  {centerContent}
                 </View>
 
                 {/* home Team */}
-                <View style={[styles.teamColumn]}>
-                  <View style={styles.logoPlaceholder}>
+                <View
+                  style={[
+                    styles.teamColumn,
+                    verticalMode && {
+                      flexDirection: 'row',
+                      minHeight: 40,
+                      justifyContent: isSmallCard ? 'center' : 'flex-start',
+                      width: '100%',
+                      paddingLeft: isSmallCard ? 0 : 20,
+                      alignItems: 'center',
+                    },
+                  ]}
+                >
+                  <View
+                    style={[
+                      styles.logoPlaceholder,
+                      verticalMode && {
+                        width: 40,
+                        height: 40,
+                        marginBottom: 0,
+                        marginRight: isSmallCard ? 0 : 10,
+                        alignSelf: 'center',
+                      },
+                    ]}
+                  >
                     <Image
                       source={displayHomeLogo ? { uri: displayHomeLogo } : require('../assets/images/default_logo.png')}
-                      style={[styles.teamLogo, logoStyle, isMedium && { width: 45, height: 45, marginBottom: 4 }]}
+                      style={[
+                        styles.teamLogo,
+                        logoStyle,
+                        isMedium && { width: 45, height: 45, marginBottom: 4 },
+                        verticalMode && { width: 35, height: 35, marginBottom: 0 },
+                      ]}
                     />
                   </View>
-                  <View style={styles.nameContainer}>
-                    <Text style={[styles.teamName, isMedium && { fontSize: 14 }]} numberOfLines={1}>
-                      {homeTeamShort || '\u00A0'}
+                  {!isSmallCard && (
+                    <View style={styles.nameContainer}>
+                      <Text style={[styles.teamName, isMedium && { fontSize: 14 }]} numberOfLines={1}>
+                        {homeTeamShort || '\u00A0'}
+                      </Text>
+                      {favoriteTeams.includes(homeTeamId) && (
+                        <Icon name="star" type="font-awesome" size={14} color="#FFD700" style={{ marginLeft: 5 }} />
+                      )}
+                    </View>
+                  )}
+                  {!isSmallCard && (
+                    <Text style={[styles.recordText, verticalMode && { marginLeft: 10, marginTop: 0, height: 'auto' }]}>
+                      {((showScores && !isFavorite) || scoreRevealed ? homeTeamRecord : '\u00A0') || '\u00A0'}
                     </Text>
-                    {favoriteTeams.includes(homeTeamId) && (
-                      <Icon name="star" type="font-awesome" size={14} color="#FFD700" style={{ marginLeft: 5 }} />
-                    )}
-                  </View>
-                  <Text style={styles.recordText}>
-                    {((showScores && !isFavorite) || scoreRevealed ? homeTeamRecord : '\u00A0') || '\u00A0'}
-                  </Text>
+                  )}
                 </View>
               </View>
 
@@ -421,15 +537,21 @@ export default function CardLarge({
                       width: '100%',
                       overflow: 'hidden',
                       justifyContent: 'center',
+                      height: '100%',
                     }}
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <Text style={styles.arenaText}>📍 {arenaName}</Text>
+                    <Text style={[styles.arenaText, verticalMode && { fontSize: 10 }]} numberOfLines={1}>
+                      {isSmallCard ? '' : '📍 '}
+                      {arenaName || '\u00A0'}
+                    </Text>
                   </a>
                 ) : (
-                  <Text style={styles.arenaText}>📍 {arenaName}</Text>
+                  <Text style={[styles.arenaText, verticalMode && { fontSize: 10 }]} numberOfLines={1}>
+                    {(isSmallCard ? '' : '📍 ') + (arenaName || '\u00A0')}
+                  </Text>
                 )}
               </View>
             </div>
@@ -459,13 +581,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 10,
+    alignItems: 'center',
+    height: 30,
   },
   leagueBadge: {
     paddingHorizontal: 8,
     paddingVertical: 4,
   },
   leagueIcon: {
-    height: 18,
+    height: 20,
     width: 30,
   },
   liveBadge: {
@@ -482,6 +606,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingVertical: 10,
+    minHeight: 180,
   },
 
   teamLogo: {
@@ -500,12 +625,14 @@ const styles = StyleSheet.create({
     color: '#64748b',
     fontSize: 11,
     marginTop: 2,
-    height: 14,
+    height: 15,
+    textAlign: 'center',
   },
   centerColumn: {
     alignItems: 'center',
     justifyContent: 'center',
-    flex: 1.2,
+    flex: 1,
+    minHeight: 80,
   },
   vsText: {
     color: '#CBD5E1',
@@ -556,14 +683,17 @@ const styles = StyleSheet.create({
   },
   footer: {
     borderTopWidth: 1,
-    marginTop: 15,
-    paddingTop: 10,
+    marginTop: 10,
+    paddingTop: 5,
     alignItems: 'center',
     height: 40,
+    overflow: 'hidden',
+    justifyContent: 'center',
   },
   arenaText: {
     color: '#CBD5E1',
     fontSize: 12,
+    lineHeight: 14,
   },
   bookmarkBadge: {
     borderRadius: 20,
@@ -579,7 +709,7 @@ const styles = StyleSheet.create({
   teamColumn: {
     alignItems: 'center',
     flex: 1,
-    minHeight: 120,
+    height: 140,
     justifyContent: 'flex-start',
   },
   logoPlaceholder: {
@@ -592,9 +722,10 @@ const styles = StyleSheet.create({
   nameContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 24,
+    height: 25,
+    justifyContent: 'center',
   },
   invisible: {
-    visibility: 'hidden',
+    opacity: 0,
   },
 });

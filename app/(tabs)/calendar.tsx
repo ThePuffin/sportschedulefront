@@ -31,6 +31,9 @@ export default function Calendar() {
   const [allowedLeagues, setAllowedLeagues] = useState<string[]>([]);
   const { width } = useWindowDimensions();
   const isSmallDevice = width <= 768;
+  const verticalMode = useMemo(() => {
+    return (teamsSelected.length > 2 && isSmallDevice) || (teamsSelected.length > 6 && !isSmallDevice);
+  }, [teamsSelected.length, isSmallDevice]);
 
   useEffect(() => {
     const updateLeagues = () => {
@@ -343,6 +346,8 @@ export default function Calendar() {
                     showDate={true}
                     onSelection={handleGamesSelection}
                     isSelected={isSelected}
+                    verticalMode={verticalMode}
+                    showTime={true}
                   />
                 </ThemedView>
               </div>
