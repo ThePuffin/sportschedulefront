@@ -170,7 +170,7 @@ export default function CardLarge({
     timeText = showDate
       ? new Date(startTimeUTC).toLocaleDateString(undefined, {
           day: 'numeric',
-          month: width < 640 || width > 1008 ? 'short' : 'numeric',
+          month: width > 1008 ? 'short' : 'numeric',
         })
       : new Date(startTimeUTC).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
   }

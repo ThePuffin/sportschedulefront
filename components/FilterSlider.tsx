@@ -3,7 +3,17 @@ import { useFavoriteColor } from '@/hooks/useFavoriteColor';
 import { translateWord } from '@/utils/utils';
 import { Icon } from '@rneui/themed';
 import React, { useEffect, useMemo, useRef } from 'react';
-import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  Platform,
+  ScrollView,
+  StyleProp,
+  StyleSheet,
+  Text,
+  TextStyle,
+  TouchableOpacity,
+  View,
+  ViewStyle,
+} from 'react-native';
 
 interface FilterSliderProps {
   selectedFilter: string;
@@ -14,6 +24,11 @@ interface FilterSliderProps {
   showAll?: boolean;
   data?: { label: string; value: string; icon?: string }[];
   favoriteValues?: string[];
+  style?: StyleProp<ViewStyle>;
+  itemStyle?: StyleProp<ViewStyle>;
+  selectedItemStyle?: StyleProp<ViewStyle>;
+  textStyle?: StyleProp<TextStyle>;
+  selectedTextStyle?: StyleProp<TextStyle>;
 }
 
 export default function FilterSlider({
@@ -25,6 +40,11 @@ export default function FilterSlider({
   showAll = true,
   data,
   favoriteValues = [],
+  style,
+  itemStyle,
+  selectedItemStyle,
+  textStyle,
+  selectedTextStyle,
 }: FilterSliderProps) {
   const scrollViewRef = useRef<ScrollView>(null);
 
@@ -151,6 +171,7 @@ export default function FilterSlider({
             backgroundImage: 'linear-gradient(90deg, transparent 0%, #000000 5%, #000000 95%, transparent 100%)',
             backgroundColor: 'transparent',
           } as any),
+        style,
       ]}
     >
       <ScrollView
@@ -168,6 +189,8 @@ export default function FilterSlider({
                 style={[
                   styles.item,
                   selected && { backgroundColor: selectedBackgroundColor },
+                  itemStyle,
+                  selected && selectedItemStyle,
                   disabled && { opacity: 0.5 },
                 ]}
                 onPress={() => onFilterChange(item.value)}
@@ -186,7 +209,9 @@ export default function FilterSlider({
                   style={[
                     styles.itemText,
                     { color: selected ? selectedTextColor : unselectedTextColor },
+                    textStyle,
                     selected && styles.selectedText,
+                    selected && selectedTextStyle,
                   ]}
                 >
                   {item.label}

@@ -11,11 +11,14 @@ import {
   Modal,
   Platform,
   Pressable,
+  StyleProp,
   StyleSheet,
   Text,
   TextInput,
+  TextStyle,
   TouchableOpacity,
   View,
+  ViewStyle,
 } from 'react-native';
 
 export default function Selector({
@@ -25,7 +28,18 @@ export default function Selector({
   isClearable = false,
   placeholder,
   startOpen = false,
-}: Readonly<SelectorProps & { placeholder?: string; startOpen?: boolean }>) {
+  style,
+  textStyle,
+  iconColor = '#ecedee',
+}: Readonly<
+  SelectorProps & {
+    placeholder?: string;
+    startOpen?: boolean;
+    style?: StyleProp<ViewStyle>;
+    textStyle?: StyleProp<TextStyle>;
+    iconColor?: string;
+  }
+>) {
   const { items, i, itemSelectedId } = data;
   let { itemsSelectedIds = [] } = data;
 
@@ -258,7 +272,10 @@ export default function Selector({
             style={{ width: 25, height: 25, resizeMode: 'contain', marginRight: 10, opacity: isDisabled ? 0.5 : 1 }}
           />
         )}
-        <Text style={[styles.selectorText, (!hasSelection || isDisabled) && { color: '#999' }]} numberOfLines={1}>
+        <Text
+          style={[styles.selectorText, textStyle, (!hasSelection || isDisabled) && { color: '#999' }]}
+          numberOfLines={1}
+        >
           {getDisplayText()}
         </Text>
       </View>
@@ -268,7 +285,7 @@ export default function Selector({
   return (
     <View style={styles.container}>
       <TouchableOpacity
-        style={[styles.selectorButton, isDisabled && styles.selectorButtonDisabled]}
+        style={[styles.selectorButton, style, isDisabled && styles.selectorButtonDisabled]}
         onPress={() => setVisible(true)}
         disabled={isDisabled}
       >
@@ -282,10 +299,10 @@ export default function Selector({
               }}
               style={{ marginRight: 10 }}
             >
-              <Icon name="times-circle" type="font-awesome" size={16} color="#999" />
+              <Icon name="times-circle" type="font-awesome" size={16} color={iconColor} />
             </TouchableOpacity>
           )}
-          <Icon name="chevron-down" type="font-awesome" size={12} color="#666" />
+          <Icon name="chevron-down" type="font-awesome" size={12} color={iconColor} />
         </View>
       </TouchableOpacity>
 
@@ -469,23 +486,24 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: 'white',
+    backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: '#ecedee',
     borderRadius: 4,
     paddingHorizontal: 10,
     paddingVertical: 12,
     minHeight: 50,
   },
   selectorButtonDisabled: {
-    backgroundColor: '#f5f5f5',
-    borderColor: '#e0e0e0',
+    opacity: 0.5,
   },
   selectorText: {
     fontSize: 14,
-    color: '#333',
+    color: '#ecedee',
     flex: 1,
     marginRight: 10,
+    fontWeight: 'bold',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
   },
   modalOverlay: {
     flex: 1,

@@ -164,7 +164,7 @@ export default function DateRangePicker({
           name="calendar"
           type="font-awesome"
           size={20}
-          color={readonly ? 'gray' : 'black'}
+          color={readonly ? 'gray' : '#ecedee'}
           style={{ marginRight: 10 }}
         />
         <Text style={[styles.inputText, readonly && { color: 'gray' }]}>{displayText()}</Text>
@@ -173,7 +173,7 @@ export default function DateRangePicker({
             name={isOpen ? 'chevron-up' : 'chevron-down'}
             type="font-awesome"
             size={12}
-            color="gray"
+            color="#ecedee"
             style={{ marginLeft: 10 }}
           />
         )}
@@ -211,12 +211,12 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'white',
+    backgroundColor: 'transparent',
     paddingVertical: 10,
     paddingHorizontal: 15,
     borderRadius: 1,
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: '#ecedee',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -225,7 +225,7 @@ const styles = StyleSheet.create({
         shadowRadius: 1.41,
       },
       android: { elevation: 2 },
-      web: { boxShadow: '0px 1px 1.41px rgba(0,0,0,0.2)' },
+      web: { boxShadow: 'none' },
     }),
     justifyContent: 'center',
     minWidth: 280,
@@ -236,9 +236,11 @@ const styles = StyleSheet.create({
     borderColor: '#e0e0e0',
   },
   inputText: {
-    fontSize: 16,
-    color: 'black',
-    fontWeight: '500',
+    fontSize: 14,
+    color: '#ecedee',
+    fontWeight: 'bold',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    textTransform: 'capitalize',
   },
   calendarContainer: {
     backgroundColor: 'white',

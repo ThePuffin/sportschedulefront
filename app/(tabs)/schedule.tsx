@@ -2,10 +2,10 @@ import AppLogo from '@/components/AppLogo';
 import FilterSlider from '@/components/FilterSlider';
 import NoResults from '@/components/NoResults';
 import Selector from '@/components/Selector';
-import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { useFavoriteColor } from '@/hooks/useFavoriteColor';
 import { getRandomTeamId, randomNumber, translateWord } from '@/utils/utils';
-import { Ionicons } from '@expo/vector-icons';
+import { FontAwesome6, Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ScrollView, useWindowDimensions } from 'react-native';
@@ -34,6 +34,7 @@ export default function Schedule() {
   const [monthFilter, setMonthFilter] = useState<string[]>([]);
   const [leagueTeams, setLeagueTeams] = useState<Team[]>([]);
   const { width } = useWindowDimensions();
+  const { backgroundColor: selectedBackgroundColor } = useFavoriteColor('#3b82f6');
   const [favoriteTeams, setFavoriteTeams] = useState<string[]>(() => getCache<string[]>('favoriteTeams') || []);
   const isSmallDevice = width <= 768;
   const [leaguesAvailable, setLeaguesAvailable] = useState<string[]>([]);
@@ -390,7 +391,7 @@ export default function Schedule() {
 
     const dataTeamsFilter = {
       i: randomNumber(999999),
-      items: uniqueTeamsFromGames,
+      items: [{ ...allOption, label: translateWord('all'), uniqueId: '' }, ...uniqueTeamsFromGames],
       itemsSelectedIds: [],
       itemSelectedId: teamFilter,
     };
@@ -503,40 +504,61 @@ export default function Schedule() {
                       </div>
                     </div>
                   </div>
-                  {!isSmallDevice && showTeamFilter && (
-                    <div style={{ width: '4%', display: 'flex', justifyContent: 'center' }}>
-                      <div
-                        style={{
-                          backgroundColor: 'white',
-                          border: '1px solid #ccc',
-                          borderRadius: 4,
-                          width: '100%',
-                          boxSizing: 'border-box',
-                          display: 'flex',
-                          justifyContent: 'center',
-                          alignItems: 'center',
-                          margin: '5px 0',
-                          minHeight: 45,
-                        }}
-                      >
-                        <ThemedText style={{ fontWeight: 'bold', color: 'black' }}>VS</ThemedText>
-                      </div>
-                    </div>
-                  )}
+
                   {showTeamFilter && (
                     <div style={{ width: isSmallDevice ? '100%' : '48%' }}>
-                      <FilterSlider
-                        selectedFilter={teamFilter}
-                        onFilterChange={handleTeamFilterChange}
-                        data={[
-                          { label: translateWord('all'), value: '' },
-                          ...uniqueTeamsFromGames.map((t) => ({ label: t.label, value: t.uniqueId })),
-                        ]}
-                        showFavorites={false}
-                        hasFavorites={false}
-                        showAll={false}
-                        favoriteValues={favoriteTeams}
-                      />
+                      <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+                        <div
+                          style={{
+                            position: 'relative',
+                            width: 40,
+                            height: 40,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            marginRight: 10,
+                            backgroundColor: 'black',
+                            border: '1px solid white',
+                            borderRadius: '50%',
+                            flexShrink: 0,
+                          }}
+                        >
+                          <FontAwesome6 name="arrows-left-right-to-line" size={18} color="white" />
+                          <div
+                            style={{
+                              position: 'absolute',
+                              top: 0,
+                              left: 0,
+                              width: '100%',
+                              height: '100%',
+                              opacity: 0,
+                              overflow: 'hidden',
+                              zIndex: 10,
+                            }}
+                          >
+                            <Selector
+                              data={dataTeamsFilter}
+                              onItemSelectionChange={handleTeamFilterChange}
+                              isClearable={false}
+                              placeholder={translateWord('filterTeams')}
+                            />
+                          </div>
+                        </div>
+                        <div style={{ flex: 1, overflow: 'hidden' }}>
+                          <FilterSlider
+                            selectedFilter={teamFilter}
+                            onFilterChange={handleTeamFilterChange}
+                            data={[
+                              { label: translateWord('all'), value: '' },
+                              ...uniqueTeamsFromGames.map((t) => ({ label: t.label, value: t.uniqueId })),
+                            ]}
+                            showFavorites={false}
+                            hasFavorites={false}
+                            showAll={false}
+                            favoriteValues={favoriteTeams}
+                          />
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -593,6 +615,20 @@ export default function Schedule() {
                 showFavorites={false}
                 hasFavorites={false}
                 showAll={true}
+                style={{ backgroundImage: 'none', backgroundColor: 'transparent' } as any}
+                itemStyle={{ borderWidth: 1, borderColor: 'transparent' }}
+                selectedItemStyle={{
+                  backgroundColor: 'transparent',
+                  borderWidth: 1,
+                  fontWeight: 'bold',
+                  borderColor: selectedBackgroundColor,
+                }}
+                textStyle={{
+                  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+                  fontSize: 14,
+                  textTransform: 'capitalize',
+                }}
+                selectedTextStyle={{ color: '#ecedee' }}
               />
             </div>
           )}
