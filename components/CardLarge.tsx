@@ -24,7 +24,12 @@ export default function CardLarge({
   showDate = false,
   showScores: propShowScores,
   onSelection,
-}: Readonly<CardsProps & { showScores?: boolean }>) {
+  isSelected: propIsSelected,
+  animateExit = false,
+  animateEntry = false,
+}: Readonly<
+  CardsProps & { showScores?: boolean; isSelected?: boolean; animateExit?: boolean; animateEntry?: boolean }
+>) {
   const {
     homeTeamShort,
     awayTeamShort,
@@ -83,7 +88,8 @@ export default function CardLarge({
   const [modalVisible, setModalVisible] = useState(false);
   const [scoreRevealed, setScoreRevealed] = useState(false);
   const { backgroundColor: selectedBackgroundColor, textColor: selectedColor } = useFavoriteColor('#3b82f6');
-  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const fadeAnim = useRef(new Animated.Value(animateEntry ? 0 : 1)).current;
+  const scaleAnim = useRef(new Animated.Value(animateEntry ? 0.95 : 1)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
@@ -107,12 +113,22 @@ export default function CardLarge({
   }, []);
 
   useEffect(() => {
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 400,
-      useNativeDriver: true,
-    }).start();
-  }, [fadeAnim]);
+    if (animateEntry) {
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 400,
+          useNativeDriver: true,
+        }),
+        Animated.spring(scaleAnim, {
+          toValue: 1,
+          friction: 8,
+          tension: 40,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [animateEntry, fadeAnim, scaleAnim]);
 
   useEffect(() => {
     if (!showScores) {
@@ -171,9 +187,9 @@ export default function CardLarge({
 
   const isFavoriteHomeTeam = favoriteTeams.includes(homeTeamId);
   const isFavorite = favoriteTeams.includes(homeTeamId) || favoriteTeams.includes(awayTeamId);
-  const isSelected = gamesSelected.some(
-    (g) => g.homeTeamId === data.homeTeamId && g.startTimeUTC === data.startTimeUTC,
-  );
+  const isSelected =
+    propIsSelected ??
+    gamesSelected.some((g) => g.homeTeamId === data.homeTeamId && g.startTimeUTC === data.startTimeUTC);
   const isSelectedTeam = teamSelectedId === homeTeamId;
   const baseColor = isSelectedTeam ? '#0f172a' : '#1e293b';
   const revertColor = isSelectedTeam ? '#1e293b' : '#0f172a';
@@ -215,8 +231,8 @@ export default function CardLarge({
   if (emptyCard) {
     gradientStyle = {
       backgroundColor: '#0f172a',
-      borderLeftWidth: 3,
-      borderRightWidth: 3,
+      borderLeftWidth: 2,
+      borderRightWidth: 2,
       borderColor: '#1e293b',
       cursor: 'default',
     };
@@ -231,7 +247,7 @@ export default function CardLarge({
   const stadiumSearch = arenaName.replace(/\s+/g, '+') + ',' + placeName.replace(/\s+/g, '+');
 
   return (
-    <Animated.View style={{ opacity: fadeAnim }}>
+    <Animated.View style={{ opacity: fadeAnim, transform: [{ scale: scaleAnim }] }}>
       <Card
         containerStyle={[styles.cardContainer, { padding: 0, backgroundColor: 'transparent' }]}
         wrapperStyle={{ padding: 0 }}
@@ -240,7 +256,22 @@ export default function CardLarge({
           onPress={() => {
             if (onSelection) {
               if (data.homeTeamShort && data.awayTeamShort) {
-                onSelection(data);
+                if (animateExit) {
+                  Animated.parallel([
+                    Animated.timing(fadeAnim, {
+                      toValue: 0,
+                      duration: 300,
+                      useNativeDriver: true,
+                    }),
+                    Animated.timing(scaleAnim, {
+                      toValue: 0.95,
+                      duration: 300,
+                      useNativeDriver: true,
+                    }),
+                  ]).start(() => onSelection(data));
+                } else {
+                  onSelection(data);
+                }
               }
             } else if (status === GameStatus.SCHEDULED) {
               setModalVisible(true);

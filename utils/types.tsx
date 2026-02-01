@@ -127,4 +127,7 @@ export interface CardsProps {
   onSelection?: (game: GameFormatted) => void;
   showButtons?: boolean;
   numberSelected?: number;
+  animateExit?: boolean;
+  animateEntry?: boolean;
+  isSelected?: boolean;
 }

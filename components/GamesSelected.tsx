@@ -1,4 +1,3 @@
-import { ThemedView } from '@/components/ThemedView';
 import { useWindowDimensions } from 'react-native';
 import { GameFormatted, GamesSelectedProps } from '../utils/types';
 import CardLarge from './CardLarge';
@@ -23,10 +22,17 @@ export default function GamesSelected({ data = [], onAction, teamNumber = 1 }: R
     >
       {data.map((gameSelected: GameFormatted) => {
         return (
-          <div key={gameSelected._id} style={{ width: cardWidth, padding: 5, boxSizing: 'border-box' }}>
-            <ThemedView>
-              <CardLarge data={gameSelected} showDate={true} onSelection={() => onAction(gameSelected)} />
-            </ThemedView>
+          <div
+            key={gameSelected.uniqueId || gameSelected._id}
+            style={{ width: cardWidth, padding: 5, boxSizing: 'border-box' }}
+          >
+            <CardLarge
+              data={gameSelected}
+              showDate={true}
+              onSelection={() => onAction(gameSelected)}
+              animateExit={true}
+              animateEntry={true}
+            />
           </div>
         );
       })}
