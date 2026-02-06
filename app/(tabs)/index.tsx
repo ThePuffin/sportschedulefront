@@ -39,12 +39,11 @@ const groupGamesByHour = (games: GameFormatted[], roundToHour: boolean = false) 
 };
 
 const getNextGamesFromApi = async (date: Date): Promise<{ [key: string]: GameFormatted[] }> => {
-  const dayBefore = new Date(date);
-  dayBefore.setDate(dayBefore.getDate() - 1);
-  const dayBeforeYYYYMMDD = dayBefore.toISOString().split('T')[0];
+  const today = new Date(date);
+  const todayYYYYMMDD = today.toISOString().split('T')[0];
   const newFetch: { [key: string]: GameFormatted[] } = {};
-  for (let i = 0; i <= 10; i++) {
-    const nextDate = new Date(dayBeforeYYYYMMDD);
+  for (let i = 0; i <= 5; i++) {
+    const nextDate = new Date(todayYYYYMMDD);
     nextDate.setDate(nextDate.getDate() + i);
     const nextYYYYMMDD = nextDate.toISOString().split('T')[0];
     const gamesByHour = await fetchGamesByHour(nextYYYYMMDD);
@@ -216,11 +215,27 @@ export default function GameofTheDay() {
 
   const getGamesFromApi = useCallback(async (dateToFetch: Date) => {
     const YYYYMMDD = new Date(dateToFetch).toISOString().split('T')[0];
+    const today = new Date().toISOString().split('T')[0];
+
+    if (YYYYMMDD < today) {
+      if (gamesDayCache.current[YYYYMMDD]) {
+        delete gamesDayCache.current[YYYYMMDD];
+        saveCache('gamesDay', gamesDayCache.current);
+      }
+      try {
+        const gamesByHourData = await fetchGamesByHour(YYYYMMDD);
+        const gamesOfTheDay = Object.values(gamesByHourData).flat();
+        setGames(gamesOfTheDay);
+      } catch (error) {
+        console.error(error);
+        setGames([]);
+      }
+      return;
+    }
 
     // Check cache first
     const cachedGames = gamesDayCache.current[YYYYMMDD];
     if (cachedGames) {
-      const today = new Date().toISOString().split('T')[0];
       let gamesToDisplay = cachedGames;
 
       if (YYYYMMDD === today) {
@@ -250,7 +265,7 @@ export default function GameofTheDay() {
       const gamesOfTheDay = Object.values(gamesByHourData).flat();
       gamesDayCache.current[YYYYMMDD] = gamesOfTheDay;
 
-      if (YYYYMMDD === new Date().toISOString().split('T')[0]) {
+      if (YYYYMMDD === today) {
         const nextFetchedGames = await getNextGamesFromApi(dateToFetch);
         Object.entries(nextFetchedGames).forEach(([date, games]) => {
           gamesDayCache.current[date] = games;
@@ -579,7 +594,7 @@ export default function GameofTheDay() {
 
     async function initializeGames() {
       fetchLeagues(setLeaguesAvailable);
-      // restore persisted games cache (current day + next 10 days)
+      // restore persisted games cache (current day + next 5 days)
       const localStorageGamesDay = getCache<{ [key: string]: GameFormatted[] }>('gamesDay');
       if (localStorageGamesDay) {
         gamesDayCache.current = localStorageGamesDay;

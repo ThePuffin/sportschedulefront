@@ -448,7 +448,6 @@ export default function CardLarge({
                   </View>
                   {!isSmallCard && (
                     <View style={styles.nameContainer}>
-                      {/* On utilise \u00A0 (espace insécable) pour garantir que le texte occupe toujours une ligne */}
                       <Text style={[styles.teamName, isMedium && { fontSize: 14 }]} numberOfLines={1}>
                         {awayTeamShort || '\u00A0'}
                       </Text>
