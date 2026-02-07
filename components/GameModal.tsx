@@ -1,8 +1,9 @@
+import { ThemedText } from '@/components/ThemedText';
 import { GameFormatted } from '@/utils/types';
 import { generateICSFile, translateWord } from '@/utils/utils';
 import { Icon } from '@rneui/themed';
 import React from 'react';
-import { Image, Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, Modal, Pressable, StyleSheet, TouchableOpacity, View, useColorScheme } from 'react-native';
 
 interface GameModalProps {
   visible: boolean;
@@ -16,12 +17,15 @@ export default function GameModal({ visible, onClose, data, gradientStyle }: Gam
     startTimeUTC,
     homeTeamLogo,
     awayTeamLogo,
+    homeTeamLogoDark,
+    awayTeamLogoDark,
     homeTeam,
     awayTeam,
     arenaName,
     placeName,
     homeTeamScore,
     awayTeamScore,
+    urlLive,
   } = data;
 
   const hasScore = homeTeamScore != null && awayTeamScore != null;
@@ -36,46 +40,69 @@ export default function GameModal({ visible, onClose, data, gradientStyle }: Gam
   };
 
   const stadiumSearch = (arenaName || '').replace(/\s+/g, '+') + ',' + (placeName || '').replace(/\s+/g, '+');
+  const theme = useColorScheme() ?? 'light';
+  const isDark = theme === 'dark';
+  const iconColor = isDark ? 'white' : 'black';
+  const buttonBackgroundColor = isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.1)';
+
+  const displayHomeLogo = isDark && homeTeamLogoDark ? homeTeamLogoDark : homeTeamLogo;
+  const displayAwayLogo = isDark && awayTeamLogoDark ? awayTeamLogoDark : awayTeamLogo;
 
   return (
     <Modal animationType="fade" transparent={true} visible={visible} onRequestClose={onClose}>
       <Pressable style={styles.centeredView} onPress={onClose}>
         <Pressable style={[styles.modalView, gradientStyle]} onPress={(e) => e.stopPropagation()}>
           <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <Icon name="close" type="font-awesome" size={20} color="white" />
+            <Icon name="close" type="font-awesome" size={20} color={iconColor} />
           </TouchableOpacity>
 
           <View style={styles.modalContent}>
             <View style={styles.teamsContainer}>
               <View style={styles.teamColumn}>
-                {awayTeamLogo && <Image source={{ uri: awayTeamLogo }} style={styles.logo} resizeMode="contain" />}
-                <Text style={styles.modalTeamName}>{awayTeam ? awayTeam.replace(/ (?=[^ ]*$)/, '\n') : ''}</Text>
+                {displayAwayLogo && (
+                  <Image source={{ uri: displayAwayLogo }} style={styles.logo} resizeMode="contain" />
+                )}
+                <ThemedText lightColor="#0f172a" darkColor="#ffffff" style={styles.modalTeamName}>
+                  {awayTeam ? awayTeam.replace(/ (?=[^ ]*$)/, '\n') : ''}
+                </ThemedText>
               </View>
 
               {hasScore ? (
                 <View style={styles.scoreContainer}>
-                  <Text style={styles.scoreText}>{awayTeamScore}</Text>
-                  <Text style={styles.scoreDivider}>-</Text>
-                  <Text style={styles.scoreText}>{homeTeamScore}</Text>
+                  <ThemedText lightColor="#0f172a" darkColor="#ffffff" style={styles.scoreText}>
+                    {awayTeamScore}
+                  </ThemedText>
+                  <ThemedText lightColor="#475569" darkColor="#CBD5E1" style={styles.scoreDivider}>
+                    -
+                  </ThemedText>
+                  <ThemedText lightColor="#0f172a" darkColor="#ffffff" style={styles.scoreText}>
+                    {homeTeamScore}
+                  </ThemedText>
                 </View>
               ) : (
-                <Text style={styles.modalVsText}>@</Text>
+                <ThemedText lightColor="#475569" darkColor="#CBD5E1" style={styles.modalVsText}>
+                  @
+                </ThemedText>
               )}
 
               <View style={styles.teamColumn}>
-                {homeTeamLogo && <Image source={{ uri: homeTeamLogo }} style={styles.logo} resizeMode="contain" />}
-                <Text style={styles.modalTeamName}>{homeTeam ? homeTeam.replace(/ (?=[^ ]*$)/, '\n') : ''}</Text>
+                {displayHomeLogo && (
+                  <Image source={{ uri: displayHomeLogo }} style={styles.logo} resizeMode="contain" />
+                )}
+                <ThemedText lightColor="#0f172a" darkColor="#ffffff" style={styles.modalTeamName}>
+                  {homeTeam ? homeTeam.replace(/ (?=[^ ]*$)/, '\n') : ''}
+                </ThemedText>
               </View>
             </View>
-            {!hasScore && (
+            {!hasScore ? (
               <>
-                <Text style={styles.dateText}>
+                <ThemedText lightColor="#475569" darkColor="#CBD5E1" style={styles.dateText}>
                   {startTimeUTC ? new Date(startTimeUTC).toLocaleDateString(undefined, dateOptions) : ''}
-                </Text>
+                </ThemedText>
 
                 <View style={styles.actionsRow}>
                   <TouchableOpacity
-                    style={styles.actionButton}
+                    style={[styles.actionButton, { backgroundColor: buttonBackgroundColor }]}
                     onPress={() => {
                       generateICSFile(data);
                       onClose();
@@ -85,10 +112,12 @@ export default function GameModal({ visible, onClose, data, gradientStyle }: Gam
                       name="calendar-plus-o"
                       type="font-awesome"
                       size={20}
-                      color="white"
+                      color={iconColor}
                       style={{ marginRight: 10 }}
                     />
-                    <Text style={styles.actionButtonText}>{translateWord('downloadICS')}</Text>
+                    <ThemedText lightColor="#0f172a" darkColor="#ffffff" style={styles.actionButtonText}>
+                      {translateWord('downloadICS')}
+                    </ThemedText>
                   </TouchableOpacity>
 
                   {arenaName && (
@@ -99,20 +128,47 @@ export default function GameModal({ visible, onClose, data, gradientStyle }: Gam
                       style={{ textDecoration: 'none' }}
                       onClick={(e) => e.stopPropagation()}
                     >
-                      <View style={styles.actionButton}>
+                      <View style={[styles.actionButton, { backgroundColor: buttonBackgroundColor }]}>
                         <Icon
                           name="map-marker"
                           type="font-awesome"
                           size={20}
-                          color="white"
+                          color={iconColor}
                           style={{ marginRight: 10 }}
                         />
-                        <Text style={styles.actionButtonText}>{translateWord('localizeArena')}</Text>
+                        <ThemedText lightColor="#0f172a" darkColor="#ffffff" style={styles.actionButtonText}>
+                          {translateWord('localizeArena')}
+                        </ThemedText>
                       </View>
                     </a>
                   )}
                 </View>
               </>
+            ) : (
+              urlLive && (
+                <View style={styles.actionsRow}>
+                  <a
+                    href={urlLive}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ textDecoration: 'none' }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <View style={[styles.actionButton, { backgroundColor: buttonBackgroundColor }]}>
+                      <Icon
+                        name="info-circle"
+                        type="font-awesome"
+                        size={20}
+                        color={iconColor}
+                        style={{ marginRight: 10 }}
+                      />
+                      <ThemedText lightColor="#0f172a" darkColor="#ffffff" style={styles.actionButtonText}>
+                        {translateWord('gameDetails')}
+                      </ThemedText>
+                    </View>
+                  </a>
+                </View>
+              )
             )}
           </View>
         </Pressable>
@@ -168,18 +224,15 @@ const styles = StyleSheet.create({
   modalTeamName: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: 'white',
     textAlign: 'center',
   },
   modalTeamFullName: {
     fontSize: 16,
-    color: '#CBD5E1',
     textAlign: 'center',
     marginTop: 5,
   },
   modalVsText: {
     fontSize: 24,
-    color: '#CBD5E1',
     fontWeight: 'bold',
   },
   scoreContainer: {
@@ -190,12 +243,10 @@ const styles = StyleSheet.create({
   scoreText: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: 'white',
     marginHorizontal: 5,
   },
   scoreDivider: {
     fontSize: 24,
-    color: '#CBD5E1',
     fontWeight: 'bold',
   },
   actionsRow: {
@@ -207,18 +258,15 @@ const styles = StyleSheet.create({
   },
   actionButton: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 10,
     alignItems: 'center',
   },
   actionButtonText: {
-    color: 'white',
     fontWeight: 'bold',
   },
   dateText: {
-    color: 'white',
     marginBottom: 20,
     fontSize: 16,
     fontWeight: '600',

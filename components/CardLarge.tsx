@@ -1,5 +1,5 @@
+import { ThemedText } from '@/components/ThemedText';
 import { GameStatus, leagueLogos } from '@/constants/enum';
-import { useFavoriteColor } from '@/hooks/useFavoriteColor';
 import { getGamesStatus } from '@/utils/date';
 import { getCache } from '@/utils/fetchData';
 import { CardsProps, GameFormatted } from '@/utils/types';
@@ -12,9 +12,9 @@ import {
   Image,
   Pressable,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
+  useColorScheme,
   useWindowDimensions,
 } from 'react-native';
 import GameModal from './GameModal';
@@ -56,6 +56,7 @@ export default function CardLarge({
 
   const emptyCard = !homeTeamShort && !awayTeamShort;
   const { width } = useWindowDimensions();
+  const theme = useColorScheme() ?? 'light';
   const isMedium = width >= 768 && width < 1200;
   const [favoriteTeams, setFavoriteTeams] = useState<string[]>(() => getCache<string[]>('favoriteTeams') || []);
   const [gamesSelected, setGamesSelected] = useState<GameFormatted[]>(
@@ -187,21 +188,23 @@ export default function CardLarge({
   const leagueKey = (data.league || 'DEFAULT') as keyof typeof leagueLogos;
   const leagueLogo = leagueLogos[leagueKey] || leagueLogos.DEFAULT;
 
-  const shadowColor = 'rgba(255, 255, 255, 0.5)';
-  const logoStyle = { filter: `brightness(1.1) contrast(1.2) drop-shadow(0 0 1px ${shadowColor})` } as any;
-  const leagueLogoStyle =
-    leagueKey === 'PWHL'
-      ? ({ filter: 'brightness(0) invert(1)' } as any)
-      : ({ filter: `brightness(1.1) contrast(1.2)` } as any);
-
-  const isFavoriteHomeTeam = favoriteTeams.includes(homeTeamId);
   const isFavorite = favoriteTeams.includes(homeTeamId) || favoriteTeams.includes(awayTeamId);
   const isSelected =
     propIsSelected ??
     gamesSelected.some((g) => g.homeTeamId === data.homeTeamId && g.startTimeUTC === data.startTimeUTC);
   const isSelectedTeam = teamSelectedId === homeTeamId;
-  const baseColor = isSelectedTeam ? '#0f172a' : '#1e293b';
-  const revertColor = isSelectedTeam ? '#1e293b' : '#0f172a';
+  const isDark = theme === 'dark';
+  const baseColor = isDark ? (isSelectedTeam ? '#0f172a' : '#1e293b') : isSelectedTeam ? '#e2e8f0' : '#f1f5f9';
+  const revertColor = isDark ? (isSelectedTeam ? '#1e293b' : '#0f172a') : isSelectedTeam ? '#cbd5e1' : '#e2e8f0';
+
+  const mutedTextColor = isDark ? '#94a3b8' : '#64748b';
+
+  const shadowColor = 'rgba(255, 255, 255, 0.5)';
+  const logoStyle = { filter: `brightness(1.1) contrast(1.2) drop-shadow(0 0 1px ${shadowColor})` } as any;
+  const leagueLogoStyle =
+    leagueKey === 'PWHL' && isDark
+      ? ({ filter: 'brightness(0) invert(1)' } as any)
+      : ({ filter: `brightness(1.1) contrast(1.2)` } as any);
 
   const getBrightness = (hexColor: string) => {
     if (!hexColor) return 0;
@@ -223,14 +226,16 @@ export default function CardLarge({
     return c.startsWith('#') ? c : `#${c}`;
   };
 
-  const getLighterColor = (c1: string | undefined, c2: string | undefined) => {
+  const getAdaptiveColor = (c1: string | undefined, c2: string | undefined) => {
     const color1 = formatColor(c1);
     const color2 = formatColor(c2);
-    return getBrightness(color1) > getBrightness(color2) ? color1 : color2;
+    const b1 = getBrightness(color1);
+    const b2 = getBrightness(color2);
+    return isDark ? (b1 > b2 ? color1 : color2) : b1 < b2 ? color1 : color2;
   };
 
-  const awayColorHex = getLighterColor(awayTeamColor, awayTeamBackgroundColor);
-  const homeColorHex = getLighterColor(homeTeamColor, homeTeamBackgroundColor);
+  const awayColorHex = getAdaptiveColor(awayTeamColor, awayTeamBackgroundColor);
+  const homeColorHex = getAdaptiveColor(homeTeamColor, homeTeamBackgroundColor);
 
   let gradientStyle = {
     backgroundColor: baseColor,
@@ -239,21 +244,18 @@ export default function CardLarge({
 
   if (emptyCard) {
     gradientStyle = {
-      backgroundColor: '#0f172a',
+      backgroundColor: baseColor,
       borderLeftWidth: 2,
       borderRightWidth: 2,
       borderTopWidth: 0,
       borderBottomWidth: 0,
-      borderColor: '#1e293b',
+      borderColor: revertColor,
       cursor: 'default',
     };
   }
 
-  let homeBg = homeColorHex;
-  let awayBg = awayColorHex;
-
-  const displayHomeLogo = getBrightness(homeBg) < 128 && homeTeamLogoDark ? homeTeamLogoDark : homeTeamLogo;
-  const displayAwayLogo = getBrightness(awayBg) < 128 && awayTeamLogoDark ? awayTeamLogoDark : awayTeamLogo;
+  const displayHomeLogo = isDark && homeTeamLogoDark ? homeTeamLogoDark : homeTeamLogo;
+  const displayAwayLogo = isDark && awayTeamLogoDark ? awayTeamLogoDark : awayTeamLogo;
 
   const stadiumSearch = arenaName.replace(/\s+/g, '+') + ',' + placeName.replace(/\s+/g, '+');
 
@@ -269,20 +271,49 @@ export default function CardLarge({
                 setScoreRevealed(true);
               }}
             >
-              <Icon name="eye" type="font-awesome" size={verticalMode ? 20 : 30} color="#94a3b8" />
-              <Text style={styles.revealText}>{translateWord('score')}</Text>
+              <Icon
+                name="eye"
+                type="font-awesome"
+                size={verticalMode ? 20 : 30}
+                color={isDark ? '#94a3b8' : '#475569'}
+              />
+              <ThemedText lightColor="#475569" darkColor="#94a3b8" style={styles.revealText}>
+                {translateWord('score')}
+              </ThemedText>
             </TouchableOpacity>
           ) : (
             <View style={styles.scoreRow}>
-              <Text style={[styles.scoreNumber, (isMedium || verticalMode) && { fontSize: 28 }]}>{awayTeamScore}</Text>
-              <Text style={[styles.scoreDivider, (isMedium || verticalMode) && { fontSize: 18, marginHorizontal: 5 }]}>
+              <ThemedText
+                lightColor="#0f172a"
+                darkColor="#ffffff"
+                style={[styles.scoreNumber, (isMedium || verticalMode) && { fontSize: 28 }]}
+              >
+                {awayTeamScore}
+              </ThemedText>
+              <ThemedText
+                lightColor="#475569"
+                darkColor="#CBD5E1"
+                style={[styles.scoreDivider, (isMedium || verticalMode) && { fontSize: 18, marginHorizontal: 5 }]}
+              >
                 -
-              </Text>
-              <Text style={[styles.scoreNumber, (isMedium || verticalMode) && { fontSize: 28 }]}>{homeTeamScore}</Text>
+              </ThemedText>
+              <ThemedText
+                lightColor="#0f172a"
+                darkColor="#ffffff"
+                style={[styles.scoreNumber, (isMedium || verticalMode) && { fontSize: 28 }]}
+              >
+                {homeTeamScore}
+              </ThemedText>
             </View>
           )
         ) : (
-          <Text style={[styles.vsText, (isMedium || verticalMode) && { fontSize: 20 }]}>@</Text>
+          <ThemedText
+            lightColor="#475569"
+            darkColor="#CBD5E1"
+            style={[styles.vsText, (isMedium || verticalMode) && { fontSize: 20 }]}
+          >
+            @
+          </ThemedText>
         )}
       </View>
 
@@ -310,12 +341,16 @@ export default function CardLarge({
               setScoreRevealed(true);
             }}
           >
-            <Text style={[styles.liveTimeText, isSmallCard && { fontSize: 10 }]}>{timeText}</Text>
+            <ThemedText style={[styles.liveTimeText, isSmallCard && { fontSize: 10 }]}>{timeText}</ThemedText>
           </a>
         ) : (
-          <Text style={[isLive ? styles.liveTimeText : styles.timeText, isSmallCard && { fontSize: 10 }]}>
+          <ThemedText
+            lightColor={!isLive ? '#475569' : undefined}
+            darkColor={!isLive ? '#94a3b8' : undefined}
+            style={[isLive ? styles.liveTimeText : styles.timeText, isSmallCard && { fontSize: 10 }]}
+          >
             {timeText}
-          </Text>
+          </ThemedText>
         )}
       </View>
     </>
@@ -335,7 +370,7 @@ export default function CardLarge({
           name="bookmark"
           type="font-awesome"
           size={20}
-          color="white"
+          color={isDark ? '#ffffff' : '#0f172a'}
           style={{
             textShadowColor: homeColorHex,
             textShadowOffset: { width: 0, height: 0 },
@@ -375,8 +410,11 @@ export default function CardLarge({
                   onSelection(data);
                 }
               }
-            } else if (status === GameStatus.SCHEDULED) {
+            } else {
               setModalVisible(true);
+              if (hasScore) {
+                setScoreRevealed(true);
+              }
             }
           }}
         >
@@ -404,6 +442,18 @@ export default function CardLarge({
                     </View>
                   )}
                   {bookmarkElement}
+                  <TouchableOpacity
+                    style={{ paddingHorizontal: isSmallCard ? 2 : 8 }}
+                    onPress={(e) => {
+                      e.stopPropagation();
+                      setModalVisible(true);
+                      if (hasScore) {
+                        setScoreRevealed(true);
+                      }
+                    }}
+                  >
+                    <Icon name="ellipsis-v" type="font-awesome" size={18} color={mutedTextColor} />
+                  </TouchableOpacity>
                 </View>
               </View>
 
@@ -447,18 +497,27 @@ export default function CardLarge({
                   </View>
                   {!isSmallCard && (
                     <View style={styles.nameContainer}>
-                      <Text style={[styles.teamName, isMedium && { fontSize: 14 }]} numberOfLines={1}>
+                      <ThemedText
+                        lightColor="#0f172a"
+                        darkColor="#ffffff"
+                        style={[styles.teamName, isMedium && { fontSize: 14 }]}
+                        numberOfLines={1}
+                      >
                         {awayTeamShort || '\u00A0'}
-                      </Text>
+                      </ThemedText>
                       {favoriteTeams.includes(awayTeamId) && (
                         <Icon name="star" type="font-awesome" size={14} color="#FFD700" style={{ marginLeft: 5 }} />
                       )}
                     </View>
                   )}
                   {!isSmallCard && (
-                    <Text style={[styles.recordText, verticalMode && { marginLeft: 10, marginTop: 0, height: 'auto' }]}>
+                    <ThemedText
+                      lightColor="#475569"
+                      darkColor="#94a3b8"
+                      style={[styles.recordText, verticalMode && { marginLeft: 10, marginTop: 0, height: 'auto' }]}
+                    >
                       {((showScores && !isFavorite) || scoreRevealed ? awayTeamRecord : '\u00A0') || '\u00A0'}
-                    </Text>
+                    </ThemedText>
                   )}
                 </View>
 
@@ -505,18 +564,27 @@ export default function CardLarge({
                   </View>
                   {!isSmallCard && (
                     <View style={styles.nameContainer}>
-                      <Text style={[styles.teamName, isMedium && { fontSize: 14 }]} numberOfLines={1}>
+                      <ThemedText
+                        lightColor="#0f172a"
+                        darkColor="#ffffff"
+                        style={[styles.teamName, isMedium && { fontSize: 14 }]}
+                        numberOfLines={1}
+                      >
                         {homeTeamShort || '\u00A0'}
-                      </Text>
+                      </ThemedText>
                       {favoriteTeams.includes(homeTeamId) && (
                         <Icon name="star" type="font-awesome" size={14} color="#FFD700" style={{ marginLeft: 5 }} />
                       )}
                     </View>
                   )}
                   {!isSmallCard && (
-                    <Text style={[styles.recordText, verticalMode && { marginLeft: 10, marginTop: 0, height: 'auto' }]}>
+                    <ThemedText
+                      lightColor="#475569"
+                      darkColor="#94a3b8"
+                      style={[styles.recordText, verticalMode && { marginLeft: 10, marginTop: 0, height: 'auto' }]}
+                    >
                       {((showScores && !isFavorite) || scoreRevealed ? homeTeamRecord : '\u00A0') || '\u00A0'}
-                    </Text>
+                    </ThemedText>
                   )}
                 </View>
               </View>
@@ -541,15 +609,25 @@ export default function CardLarge({
                     rel="noopener noreferrer"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <Text style={[styles.arenaText, verticalMode && { fontSize: 10 }]} numberOfLines={1}>
+                    <ThemedText
+                      lightColor="#475569"
+                      darkColor="#CBD5E1"
+                      style={[styles.arenaText, verticalMode && { fontSize: 10 }]}
+                      numberOfLines={1}
+                    >
                       {isSmallCard ? '' : '📍 '}
                       {arenaName || '\u00A0'}
-                    </Text>
+                    </ThemedText>
                   </a>
                 ) : (
-                  <Text style={[styles.arenaText, verticalMode && { fontSize: 10 }]} numberOfLines={1}>
+                  <ThemedText
+                    lightColor="#475569"
+                    darkColor="#CBD5E1"
+                    style={[styles.arenaText, verticalMode && { fontSize: 10 }]}
+                    numberOfLines={1}
+                  >
                     {(isSmallCard ? '' : '📍 ') + (arenaName || '\u00A0')}
-                  </Text>
+                  </ThemedText>
                 )}
               </View>
             </div>
@@ -614,13 +692,11 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   teamName: {
-    color: '#ffffff',
     fontSize: 18,
     fontWeight: '800',
     textAlign: 'center',
   },
   recordText: {
-    color: '#64748b',
     fontSize: 11,
     marginTop: 2,
     height: 15,
@@ -633,7 +709,6 @@ const styles = StyleSheet.create({
     minHeight: 80,
   },
   vsText: {
-    color: '#CBD5E1',
     fontSize: 32,
     fontStyle: 'italic',
     fontWeight: '900',
@@ -643,7 +718,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   revealText: {
-    color: '#94a3b8',
     fontSize: 12,
     marginTop: 4,
   },
@@ -652,12 +726,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   scoreNumber: {
-    color: '#ffffff',
     fontSize: 40,
     fontWeight: '700',
   },
   scoreDivider: {
-    color: '#CBD5E1',
     fontSize: 24,
     fontWeight: 'bold',
     marginHorizontal: 10,
@@ -670,7 +742,6 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   timeText: {
-    color: '#94a3b8',
     fontSize: 12,
     fontWeight: '600',
   },
@@ -689,7 +760,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   arenaText: {
-    color: '#CBD5E1',
     fontSize: 12,
     lineHeight: 14,
   },
