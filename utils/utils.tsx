@@ -119,6 +119,7 @@ export const translateWord = (word: string) => {
         localizeArena: "Localiser l'arène",
         downloadICS: 'Fichier .ics',
         gameDetails: 'Détails du match',
+        events: 'Evenements',
       };
       break;
     case 'de':
@@ -156,6 +157,7 @@ export const translateWord = (word: string) => {
         localizeArena: 'Arena lokalisieren',
         downloadICS: 'ICS-Datei',
         gameDetails: 'Spieldetails',
+        events: 'Ereignisse',
       };
       break;
     case 'es':
@@ -193,6 +195,7 @@ export const translateWord = (word: string) => {
         localizeArena: 'Localizar arena',
         downloadICS: 'Archivo .ics',
         gameDetails: 'Detalles del juego',
+        events: 'Eventos',
       };
       break;
 
@@ -231,6 +234,7 @@ export const translateWord = (word: string) => {
         localizeArena: "Localizza l'arena",
         downloadICS: 'File .ics',
         gameDetails: 'Dettagli del gioco',
+        events: 'Eventi',
       };
       break;
     case 'ja':
@@ -268,6 +272,7 @@ export const translateWord = (word: string) => {
         localizeArena: 'アリーナの位置を特定',
         downloadICS: 'ICSファイル',
         gameDetails: 'ゲームの詳細',
+        events: 'イベント',
       };
       break;
     case 'ko':
@@ -305,6 +310,7 @@ export const translateWord = (word: string) => {
         localizeArena: '아레나 위치 지정',
         downloadICS: 'ICS 파일',
         gameDetails: '게임 세부 정보',
+        events: '이벤트',
       };
       break;
     case 'nl':
@@ -342,6 +348,7 @@ export const translateWord = (word: string) => {
         localizeArena: 'Arena lokaliseren',
         downloadICS: 'ICS-bestand',
         gameDetails: 'Spel details',
+        events: 'Evenementen',
       };
       break;
     case 'pt':
@@ -379,6 +386,7 @@ export const translateWord = (word: string) => {
         localizeArena: 'Localizar estádio',
         downloadICS: 'Arquivo .ics',
         gameDetails: 'Detalhes do jogo',
+        events: 'Eventos',
       };
       break;
     case 'ru':
@@ -416,6 +424,7 @@ export const translateWord = (word: string) => {
         localizeArena: 'Локализовать стадион',
         downloadICS: 'Файл .ics',
         gameDetails: 'Детали игры',
+        events: 'События',
       };
       break;
     case 'zh':
@@ -450,9 +459,10 @@ export const translateWord = (word: string) => {
         favorites: '收藏',
         followLive: '关注直播',
         scoreView: '显示比分',
-        localizeArena: '本地化球馆',  
+        localizeArena: '本地化球馆',
         downloadICS: 'ICS文件',
         gameDetails: '比赛详情',
+        events: '事件',
       };
       break;
     default:
@@ -490,6 +500,7 @@ export const translateWord = (word: string) => {
         localizeArena: 'Localize Arena',
         downloadICS: 'ICS File',
         gameDetails: 'Game Details',
+        events: 'Events',
       };
       break;
   }

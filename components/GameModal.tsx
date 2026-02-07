@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
   },
   teamsContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'space-around',
     width: '100%',
     marginBottom: 20,
@@ -217,12 +217,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   logo: {
-    width: 80,
-    height: 80,
+    width: 60,
+    height: 60,
     marginBottom: 10,
   },
   modalTeamName: {
-    fontSize: 24,
+    fontSize: 18,
     fontWeight: 'bold',
     textAlign: 'center',
   },
@@ -234,11 +234,13 @@ const styles = StyleSheet.create({
   modalVsText: {
     fontSize: 24,
     fontWeight: 'bold',
+    marginTop: 15,
   },
   scoreContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    marginTop: 15,
   },
   scoreText: {
     fontSize: 32,
@@ -251,20 +253,26 @@ const styles = StyleSheet.create({
   },
   actionsRow: {
     flexDirection: 'row',
-    gap: 15,
+    width: '100%',
+    gap: 12,
     marginTop: 10,
     alignItems: 'center',
     justifyContent: 'center',
   },
   actionButton: {
+    flex: 1,
     flexDirection: 'row',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 10,
+    height: 60,
+    borderRadius: 12,
     alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 10,
   },
   actionButtonText: {
     fontWeight: 'bold',
+    fontSize: 14,
+    textAlign: 'center',
+    flexShrink: 1,
   },
   dateText: {
     marginBottom: 20,
