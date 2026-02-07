@@ -13,14 +13,16 @@ export default function Accordion({
   filter = '',
   gamesFiltred = [],
   open = false,
-  isCounted = false,
   showDate = false,
   disableToggle = false,
   onRetry,
-}: Readonly<AccordionProps & { onRetry?: () => void }>) {
+  showScores,
+}: Readonly<AccordionProps & { onRetry?: () => void; showScores?: boolean }>) {
   const [expanded, setExpanded] = useState(disableToggle ? true : (open ?? i === 0));
   const { width } = useWindowDimensions();
   const isSmallDevice = width < 768;
+  const isMedium = width < 1200;
+  const containerWidth = isSmallDevice ? '100%' : isMedium ? '95%' : '75%';
   const badgeBackgroundColor = 'rgba(120, 120, 120, 0.1)';
   const badgeTextColor = useThemeColor({ light: '#404040', dark: '#8E8E93' }, 'text');
   const titleColor = useThemeColor({ light: '#48484A', dark: '#8E8E93' }, 'text');
@@ -34,77 +36,83 @@ export default function Accordion({
     if (!gamesFiltred?.length) return <NoResults onRetry={onRetry} />;
 
     return gamesFiltred.map((game) => (
-      <div key={`${game.homeTeamId}-${game.startTimeUTC}`} style={{ width: isSmallDevice ? '100%' : 'auto' }}>
-        <CardLarge data={game} numberSelected={1} showDate={showDate} showButtons={true} />
+      <div
+        key={`${game.homeTeamId}-${game.startTimeUTC}`}
+        style={{ width: isSmallDevice ? '100%' : 'calc((100% - 30px) / 3)' }}
+      >
+        <CardLarge data={game} numberSelected={1} showDate={showDate} showButtons={true} showScores={showScores} />
       </div>
     ));
   };
 
   return (
-    <ListItem.Accordion
-      content={
-        <ListItem.Content
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            paddingBottom: 8,
-            borderBottomWidth: 1,
-            borderBottomColor: borderColor,
-            marginHorizontal: 10,
-          }}
-        >
-          <ListItem.Title
+    <div style={{ width: containerWidth, margin: 'auto' }}>
+      <ListItem.Accordion
+        content={
+          <ListItem.Content
             style={{
-              color: titleColor,
-              fontSize: 13,
-              fontWeight: '500',
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              paddingBottom: 8,
+              borderBottomWidth: 1,
+              borderBottomColor: borderColor,
+              marginHorizontal: 10,
             }}
           >
-            {filter}
-          </ListItem.Title>
-
-          <div
-            style={{
-              backgroundColor: badgeBackgroundColor,
-              padding: '2px 8px',
-              borderRadius: '4px',
-            }}
-          >
-            <span
+            <ListItem.Title
               style={{
-                color: badgeTextColor,
-                fontSize: 10,
-                fontWeight: '800',
-                letterSpacing: 0.5,
+                color: titleColor,
+                fontSize: 13,
+                fontWeight: '500',
               }}
             >
-              {(gamesFiltred || []).length} {translateWord('events').toUpperCase()}
-            </span>
-          </div>
-        </ListItem.Content>
-      }
-      isExpanded={expanded}
-      noIcon={disableToggle}
-      onPress={disableToggle ? undefined : () => setExpanded(!expanded)}
-      containerStyle={{
-        backgroundColor: 'transparent',
-        borderBottomWidth: 0,
-        paddingTop: 20, // Espace au dessus de la ligne
-      }}
-      underlayColor="transparent"
-    >
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'row',
-          flexWrap: 'wrap',
-          gap: '16px',
-          padding: '20px 10px',
+              {filter.toLocaleUpperCase()}
+            </ListItem.Title>
+
+            <div
+              style={{
+                backgroundColor: badgeBackgroundColor,
+                padding: '2px 8px',
+                borderRadius: '4px',
+              }}
+            >
+              <span
+                style={{
+                  color: badgeTextColor,
+                  fontSize: 10,
+                  fontWeight: '800',
+                  letterSpacing: 0.5,
+                }}
+              >
+                {(gamesFiltred || []).length} {translateWord('events').toUpperCase()}
+              </span>
+            </div>
+          </ListItem.Content>
+        }
+        isExpanded={expanded}
+        noIcon={disableToggle}
+        onPress={disableToggle ? undefined : () => setExpanded(!expanded)}
+        containerStyle={{
+          backgroundColor: 'transparent',
+          borderBottomWidth: 0,
+          paddingTop: 20, // Espace au dessus de la ligne
         }}
+        underlayColor="transparent"
       >
-        {makeCards()}
-      </div>
-    </ListItem.Accordion>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            gap: '15px',
+
+            justifyContent: isSmallDevice ? 'center' : 'flex-start',
+          }}
+        >
+          {makeCards()}
+        </div>
+      </ListItem.Accordion>
+    </div>
   );
 }

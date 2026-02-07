@@ -12,7 +12,7 @@ import { ScrollView, useWindowDimensions } from 'react-native';
 import Accordion from '../../components/Accordion'; // Added import
 import { ActionButton, ActionButtonRef } from '../../components/ActionButton';
 import CardLarge from '../../components/CardLarge';
-import { ColumnData, ColumnsContent, ColumnsHeader } from '../../components/ColumnsLayout';
+import { ColumnData } from '../../components/ColumnsLayout';
 import LoadingView from '../../components/LoadingView';
 import {
   fetchLeagues,
@@ -486,7 +486,6 @@ export default function Schedule() {
                     </div>
                   )}
                 </div>
-                {!isSmallDevice && <ColumnsHeader columns={columnsData} widthStyle={widthStyle} />}
               </div>
             </ThemedView>
           </div>
@@ -523,58 +522,50 @@ export default function Schedule() {
       );
     }
 
-    if (isSmallDevice) {
-      const months = visibleGamesByMonth.map((m) => m.month);
-      const filteredMonths =
-        monthFilter.length > 0 ? visibleGamesByMonth.filter((m) => monthFilter.includes(m.month)) : visibleGamesByMonth;
-
-      return (
-        <div style={{ opacity: isLoading ? 0.5 : 1, transition: 'opacity 0.3s' }}>
-          {months.length > 1 && (
-            <div style={{ width: '100%', marginBottom: 10 }}>
-              <FilterSlider
-                selectedFilter={monthFilter.length > 0 ? monthFilter[0] : 'ALL'}
-                onFilterChange={(value) => setMonthFilter(value === 'ALL' ? [] : [value])}
-                data={[{ label: translateWord('all'), value: 'ALL' }, ...months.map((m) => ({ label: m, value: m }))]}
-                showFavorites={false}
-                hasFavorites={false}
-                showAll={true}
-                style={{ backgroundImage: 'none', backgroundColor: 'transparent' } as any}
-                itemStyle={{ borderWidth: 1, borderColor: 'transparent' }}
-                selectedItemStyle={{
-                  backgroundColor: 'transparent',
-                  borderWidth: 1,
-                  fontWeight: 'bold',
-                  borderColor: selectedBackgroundColor,
-                }}
-                textStyle={{
-                  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
-                  fontSize: 14,
-                  textTransform: 'capitalize',
-                }}
-                selectedTextStyle={{ color: '#ecedee' }}
-              />
-            </div>
-          )}
-          {filteredMonths.map(({ month, games }, i) => (
-            <div key={month} style={{ width: '100%', margin: '0 auto' }}>
-              <Accordion
-                filter={month}
-                i={i}
-                gamesFiltred={games}
-                open={teamFilter?.length > 0 || i === 0}
-                showDate={true}
-                isCounted={true}
-              />
-            </div>
-          ))}
-        </div>
-      );
-    }
+    const months = visibleGamesByMonth.map((m) => m.month);
+    const filteredMonths =
+      monthFilter.length > 0 ? visibleGamesByMonth.filter((m) => monthFilter.includes(m.month)) : visibleGamesByMonth;
 
     return (
       <div style={{ opacity: isLoading ? 0.5 : 1, transition: 'opacity 0.3s' }}>
-        <ColumnsContent columns={columnsData} widthStyle={widthStyle} />
+        {months.length > 1 && (
+          <div style={{ width: '100%', marginBottom: 10 }}>
+            <FilterSlider
+              selectedFilter={monthFilter.length > 0 ? monthFilter[0] : 'ALL'}
+              onFilterChange={(value) => setMonthFilter(value === 'ALL' ? [] : [value])}
+              data={[{ label: translateWord('all'), value: 'ALL' }, ...months.map((m) => ({ label: m, value: m }))]}
+              showFavorites={false}
+              hasFavorites={false}
+              showAll={true}
+              style={{ backgroundImage: 'none', backgroundColor: 'transparent' } as any}
+              itemStyle={{ borderWidth: 1, borderColor: 'transparent' }}
+              selectedItemStyle={{
+                backgroundColor: 'transparent',
+                borderWidth: 1,
+                fontWeight: 'bold',
+                borderColor: selectedBackgroundColor,
+              }}
+              textStyle={{
+                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+                fontSize: 14,
+                textTransform: 'capitalize',
+              }}
+              selectedTextStyle={{ color: '#ecedee' }}
+            />
+          </div>
+        )}
+        {filteredMonths.map(({ month, games }, i) => (
+          <div key={month} style={{ width: '100%', margin: '0 auto' }}>
+            <Accordion
+              filter={month}
+              i={i}
+              gamesFiltred={games}
+              open={!isSmallDevice || teamFilter?.length > 0 || i === 0}
+              showDate={true}
+              isCounted={true}
+            />
+          </div>
+        ))}
       </div>
     );
   };

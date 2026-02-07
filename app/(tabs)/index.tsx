@@ -12,23 +12,18 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ScrollView, useWindowDimensions } from 'react-native';
 import Accordion from '../../components/Accordion';
 import { ActionButton, ActionButtonRef } from '../../components/ActionButton';
-import CardLarge from '../../components/CardLarge';
 import LoadingView from '../../components/LoadingView';
 import { GameStatus, League } from '../../constants/enum';
 import { fetchGamesByHour, fetchLeagues, getCache, saveCache } from '../../utils/fetchData';
 import { GameFormatted } from '../../utils/types';
 import { randomNumber, translateWord } from '../../utils/utils';
 
-const groupGamesByHour = (games: GameFormatted[], roundToHour: boolean = false) => {
+const groupGamesByHour = (games: GameFormatted[]) => {
   const grouped: { [key: string]: GameFormatted[] } = {};
   games.forEach((game) => {
     const date = new Date(game.startTimeUTC);
     const hours = date.getHours().toString().padStart(2, '0');
-    const minutes = date.getMinutes().toString().padStart(2, '0');
-    let hour = `${hours}:${minutes}`;
-    if (roundToHour) {
-      hour = `${hours}:00`;
-    }
+    const hour = `${hours}:00`;
 
     if (!grouped[hour]) {
       grouped[hour] = [];
@@ -186,8 +181,7 @@ export default function GameofTheDay() {
       }
     });
 
-    const roundToHour = windowWidth >= 768 && windowWidth < 1200;
-    const scheduledGrouped = groupGamesByHour(scheduled, roundToHour);
+    const scheduledGrouped = groupGamesByHour(scheduled);
 
     const groups: { hour: string; games: GameFormatted[] }[] = [];
 
@@ -211,7 +205,7 @@ export default function GameofTheDay() {
     }
 
     return groups;
-  }, [games, selectLeagues, teamSelectedId, windowWidth, activeFilter, favoriteTeams]);
+  }, [games, selectLeagues, teamSelectedId, activeFilter, favoriteTeams]);
 
   const getGamesFromApi = useCallback(async (dateToFetch: Date) => {
     const YYYYMMDD = new Date(dateToFetch).toISOString().split('T')[0];
@@ -400,123 +394,32 @@ export default function GameofTheDay() {
     }
   }, [isLoading]);
 
-  const displaySmallDeviceContent = useCallback(() => {
+  const displayContent = useCallback(() => {
     if (!games || games.length === 0) {
       return displayNoContent();
     }
 
     if (visibleGamesByHour.length === 0) return <NoResults />;
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const gameDate = new Date(selectDate);
-    gameDate.setHours(0, 0, 0, 0);
-    const isPast = gameDate < today;
-
     return (
       <ThemedView style={{ opacity: isLoading ? 0.5 : 1, transition: 'opacity 0.3s' } as any}>
-        {visibleGamesByHour.map(({ hour, games }, i) => {
-          if (isPast) {
-            return (
-              <div key={hour} style={{ width: '100%', margin: '0 auto' }}>
-                {games.map((game) => (
-                  <CardLarge
-                    key={game._id ?? randomNumber(999999)}
-                    data={teamSelectedId ? { ...game, teamSelectedId } : game}
-                    showDate={false}
-                    showScores={showScores}
-                  />
-                ))}
-              </div>
-            );
-          }
-          return (
-            <div key={hour} style={{ width: '100%', margin: '0 auto' }}>
-              <Accordion
-                filter={hour}
-                i={i}
-                gamesFiltred={games}
-                open={true}
-                isCounted={false}
-                disableToggle={false}
-                gamesSelected={gamesSelected}
-                showScores={showScores}
-              />
-            </div>
-          );
-        })}
+        {visibleGamesByHour.map(({ hour, games }, i) => (
+          <div key={hour} style={{ width: '100%', margin: '0 auto' }}>
+            <Accordion
+              filter={hour}
+              i={i}
+              gamesFiltred={games}
+              open={true}
+              isCounted={false}
+              disableToggle={false}
+              gamesSelected={gamesSelected}
+              showScores={showScores}
+            />
+          </div>
+        ))}
       </ThemedView>
     );
-  }, [games, displayNoContent, visibleGamesByHour, gamesSelected, selectDate, teamSelectedId, showScores]);
-
-  const displayLargeDeviceContent = useCallback(() => {
-    if (!games || games.length === 0) {
-      return displayNoContent();
-    }
-    if (visibleGamesByHour.length === 0) return <NoResults />;
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const gameDate = new Date(selectDate);
-    gameDate.setHours(0, 0, 0, 0);
-    const isPast = gameDate < today;
-
-    const allGames = visibleGamesByHour.flatMap((group) => group.games);
-
-    const isMedium = windowWidth < 1200;
-    const containerWidth = isMedium ? '95%' : '75%';
-    const minCardWidth = isMedium ? 260 : 300;
-
-    return (
-      <ThemedView style={{ opacity: isLoading ? 0.5 : 1, transition: 'opacity 0.3s' } as any}>
-        <div
-          style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            justifyContent: allGames.length < 3 ? 'center' : 'flex-start',
-            gap: 15,
-            padding: 10,
-            width: containerWidth,
-            margin: 'auto',
-          }}
-        >
-          {allGames.map((game) => {
-            const gameId = game._id ?? randomNumber(999999);
-            if (isPast) {
-              return (
-                <div key={gameId} style={{ width: 'calc((100% - 30px) / 3)', minWidth: minCardWidth }}>
-                  <CardLarge
-                    data={teamSelectedId ? { ...game, teamSelectedId } : game}
-                    showDate={false}
-                    isSelected={false}
-                    showScores={showScores}
-                  />
-                </div>
-              );
-            }
-            const isSelected = gamesSelected.some(
-              (gameSelect) =>
-                game.homeTeamId === gameSelect.homeTeamId && game.startTimeUTC === gameSelect.startTimeUTC,
-            );
-            return (
-              <div key={gameId} style={{ width: 'calc((100% - 30px) / 3)', minWidth: minCardWidth }}>
-                <CardLarge
-                  data={game}
-                  numberSelected={1}
-                  showButtons={true}
-                  showDate={false}
-                  isSelected={isSelected}
-                  showScores={showScores}
-                />
-              </div>
-            );
-          })}
-        </div>
-      </ThemedView>
-    );
-  }, [games, displayNoContent, visibleGamesByHour, teamSelectedId, gamesSelected, selectDate, showScores, windowWidth]);
+  }, [games, displayNoContent, visibleGamesByHour, gamesSelected, showScores, isLoading]);
 
   useEffect(() => {
     const updateLeagues = () => {
@@ -611,7 +514,7 @@ export default function GameofTheDay() {
             </div>
           </ThemedView>
         </div>
-        <ThemedView>{windowWidth > 768 ? displayLargeDeviceContent() : displaySmallDeviceContent()}</ThemedView>
+        <ThemedView>{displayContent()}</ThemedView>
       </ScrollView>
 
       <ActionButton ref={ActionButtonRef} scrollViewRef={scrollViewRef} />
