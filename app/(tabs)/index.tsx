@@ -460,11 +460,7 @@ export default function GameofTheDay() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // Use the date from the first game if available to avoid layout jump during transition
-    let gameDate = new Date(selectDate);
-    if (games.length > 0 && games[0].startTimeUTC) {
-      gameDate = new Date(games[0].startTimeUTC);
-    }
+    const gameDate = new Date(selectDate);
     gameDate.setHours(0, 0, 0, 0);
     const isPast = gameDate < today;
 
@@ -513,11 +509,7 @@ export default function GameofTheDay() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // Use the date from the first game if available
-    let gameDate = new Date(selectDate);
-    if (games.length > 0 && games[0].startTimeUTC) {
-      gameDate = new Date(games[0].startTimeUTC);
-    }
+    const gameDate = new Date(selectDate);
     gameDate.setHours(0, 0, 0, 0);
     const isPast = gameDate < today;
 
