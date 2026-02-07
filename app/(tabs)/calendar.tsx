@@ -69,7 +69,7 @@ export default function Calendar() {
   }, [teamsSelected, allowedLeagues, teams]);
 
   const beginDate = new Date();
-  beginDate.setHours(23, 59, 59, 999);
+  beginDate.setHours(0, 0, 0, 0);
   const endDate = new Date(addDays(beginDate, 15));
   endDate.setHours(23, 59, 59, 999);
   const initializeDateRange = () => {

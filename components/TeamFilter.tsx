@@ -44,8 +44,9 @@ export default function TeamFilter({
           width: '100%',
           alignItems: 'center',
           paddingLeft: 15,
-          maskImage: 'linear-gradient(to right, transparent 0%, black 1%, black 99%, transparent 100%)',
-          WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 1%, black 99%, transparent 100%)',
+          maskImage: 'linear-gradient(to right, transparent 0%, black 40px, black calc(100% - 40px), transparent 100%)',
+          WebkitMaskImage:
+            'linear-gradient(to right, transparent 0%, black 40px, black calc(100% - 40px), transparent 100%)',
           boxSizing: 'border-box',
         }}
       >

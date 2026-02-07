@@ -64,7 +64,8 @@ export default function Accordion({
               style={{
                 color: titleColor,
                 fontSize: 13,
-                fontWeight: '500',
+                fontWeight: 'bold',
+                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
               }}
             >
               {filter.toLocaleUpperCase()}
@@ -83,6 +84,7 @@ export default function Accordion({
                   fontSize: 10,
                   fontWeight: '800',
                   letterSpacing: 0.5,
+                  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
                 }}
               >
                 {(gamesFiltred || []).length} {translateWord('events').toUpperCase()}
@@ -92,6 +94,7 @@ export default function Accordion({
         }
         isExpanded={expanded}
         noIcon={disableToggle}
+        icon={{ name: 'chevron-down', type: 'font-awesome', color: titleColor, size: 15 }}
         onPress={disableToggle ? undefined : () => setExpanded(!expanded)}
         containerStyle={{
           backgroundColor: 'transparent',

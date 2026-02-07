@@ -8,7 +8,7 @@ import { getRandomTeamId, randomNumber, translateWord } from '@/utils/utils';
 import { FontAwesome6, Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ScrollView, useWindowDimensions } from 'react-native';
+import { ScrollView, useColorScheme, useWindowDimensions } from 'react-native';
 import Accordion from '../../components/Accordion'; // Added import
 import { ActionButton, ActionButtonRef } from '../../components/ActionButton';
 import CardLarge from '../../components/CardLarge';
@@ -34,6 +34,7 @@ export default function Schedule() {
   const [monthFilter, setMonthFilter] = useState<string[]>([]);
   const [leagueTeams, setLeagueTeams] = useState<Team[]>([]);
   const { width } = useWindowDimensions();
+  const colorScheme = useColorScheme();
   const { backgroundColor: selectedBackgroundColor } = useFavoriteColor('#3b82f6');
   const [favoriteTeams, setFavoriteTeams] = useState<string[]>(() => getCache<string[]>('favoriteTeams') || []);
   const isSmallDevice = width <= 768;
@@ -450,7 +451,7 @@ export default function Schedule() {
                       : { display: 'flex', flexDirection: 'row', alignItems: 'stretch', width: '100%' }
                   }
                 >
-                  <div style={{ width: isSmallDevice || !showTeamFilter ? '100%' : '48%' }}>
+                  <div style={{ width: isSmallDevice || !showTeamFilter ? '100%' : '50%' }}>
                     <TeamFilter
                       icon={<Ionicons name="search" size={24} color="white" />}
                       selectorData={dataTeams}
@@ -468,7 +469,7 @@ export default function Schedule() {
                   </div>
 
                   {showTeamFilter && (
-                    <div style={{ width: isSmallDevice ? '100%' : '48%' }}>
+                    <div style={{ width: isSmallDevice ? '100%' : '50%' }}>
                       <TeamFilter
                         icon={<FontAwesome6 name="arrows-left-right-to-line" size={18} color="white" />}
                         selectorData={dataTeamsFilter}
@@ -550,7 +551,7 @@ export default function Schedule() {
                 fontSize: 14,
                 textTransform: 'capitalize',
               }}
-              selectedTextStyle={{ color: '#ecedee' }}
+              selectedTextStyle={{ color: colorScheme === 'light' ? selectedBackgroundColor : '#ecedee' }}
             />
           </div>
         )}
