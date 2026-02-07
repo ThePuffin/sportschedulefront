@@ -1,5 +1,8 @@
+import { ThemedElements } from '@/components/ThemedElements';
+import { ThemedText } from '@/components/ThemedText';
 import { League } from '@/constants/enum';
 import { useFavoriteColor } from '@/hooks/useFavoriteColor';
+import { useThemeColor } from '@/hooks/useThemeColor';
 import { translateWord } from '@/utils/utils';
 import { Icon } from '@rneui/themed';
 import React, { useEffect, useMemo, useRef } from 'react';
@@ -8,7 +11,6 @@ import {
   ScrollView,
   StyleProp,
   StyleSheet,
-  Text,
   TextStyle,
   TouchableOpacity,
   View,
@@ -50,7 +52,8 @@ export default function FilterSlider({
 
   // Custom colors matching the dark theme screenshot
   const { backgroundColor: selectedBackgroundColor, textColor: selectedTextColor } = useFavoriteColor('#3b82f6');
-  const unselectedTextColor = '#8E8E93';
+  const unselectedTextColor = useThemeColor({ light: '#404040', dark: '#8E8E93' }, 'text');
+  const unselectedBackgroundColor = 'rgba(120, 120, 120, 0.1)';
 
   const useDragScroll = (ref: React.RefObject<ScrollView>) => {
     useEffect(() => {
@@ -163,13 +166,13 @@ export default function FilterSlider({
   }, [rawItems, selectedFilter, favoriteValues]);
 
   return (
-    <View
+    <ThemedElements
       style={[
         styles.container,
         Platform.OS === 'web' &&
           ({
-            backgroundImage: 'linear-gradient(90deg, transparent 0%, #000000 5%, #000000 95%, transparent 100%)',
-            backgroundColor: 'transparent',
+            maskImage: 'linear-gradient(to right, transparent 0%, black 1%, black 99%, transparent 100%)',
+            WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 1%, black 99%, transparent 100%)',
           } as any),
         style,
       ]}
@@ -188,7 +191,7 @@ export default function FilterSlider({
               <TouchableOpacity
                 style={[
                   styles.item,
-                  selected && { backgroundColor: selectedBackgroundColor },
+                  { backgroundColor: selected ? selectedBackgroundColor : unselectedBackgroundColor },
                   itemStyle,
                   selected && selectedItemStyle,
                   disabled && { opacity: 0.5 },
@@ -205,35 +208,33 @@ export default function FilterSlider({
                     style={{ marginRight: 4 }}
                   />
                 )}
-                <Text
+                <ThemedText
                   style={[
                     styles.itemText,
                     { color: selected ? selectedTextColor : unselectedTextColor },
                     textStyle,
-                    selected && styles.selectedText,
                     selected && selectedTextStyle,
                   ]}
                 >
                   {item.label}
-                </Text>
+                </ThemedText>
               </TouchableOpacity>
               {index === 0 && items.length > 1 && (
                 <View style={styles.separator}>
-                  <Text style={styles.separatorText}>|</Text>
+                  <ThemedText style={styles.separatorText}>|</ThemedText>
                 </View>
               )}
             </React.Fragment>
           );
         })}
       </ScrollView>
-    </View>
+    </ThemedElements>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     paddingVertical: 10,
-    backgroundColor: '#000000',
   },
   scrollContent: {
     alignItems: 'center',
@@ -242,26 +243,21 @@ const styles = StyleSheet.create({
   item: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     borderRadius: 20,
-    marginHorizontal: 4,
-    backgroundColor: 'transparent',
+    marginRight: 8,
   },
   itemText: {
     fontSize: 14,
     fontWeight: '600',
   },
-  selectedText: {
-    fontWeight: '700',
-  },
   separator: {
     justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 4,
+    marginRight: 8,
   },
   separatorText: {
-    color: '#8E8E93',
-    fontSize: 14,
+    fontSize: 18,
+    fontWeight: '300',
   },
 });

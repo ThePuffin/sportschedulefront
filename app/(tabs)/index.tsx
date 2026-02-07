@@ -2,14 +2,14 @@ import AppLogo from '@/components/AppLogo';
 import FilterSlider from '@/components/FilterSlider';
 import NoResults from '@/components/NoResults';
 import ScoreToggle from '@/components/ScoreToggle';
-import Selector from '@/components/Selector';
 import SliderDatePicker from '@/components/SliderDatePicker';
+import TeamFilter from '@/components/TeamFilter';
 import { ThemedView } from '@/components/ThemedView';
 import { getGamesStatus } from '@/utils/date';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ScrollView, useWindowDimensions, View } from 'react-native';
+import { ScrollView, useWindowDimensions } from 'react-native';
 import Accordion from '../../components/Accordion';
 import { ActionButton, ActionButtonRef } from '../../components/ActionButton';
 import CardLarge from '../../components/CardLarge';
@@ -373,72 +373,22 @@ export default function GameofTheDay() {
     ];
 
     return (
-      <ThemedView>
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'row',
-            width: '100%',
-            alignItems: 'center',
-            paddingLeft: 15,
-            backgroundImage: 'linear-gradient(90deg, transparent 0%, #000000 5%, #000000 95%, transparent 100%)',
-            backgroundColor: 'transparent',
-            boxSizing: 'border-box',
-          }}
-        >
-          <div
-            style={{
-              position: 'relative',
-              width: 40,
-              height: 40,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginRight: 10,
-              backgroundColor: 'black',
-              border: '1px solid white',
-              borderRadius: '50%',
-            }}
-          >
-            <Ionicons name="search" size={24} color="white" />
-            <div
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
-                opacity: 0,
-                overflow: 'hidden',
-                zIndex: 10,
-              }}
-            >
-              <Selector
-                data={{
-                  i: randomNumber(999999),
-                  items: teamsOfTheDay as any,
-                  itemSelectedId: teamSelectedId,
-                  itemsSelectedIds: [],
-                }}
-                onItemSelectionChange={handleTeamSelectionChange}
-                allowMultipleSelection={false}
-                isClearable={true}
-                placeholder={translateWord('filterTeams')}
-              />
-            </div>
-          </div>
-          <View style={{ flex: 1 }}>
-            <FilterSlider
-              selectedFilter={teamSelectedId || 'ALL'}
-              onFilterChange={handleTeamFilterChange}
-              hasFavorites={false}
-              showFavorites={false}
-              data={teamFilterData}
-              favoriteValues={favoriteTeams}
-            />
-          </View>
-        </div>
-      </ThemedView>
+      <TeamFilter
+        icon={<Ionicons name="search" size={24} color="white" />}
+        selectorData={{
+          i: randomNumber(999999),
+          items: teamsOfTheDay as any,
+          itemSelectedId: teamSelectedId,
+          itemsSelectedIds: [],
+        }}
+        onSelectorChange={handleTeamSelectionChange}
+        selectorPlaceholder={translateWord('filterTeams')}
+        isClearable={true}
+        filterData={teamFilterData}
+        selectedFilter={teamSelectedId || 'ALL'}
+        onFilterChange={handleTeamFilterChange}
+        favoriteValues={favoriteTeams}
+      />
     );
   }, [leaguesAvailable, selectLeagues, teamsOfTheDay, teamSelectedId, handleTeamSelectionChange, favoriteTeams]);
 

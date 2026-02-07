@@ -1,7 +1,7 @@
 import AppLogo from '@/components/AppLogo';
 import FilterSlider from '@/components/FilterSlider';
 import NoResults from '@/components/NoResults';
-import Selector from '@/components/Selector';
+import TeamFilter from '@/components/TeamFilter';
 import { ThemedView } from '@/components/ThemedView';
 import { useFavoriteColor } from '@/hooks/useFavoriteColor';
 import { getRandomTeamId, randomNumber, translateWord } from '@/utils/utils';
@@ -451,114 +451,38 @@ export default function Schedule() {
                   }
                 >
                   <div style={{ width: isSmallDevice || !showTeamFilter ? '100%' : '48%' }}>
-                    <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-                      <div
-                        style={{
-                          position: 'relative',
-                          width: 40,
-                          height: 40,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          marginRight: 10,
-                          backgroundColor: 'black',
-                          border: '1px solid white',
-                          borderRadius: '50%',
-                          flexShrink: 0,
-                        }}
-                      >
-                        <Ionicons name="search" size={24} color="white" />
-                        <div
-                          style={{
-                            position: 'absolute',
-                            top: 0,
-                            left: 0,
-                            width: '100%',
-                            height: '100%',
-                            opacity: 0,
-                            overflow: 'hidden',
-                            zIndex: 10,
-                          }}
-                        >
-                          <Selector
-                            data={dataTeams}
-                            onItemSelectionChange={handleTeamSelectionChange}
-                            isClearable={false}
-                            placeholder={translateWord('filterTeams')}
-                          />
-                        </div>
-                      </div>
-                      <div style={{ flex: 1, overflow: 'hidden' }}>
-                        <FilterSlider
-                          selectedFilter={teamSelected}
-                          onFilterChange={handleTeamSelectionChange}
-                          data={teamsForSelector.map((t) => ({
-                            label: t.label === 'All' ? translateWord('all') : t.label,
-                            value: t.uniqueId,
-                          }))}
-                          showFavorites={false}
-                          hasFavorites={false}
-                          showAll={false}
-                          favoriteValues={favoriteTeams}
-                        />
-                      </div>
-                    </div>
+                    <TeamFilter
+                      icon={<Ionicons name="search" size={24} color="white" />}
+                      selectorData={dataTeams}
+                      onSelectorChange={handleTeamSelectionChange}
+                      selectorPlaceholder={translateWord('filterTeams')}
+                      isClearable={false}
+                      filterData={teamsForSelector.map((t) => ({
+                        label: t.label === 'All' ? translateWord('all') : t.label,
+                        value: t.uniqueId,
+                      }))}
+                      selectedFilter={teamSelected}
+                      onFilterChange={handleTeamSelectionChange}
+                      favoriteValues={favoriteTeams}
+                    />
                   </div>
 
                   {showTeamFilter && (
                     <div style={{ width: isSmallDevice ? '100%' : '48%' }}>
-                      <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-                        <div
-                          style={{
-                            position: 'relative',
-                            width: 40,
-                            height: 40,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            marginRight: 10,
-                            backgroundColor: 'black',
-                            border: '1px solid white',
-                            borderRadius: '50%',
-                            flexShrink: 0,
-                          }}
-                        >
-                          <FontAwesome6 name="arrows-left-right-to-line" size={18} color="white" />
-                          <div
-                            style={{
-                              position: 'absolute',
-                              top: 0,
-                              left: 0,
-                              width: '100%',
-                              height: '100%',
-                              opacity: 0,
-                              overflow: 'hidden',
-                              zIndex: 10,
-                            }}
-                          >
-                            <Selector
-                              data={dataTeamsFilter}
-                              onItemSelectionChange={handleTeamFilterChange}
-                              isClearable={false}
-                              placeholder={translateWord('filterTeams')}
-                            />
-                          </div>
-                        </div>
-                        <div style={{ flex: 1, overflow: 'hidden' }}>
-                          <FilterSlider
-                            selectedFilter={teamFilter}
-                            onFilterChange={handleTeamFilterChange}
-                            data={[
-                              { label: translateWord('all'), value: '' },
-                              ...uniqueTeamsFromGames.map((t) => ({ label: t.label, value: t.uniqueId })),
-                            ]}
-                            showFavorites={false}
-                            hasFavorites={false}
-                            showAll={false}
-                            favoriteValues={favoriteTeams}
-                          />
-                        </div>
-                      </div>
+                      <TeamFilter
+                        icon={<FontAwesome6 name="arrows-left-right-to-line" size={18} color="white" />}
+                        selectorData={dataTeamsFilter}
+                        onSelectorChange={handleTeamFilterChange}
+                        selectorPlaceholder={translateWord('filterTeams')}
+                        isClearable={false}
+                        filterData={[
+                          { label: translateWord('all'), value: '' },
+                          ...uniqueTeamsFromGames.map((t) => ({ label: t.label, value: t.uniqueId })),
+                        ]}
+                        selectedFilter={teamFilter}
+                        onFilterChange={handleTeamFilterChange}
+                        favoriteValues={favoriteTeams}
+                      />
                     </div>
                   )}
                 </div>

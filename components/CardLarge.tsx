@@ -87,7 +87,6 @@ export default function CardLarge({
 
   const [modalVisible, setModalVisible] = useState(false);
   const [scoreRevealed, setScoreRevealed] = useState(false);
-  const { backgroundColor: selectedBackgroundColor, textColor: selectedColor } = useFavoriteColor('#3b82f6');
   const fadeAnim = useRef(new Animated.Value(animateEntry ? 0 : 1)).current;
   const scaleAnim = useRef(new Animated.Value(animateEntry ? 0.95 : 1)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
@@ -235,7 +234,7 @@ export default function CardLarge({
 
   let gradientStyle = {
     backgroundColor: baseColor,
-    backgroundImage: `linear-gradient(90deg, ${awayColorHex} 0%, ${baseColor} 5%, ${baseColor} 95%, ${homeColorHex} 100%)`,
+    backgroundImage: `linear-gradient(90deg, ${awayColorHex} 0%, ${baseColor} 1%, ${baseColor} 99%, ${homeColorHex} 100%)`,
   };
 
   if (emptyCard) {

@@ -20,7 +20,7 @@ export default function SliderDatePicker({ selectDate, onDateChange }: SliderDat
   // Custom colors to match the screenshot
   const { backgroundColor: selectedBackgroundColor, textColor: selectedTextColor } = useFavoriteColor('#3b82f6');
   const unselectedBackgroundColor = 'rgba(120, 120, 120, 0.1)'; // Subtle dark grey for unselected
-  const unselectedTextColor = '#8E8E93';
+  const unselectedTextColor = useThemeColor({ light: '#404040', dark: '#8E8E93' }, 'text');
 
   const ITEM_WIDTH = 55;
   const ITEM_SPACING = 8;
@@ -176,8 +176,8 @@ export default function SliderDatePicker({ selectDate, onDateChange }: SliderDat
         { backgroundColor },
         Platform.OS === 'web' &&
           ({
-            maskImage: 'linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%)',
-            WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%)',
+            maskImage: 'linear-gradient(to right, transparent 0%, black 1%, black 99%, transparent 100%)',
+            WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 1%, black 99%, transparent 100%)',
           } as any),
       ]}
     >
@@ -211,7 +211,6 @@ export default function SliderDatePicker({ selectDate, onDateChange }: SliderDat
                     {
                       color: selected ? textColor : unselectedTextColor,
                       fontWeight: selected || isCurrentMonth ? 'bold' : 'normal',
-                      opacity: selected || isCurrentMonth ? 1 : 0.6,
                     },
                   ]}
                 >
@@ -249,7 +248,7 @@ export default function SliderDatePicker({ selectDate, onDateChange }: SliderDat
               <Text style={[styles.dayName, { color: selected ? selectedTextColor : unselectedTextColor }]}>
                 {getDayName(date)}
               </Text>
-              <Text style={[styles.dayNumber, { color: selected ? selectedTextColor : textColor }]}>
+              <Text style={[styles.dayNumber, { color: selected ? selectedTextColor : unselectedTextColor }]}>
                 {DayNumber(date)}
               </Text>
               {selected && <View style={styles.dot} />}
